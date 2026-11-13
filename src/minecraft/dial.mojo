@@ -390,9 +390,7 @@ struct Dialer(Copyable):
                 conn._resource_packs = packs.take_resource_packs()
             elif id == ID_START_GAME:
                 var start = pk.decode[StartGame](conn.shield_id, False)
-                conn.game_data.entity_unique_id = start.entity_unique_id
-                conn.game_data.entity_runtime_id = start.entity_runtime_id
-                conn.game_data.start_game = start^
+                conn.game_data.set_from_start_game(start)
             elif id == ID_ITEM_REGISTRY:
                 var registry = pk.decode[ItemRegistry](conn.shield_id, False)
                 for i in range(len(registry.items)):

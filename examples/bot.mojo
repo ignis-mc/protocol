@@ -74,7 +74,7 @@ def main() raises:
         "radius",
         conn.game_data.chunk_radius,
         "world",
-        conn.game_data.start_game.world_name,
+        conn.game_data.world_name,
         "items",
         len(conn.game_data.items),
         "shield",

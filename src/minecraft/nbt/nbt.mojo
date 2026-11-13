@@ -45,6 +45,7 @@ comptime BIG_ENDIAN = 2
 
 comptime _MAX_DEPTH = 512
 comptime _MAX_ELEMENTS = 1 << 24
+comptime _MAX_NETWORK_OFFSET = 4 * 1024 * 1024
 
 
 struct NBT(Copyable, Defaultable, Writable):
@@ -180,7 +181,7 @@ def _copy_int64[I: IO](mut io: I, mut out: List[UInt8], encoding: Int) raises:
 def _copy_string[I: IO](mut io: I, mut out: List[UInt8], encoding: Int) raises:
     var n: Int
     if encoding == NETWORK_LITTLE_ENDIAN:
-        n = Int(_copy_varuint(io, out, 5))
+        n = Int(UInt32(_copy_varuint(io, out, 5)))
     else:
         var b0 = Int(_copy_byte(io, out))
         var b1 = Int(_copy_byte(io, out))
@@ -199,13 +200,19 @@ def _copy_length[
     return n
 
 
+def _check_depth(depth: Int) raises:
+    # `depth` counts the containers around this one, so its own level is
+    # depth + 1. gophertunnel fails reading the entries of a compound at
+    # level 512.
+    if depth + 1 >= _MAX_DEPTH:
+        raise Error("nbt: nesting too deep")
+
+
 def _copy_payload[
     I: IO
 ](
     mut io: I, mut out: List[UInt8], tag: UInt8, encoding: Int, depth: Int
 ) raises:
-    if depth > _MAX_DEPTH:
-        raise Error("nbt: nesting too deep")
     if tag == TAG_BYTE:
         _copy_n(io, out, 1)
     elif tag == TAG_SHORT:
@@ -224,14 +231,24 @@ def _copy_payload[
     elif tag == TAG_STRING:
         _copy_string(io, out, encoding)
     elif tag == TAG_LIST:
+        _check_depth(depth)
         var elem = _copy_byte(io, out)
+        if elem > TAG_LONG_ARRAY:
+            raise Error(t"nbt: unknown tag type {elem}")
         var n = _copy_length(io, out, encoding)
         if elem == TAG_END and n > 0:
             raise Error("nbt: non-empty list of TAG_End")
         for _ in range(n):
             _copy_payload(io, out, elem, encoding, depth + 1)
     elif tag == TAG_COMPOUND:
+        _check_depth(depth)
         while True:
+            # gophertunnel stops reading network tags past 4 MiB.
+            if (
+                encoding == NETWORK_LITTLE_ENDIAN
+                and len(out) >= _MAX_NETWORK_OFFSET
+            ):
+                raise Error("nbt: limit of bytes read exhausted")
             var t = _copy_byte(io, out)
             if t == TAG_END:
                 break

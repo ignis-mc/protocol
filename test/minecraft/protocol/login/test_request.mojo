@@ -344,6 +344,45 @@ def test_negative_raw_length_is_an_error() raises:
         _ = parse(Span(req), 0)
 
 
+def test_client_data_cannot_replace_the_key() raises:
+    # gophertunnel's parseFullClaim would switch AuthResult.PublicKey to an
+    # identityPublicKey found in the client data; the identity decides it.
+    var key = _key(0x31)
+    var other = _key(0x32)
+    var identity = IdentityData()
+    identity.display_name = "Steve"
+    identity.identity = "c0ffee00-1234-4abc-8def-0123456789ab"
+    var vectors = _vectors()
+    var data: ClientData
+    for raw in array_values(vectors["cases"]):
+        var c = decode_object(raw.as_bytes())
+        if opt_string(c, "name") == "offline":
+            data = ClientData.decode(_compact(c["client"]).as_bytes())
+            break
+    else:
+        raise Error("no offline case")
+    var request = encode_offline(identity, data, Span(key), 1_800_000_000)
+    var n = Int(request[0]) | (Int(request[1]) << 8) | (Int(request[2]) << 16)
+    var json = data.to_json()
+    var patched = String(
+        json[byte = 0 : json.byte_length() - 1],
+        ',"identityPublicKey":',
+        '"',
+        marshal_public_key(Span(other)),
+        '"}',
+    )
+    var raw_token = sign_jwt(Span(key), patched)
+    var out = List[UInt8](Span(request)[0 : 4 + n])
+    var m = raw_token.byte_length()
+    for s in range(4):
+        out.append(UInt8((m >> (8 * s)) & 0xFF))
+    out.extend(raw_token.as_bytes())
+    var r = parse(Span(out), 1_800_000_000)
+    assert_equal(
+        r.auth_result.public_key.marshal(), marshal_public_key(Span(key))
+    )
+
+
 def test_identity_from_xuid() raises:
     assert_equal(
         identity_from_xuid("2535400000000001"),

@@ -10,8 +10,12 @@ client data signed with the connection's P-384 key.
 multiplayer token must be a valid OpenID token from the authorization
 service, and its `cpk` claim is the key the client data must be signed with;
 without one the token is read unverified. Requests without a token are
-checked against the legacy chain rooted at Mojang's key. Unlike Go, a
-negative client data length is an error rather than a panic.
+checked against the legacy chain rooted at Mojang's key.
+
+Two gophertunnel bugs are not copied: a negative client data length is an
+error rather than a panic, and an `identityPublicKey` member inside the
+client data does not replace the key in the `AuthResult` (Go verifies the
+client data with `parseFullClaim`, which moves its key along).
 """
 
 from jose.base64 import std_decode

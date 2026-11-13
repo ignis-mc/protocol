@@ -4,7 +4,7 @@ Go keeps `AttributeData` and `EnvironmentAttributeData` as flat structs with
 a type field and one field group per type; so does this port.
 """
 
-from .entities_helpers import optional_func
+from .io import optional_func
 from .io import IO, Marshaler, slice, unknown_enum_option
 
 comptime ATTRIBUTE_LAYER_PAYLOAD_TYPE_UPDATE_LAYERS: UInt32 = 0

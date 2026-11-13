@@ -11,7 +11,7 @@ from .io import (
     vec3,
 )
 from .math import Vec2, Vec3
-from .misc_helpers import optional_actor_unique_id, optional_vec2
+from .io import optional_actor_unique_id, optional_vec2
 from .uuid import UUID
 
 comptime WAYPOINT_ACTION_NONE: UInt8 = 0

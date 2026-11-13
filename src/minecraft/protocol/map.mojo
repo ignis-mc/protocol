@@ -3,7 +3,7 @@
 from .block_pos import BlockPos
 from .color import RGBA
 from .io import IO, Marshaler, be_argb, rgba, unknown_enum_option
-from .misc_helpers import optional_actor_unique_id, optional_block_pos
+from .io import optional_actor_unique_id, optional_block_pos
 
 comptime MAP_DECORATION_TYPE_MARKER_WHITE: UInt8 = 0
 """The Marker White map decoration."""

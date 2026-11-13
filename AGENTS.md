@@ -108,6 +108,18 @@ The goal is that a reader can put a Go file and its Mojo port side by side.
   `string_slice`, the `*_slice` and `optional_*` primitive helpers.
   Add a helper to `io.mojo` rather than open-coding a loop when Go uses a
   generic `protocol.Slice`/`FuncSlice`/`OptionalFunc`.
+- **Shared helpers** live in `protocol/io.mojo` only; read its function
+  list before writing a loop. Besides the primitives there are
+  `slice`/`slice_uint8_length`/`slice_uint32_length`/`slice_of_len`,
+  `func_slice[I.float32](io, xs)` / `func_slice_of_len` / `optional_func`
+  (Go's `FuncSlice`, `FuncSliceOfLen`, `OptionalFunc`), `optional_marshaler`,
+  `optional_*` for primitives, positions, vectors, UUIDs and byte slices,
+  the `*_slice` primitive lists, and `marshal_variant`.
+- **Interfaces**: see `events.mojo`, `item_descriptor.mojo` and
+  `item_stack.mojo` (`StackRequestAction`). Each concrete struct has
+  `comptime ID`; the wrapper holds a `Variant` and picks the arm from the
+  wire ID with a `comptime for` over the variant's types, so the ID table
+  cannot drift from the type list.
 - **NBT fields** use `nbt(io, self.x, NETWORK_LITTLE_ENDIAN)` (or the
   encoding Go passes). NBT is kept as raw bytes; `minecraft/nbt/` decodes
   it into a tree when a caller needs the values.
@@ -130,7 +142,7 @@ src/minecraft/
     packet/          one file per packet, id.mojo, packet.mojo, batch codec
     login/           ConnectionRequest encoding, IdentityData, ClientData
   nbt/               NBT walk/copy (nbt.mojo) and tree codec
-  internal/          inflate/deflate and snappy
+  internal/          flate.mojo (inflate/deflate), snappy.mojo
   conn.mojo, dial.mojo, game_data.mojo   the client connection over NetherNet
 interop/             Go programs: Dragonfly server, gophertunnel bot, auth helper
 ```
@@ -144,6 +156,8 @@ interop/             Go programs: Dragonfly server, gophertunnel bot, auth helpe
 
 - `pixi run format` before committing; never hand-format.
 - Bug fixes come with a reproducing test.
+- Where gophertunnel has a bug, do not copy it: fix it, keep the wire bytes
+  Go produces, add a test, and note it in the module docstring.
 - Never print, log or commit account tokens, refresh tokens or private keys.
   `.secrets/` is ignored; keep generated credentials there with mode 0600.
 - Do not edit `third_party/nethernet` here; change nethernet in its own repo

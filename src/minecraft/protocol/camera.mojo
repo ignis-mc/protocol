@@ -5,7 +5,7 @@ and fails on an unknown value when reading or writing, as Go does.
 """
 
 from .color import RGBA
-from .entities_helpers import func_slice, optional_func
+from .io import func_slice, optional_func
 from .io import (
     IO,
     Marshaler,

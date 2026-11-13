@@ -13,7 +13,7 @@ from .io import (
     string_slice,
     uuid,
 )
-from .misc_helpers import uint32_slice
+from .io import uint32_slice
 from .uuid import UUID
 
 comptime COMMAND_PERMISSION_LEVEL_ANY: UInt8 = 0

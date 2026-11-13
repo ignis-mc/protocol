@@ -1,7 +1,7 @@
 """Optional join details (gophertunnel `server_join_information.go`)."""
 
 from .io import IO, Marshaler, optional_marshaler, optional_string, uuid
-from .misc_helpers import optional_uuid
+from .io import optional_uuid
 from .uuid import UUID
 
 

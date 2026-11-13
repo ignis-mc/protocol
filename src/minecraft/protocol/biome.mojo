@@ -4,7 +4,7 @@ None of these types is recursive: expressions are referenced by their index
 in the packet's string list, so no flattening is needed.
 """
 
-from .entities_helpers import func_slice, optional_func
+from .io import func_slice, optional_func
 from .io import IO, Marshaler, optional_marshaler, slice
 
 comptime BIOME_EXPRESSION_OP_UNKNOWN: Int32 = -1

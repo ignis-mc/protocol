@@ -10,7 +10,7 @@ the Go packet calls `pk.Event.Marshal(io)` after those two.
 
 from std.utils import Variant
 
-from .entities_helpers import marshal_variant
+from .io import marshal_variant
 from .io import IO, Marshaler, actor_unique_id, unknown_enum_option
 
 comptime EVENT_TYPE_ACHIEVEMENT_AWARDED: Int32 = 0

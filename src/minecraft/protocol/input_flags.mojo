@@ -1,6 +1,6 @@
 """PlayerAuthInput flags (gophertunnel `protocol/input_flags.go`)."""
 
-from .entities_helpers import func_slice_of_len
+from .io import func_slice_of_len
 from .io import IO, invalid_value, unknown_enum_option
 
 

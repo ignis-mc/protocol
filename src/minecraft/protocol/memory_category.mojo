@@ -2,7 +2,7 @@
 
 from .io import IO, Marshaler, optional_string
 from .math import Vec3
-from .misc_helpers import optional_vec3
+from .io import optional_vec3
 
 comptime MEMORY_CATEGORY_UNKNOWN: UInt8 = 0
 """The `Unknown` memory category."""

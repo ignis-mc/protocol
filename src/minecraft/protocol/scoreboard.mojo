@@ -7,7 +7,7 @@ from .io import (
     optional_string,
     unknown_enum_option,
 )
-from .misc_helpers import optional_actor_unique_id
+from .io import optional_actor_unique_id
 
 comptime SCOREBOARD_IDENTITY_REMOVE: UInt8 = 0
 """Scoreboard identity: Remove."""

@@ -1,6 +1,6 @@
 from minecraft.protocol.block_pos import BlockPos
 from minecraft.protocol.math import Vec2, Vec3
-from minecraft.protocol.misc_helpers import (
+from minecraft.protocol.io import (
     optional_actor_unique_id,
     optional_block_pos,
     optional_byte_slice,

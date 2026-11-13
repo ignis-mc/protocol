@@ -1,4 +1,4 @@
-from minecraft.protocol.entities_helpers import (
+from minecraft.protocol.io import (
     func_slice,
     func_slice_of_len,
     marshal_variant,

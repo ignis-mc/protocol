@@ -1,7 +1,7 @@
 """Sub-chunk request results (gophertunnel `protocol/sub_chunk.go`)."""
 
 from .io import IO, Marshaler, invalid_value, optional_marshaler
-from .misc_helpers import optional_byte_slice, optional_uint64
+from .io import optional_byte_slice, optional_uint64
 
 comptime HEIGHT_MAP_DATA_NONE: UInt8 = 0
 """Height map state: None."""

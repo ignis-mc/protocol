@@ -1,6 +1,6 @@
 """Voxel shapes (gophertunnel `protocol/voxel.go`)."""
 
-from .entities_helpers import func_slice
+from .io import func_slice
 from .io import IO, Marshaler
 
 

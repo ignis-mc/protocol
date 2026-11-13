@@ -9,7 +9,7 @@ The Go `ShapeData` interface becomes the `ShapeData` struct holding a
 from std.utils import Variant
 
 from .color import RGBA
-from .entities_helpers import marshal_variant, optional_func
+from .io import marshal_variant, optional_func
 from .io import (
     IO,
     Marshaler,

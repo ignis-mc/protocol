@@ -3,7 +3,13 @@ from minecraft.game_data import GameData
 from minecraft.protocol.login.data import ClientData
 from nethernet.crypto.base64 import base64_decode
 from nethernet.os.addr import SocketAddr
-from std.testing import TestSuite, assert_equal, assert_raises, assert_true
+from std.testing import (
+    TestSuite,
+    assert_equal,
+    assert_false,
+    assert_raises,
+    assert_true,
+)
 
 
 def test_default_client_data_matches_gophertunnel() raises:
@@ -43,6 +49,13 @@ def test_dialer_rejects_unsupported_addresses() raises:
         _ = dialer.dial("https://example.com:443")
     with assert_raises():
         _ = dialer.dial("http://not-an-ip:7554")
+
+
+def test_dialer_downloads_packs_by_default() raises:
+    var dialer = Dialer()
+    assert_true(dialer.download_resource_packs)
+    assert_equal(len(dialer.skip_resource_packs), 0)
+    assert_false(dialer.resource_pack_roots)
 
 
 def test_game_data_defaults() raises:

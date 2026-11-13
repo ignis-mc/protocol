@@ -137,7 +137,9 @@ struct Pack(Copyable, Sized, Writable):
             raise Error(
                 t"download resource pack: {resp.reason} ({resp.status})"
             )
-        var pack = Pack.read(resp.body^)
+        var body = resp.body^
+        resp.body = List[UInt8]()
+        var pack = Pack.read(body^)
         pack._download_url = url
         return pack^
 

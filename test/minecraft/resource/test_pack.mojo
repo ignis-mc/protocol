@@ -1,5 +1,7 @@
 from fixture import GO_FIXTURE_HEX, GO_FIXTURE_SHA256
 from packs import build_pack
+from http.client import HttpClient
+from tls.roots import RootStore
 from minecraft.internal.zip import METHOD_DEFLATE, ZipWriter
 from minecraft.resource.manifest import Version
 from minecraft.resource.pack import Pack, ResourcePack
@@ -94,6 +96,12 @@ def test_bad_manifest() raises:
 def test_not_a_zip() raises:
     with assert_raises(contains="not a valid zip"):
         _ = Pack.read(List[UInt8](StringSpan("PK but not really").as_bytes()))
+
+
+def test_read_url_needs_https() raises:
+    var client = HttpClient(RootStore())
+    with assert_raises(contains="only https"):
+        _ = Pack.read_url("http://127.0.0.1/pack.zip", client)
 
 
 def main() raises:

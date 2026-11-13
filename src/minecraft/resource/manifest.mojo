@@ -1,9 +1,13 @@
 """The `manifest.json` of a pack (gophertunnel `resource/manifest.go`).
 
 gophertunnel decodes manifests with `jsonc.UnmarshalLenient`: comments
-(`//`, `/* */`) and trailing commas are allowed, member names match the Go
-field tags ignoring ASCII case, unknown members are ignored and `null`
-leaves a field at its zero value. `parse_manifest` does the same.
+(`//`, `/* */`, `#`) are allowed, member names match the Go field tags
+ignoring ASCII case, unknown members are ignored and `null` leaves a field
+at its zero value. `parse_manifest` does the same.
+
+Trailing commas before `}` or `]` are accepted too. jsonc v1.0.5, which
+gophertunnel v1.63.0 pins, rejects them (later jsonc versions drop them);
+accepting them only makes more packs readable.
 
 One deliberate difference: Go rejects a string version whose components are
 not plain integers, so a script dependency such as
@@ -194,6 +198,11 @@ def _skip_string(src: Span[UInt8, _], pos: Int) raises -> Int:
 
 def _skip_comment(src: Span[UInt8, _], pos: Int) raises -> Int:
     """Returns the index past the comment at `pos`, or `pos` if none."""
+    if pos < len(src) and src[pos] == 0x23:
+        var p = pos + 1
+        while p < len(src) and src[p] != 0x0A:
+            p += 1
+        return p
     if pos + 1 >= len(src) or src[pos] != 0x2F:
         return pos
     if src[pos + 1] == 0x2F:
@@ -214,8 +223,8 @@ def _skip_comment(src: Span[UInt8, _], pos: Int) raises -> Int:
 def strip_jsonc(src: Span[UInt8, _]) raises -> List[UInt8]:
     """Turns lenient JSON into plain JSON, as `jsonc.UnmarshalLenient` reads it.
 
-    Comments become spaces and commas before a closing bracket are dropped;
-    string literals are left alone.
+    Comments (`//`, `/* */`, `#`) become spaces and commas before a closing
+    bracket are dropped; string literals are left alone.
 
     Args:
         src: The JSONC text.

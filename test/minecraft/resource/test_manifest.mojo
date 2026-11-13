@@ -23,6 +23,7 @@ def test_strip_jsonc_comments_and_trailing_commas() raises:
     assert_equal(_parse('{"a": [1, 2,], }'), '{"a": [1, 2 ]  }')
     assert_equal(_parse('{"a": 1 // c\n}'), '{"a": 1  \n}')
     assert_equal(_parse('{/* x */"a": 1}'), '{ "a": 1}')
+    assert_equal(_parse('{"a": 1 # hash\n}'), '{"a": 1  \n}')
     assert_equal(_parse('{"a": [1, /* last */ ]}'), '{"a": [1    ]}')
     # Comment markers and commas inside strings are kept.
     assert_equal(_parse('{"a": "//,}", "b": "/*"}'), '{"a": "//,}", "b": "/*"}')

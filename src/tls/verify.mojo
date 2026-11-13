@@ -78,6 +78,9 @@ comptime SCHEME_RSA_PSS_RSAE_SHA512: UInt16 = 0x0806
 
 comptime MAX_INTERMEDIATES = 8
 """The longest chain of intermediates `verify_chain` will build."""
+comptime MAX_SIGNATURE_CHECKS = 100
+"""The most issuer checks one `verify_chain` call makes (as Go), so that a
+chain of many look-alike certificates cannot make path building explode."""
 
 
 def verify_signature(
@@ -374,6 +377,23 @@ def _may_issue(issuer: Certificate, child: Certificate) -> Bool:
     return True
 
 
+struct _Search(Movable):
+    # Path-building state shared by the recursion.
+    var reason: String  # why the last candidate failed
+    var budget: Int  # issuer checks (signature verifications) left
+
+    def __init__(out self):
+        self.reason = String()
+        self.budget = MAX_SIGNATURE_CHECKS
+
+    def spend(mut self) -> Bool:
+        if self.budget == 0:
+            self.reason = "too many signature checks while building a path"
+            return False
+        self.budget -= 1
+        return True
+
+
 def _build(
     leaf: Certificate,
     pool: List[Certificate],
@@ -382,12 +402,12 @@ def _build(
     now_unix: Int,
     mut path: List[Int],
     mut used: List[Bool],
-    mut reason: String,
+    mut search: _Search,
 ) -> Bool:
     # Extends `path` (indices into `pool`) until an anchor signs its end.
     if len(path) == 0:
         return _extend(
-            leaf, leaf, pool, roots, host, now_unix, path, used, reason
+            leaf, leaf, pool, roots, host, now_unix, path, used, search
         )
     return _extend(
         pool[path[len(path) - 1]],
@@ -398,7 +418,7 @@ def _build(
         now_unix,
         path,
         used,
-        reason,
+        search,
     )
 
 
@@ -411,24 +431,28 @@ def _extend(
     now_unix: Int,
     mut path: List[Int],
     mut used: List[Bool],
-    mut reason: String,
+    mut search: _Search,
 ) -> Bool:
     # Tries every issuer of `child`: anchors first, then the pool.
     for i in range(len(roots.certs)):
         ref anchor = roots.certs[i]
         if not _may_issue(anchor, child):
             continue
+        if not search.spend():
+            return False
         try:
             _check_issuer(anchor, child, len(path), True, leaf, host, now_unix)
             return True
         except e:
-            reason = String(e)
+            search.reason = String(e)
     for j in range(len(pool)):
         if used[j]:
             continue
         ref candidate = pool[j]
         if not _may_issue(candidate, child):
             continue
+        if not search.spend():
+            return False
         var anchored = roots.find(candidate)
         try:
             _check_issuer(
@@ -441,19 +465,22 @@ def _extend(
                 now_unix,
             )
         except e:
-            reason = String(e)
+            search.reason = String(e)
             continue
         path.append(j)
         if anchored:
             return True
         if len(path) < MAX_INTERMEDIATES:
             used[j] = True
-            if _build(leaf, pool, roots, host, now_unix, path, used, reason):
+            if _build(leaf, pool, roots, host, now_unix, path, used, search):
                 return True
             used[j] = False
         _ = path.pop()
-    if reason.byte_length() == 0:
-        reason = String(
+        if search.budget == 0:
+            _ = search.spend()  # records why the search stopped
+            return False
+    if search.reason.byte_length() == 0:
+        search.reason = String(
             t"certificate {child.name()} is signed by an unknown authority"
         )
     return False
@@ -497,7 +524,7 @@ def verify_chain(
         pool.append(parse_certificate(Span(chain[i])))
     var path = List[Int]()
     var used = List[Bool](length=len(pool), fill=False)
-    var reason = String()
-    if _build(leaf, pool, roots, host, now_unix, path, used, reason):
+    var search = _Search()
+    if _build(leaf, pool, roots, host, now_unix, path, used, search):
         return leaf.key.copy()
-    raise Error(t"x509: no valid path to a trusted root: {reason}")
+    raise Error(t"x509: no valid path to a trusted root: {search.reason}")

@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: format, docs, build, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          locked: true
+          cache: true
+      - name: Formatting
+        run: pixi run format-check
+      - name: Docstrings
+        run: pixi run lint-docs
+      - name: Precompile the package
+        run: pixi run build
+      - name: Unit tests
+        run: pixi run test

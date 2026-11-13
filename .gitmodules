@@ -1,0 +1,3 @@
+[submodule "third_party/nethernet"]
+	path = third_party/nethernet
+	url = https://github.com/ignis-mc/nethernet.git

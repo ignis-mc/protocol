@@ -1,1 +1,1 @@
-"""Implementation details: compression codecs."""
+"""Implementation details: compression codecs and the zip reader."""

@@ -1,6 +1,11 @@
 // Command dragonfly runs a Dragonfly server that only listens on NetherNet,
 // for the Mojo bot to join. It prints READY once listening, "JOINED <name>"
 // for every player that spawns, and chat lines on stdout.
+//
+// With -packs it also serves resource packs: three generated ones (small,
+// 3.5 MB, and one announced with a content key), any archives given in
+// -pack-paths, and with -pack-url one more offered by HTTPS URL. It prints
+// "SERVING <uuid> <version> <size> <sha256> key=<key> url=<url>" for each.
 package main
 
 import (
@@ -9,6 +14,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/player/chat"
@@ -18,6 +24,10 @@ func main() {
 	addr := flag.String("addr", "127.0.0.1:7554", "HTTP signaling address")
 	authEnabled := flag.Bool("auth", true, "require Xbox Live authentication")
 	debug := flag.Bool("debug", false, "log at debug level")
+	packs := flag.Bool("packs", false, "serve the generated test resource packs and require them")
+	packPaths := flag.String("pack-paths", "", "comma-separated pack archives or directories to serve as well")
+	packURL := flag.Bool("pack-url", false, "also serve a pack by HTTPS URL (needs -packs and -pack-cert)")
+	packCert := flag.String("pack-cert", "", "where to write the CA certificate of the -pack-url server")
 	flag.Parse()
 
 	if *debug {
@@ -37,6 +47,26 @@ func main() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+	if *packs {
+		dir, err := os.MkdirTemp("", "protocol-interop-packs-")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		var extra []string
+		if *packPaths != "" {
+			extra = strings.Split(*packPaths, ",")
+		}
+		// Packs are held in memory once loaded.
+		loaded, err := loadPacks(dir, extra, *packURL, *packCert)
+		_ = os.RemoveAll(dir)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		conf.Resources = append(conf.Resources, loaded...)
+		conf.ResourcesRequired = true
 	}
 	srv := conf.New()
 	srv.CloseOnProgramEnd()

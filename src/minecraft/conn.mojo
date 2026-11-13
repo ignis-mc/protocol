@@ -14,6 +14,7 @@ from .protocol.login.data import IdentityData
 from .protocol.packet.decoder import Decoder
 from .protocol.packet.encoder import Encoder
 from .protocol.packet.packet import Packet, PacketData, encode_packet
+from .resource.pack import ResourcePack
 
 
 struct Conn(Movable):
@@ -29,6 +30,7 @@ struct Conn(Movable):
     """The runtime ID of `minecraft:shield`, needed to decode items."""
     var identity_data: IdentityData
     """The identity the server sees: from the Xbox chain when online."""
+    var _resource_packs: List[ResourcePack]
 
     def __init__(out self, var transport: NetherNetConn):
         """Wraps an open NetherNet connection.
@@ -43,6 +45,19 @@ struct Conn(Movable):
         self.game_data = GameData()
         self.shield_id = 0
         self.identity_data = IdentityData()
+        self._resource_packs = List[ResourcePack]()
+
+    def resource_packs(self) -> ref[self._resource_packs] List[ResourcePack]:
+        """Returns the resource packs downloaded while joining.
+
+        Packs the dialer skipped are not included. Like gophertunnel's
+        `Conn.ResourcePacks`, contents are not decrypted; encrypted packs
+        carry their `content_key()`.
+
+        Returns:
+            The packs, in the order their downloads finished.
+        """
+        return self._resource_packs
 
     def enable_compression(mut self, algorithm: UInt16, threshold: Int):
         """Switches both directions to compressed batches.

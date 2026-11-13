@@ -5,13 +5,21 @@
 
 With a credentials file (written by `interop/auth`) the bot logs in with
 Xbox Live; without one it logs in offline as `name` (default `MojoBot`).
+
+It downloads the server's resource packs and prints one line per pack:
+`PACK <uuid> <version> <size> <sha256> key=<content key> url=<url>`. Set
+`BOT_PACK_ROOTS` to a PEM file to trust its certificates (instead of the
+system bundle) for packs offered by HTTPS URL, and `BOT_SKIP_PACKS=1` to
+skip every pack.
 """
 
 from minecraft.dial import Credentials, Dialer
 from minecraft.protocol.packet.text import TEXT_TYPE_CHAT, Text
 from nethernet.json import json_parse_object, json_parse_string
-from nethernet.wire import hex_decode
+from nethernet.wire import hex_decode, hex_encode
+from std.os import getenv
 from std.sys import argv
+from tls.roots import RootStore
 
 
 def load_credentials(path: String) raises -> Credentials:
@@ -41,7 +49,25 @@ def main() raises:
     dialer.verbose = True
     if len(args) >= 3 and String(args[2]).byte_length() > 0:
         dialer.credentials = load_credentials(String(args[2]))
+    var roots = getenv("BOT_PACK_ROOTS")
+    if roots.byte_length() > 0:
+        dialer.resource_pack_roots = RootStore.load(roots)
+    if getenv("BOT_SKIP_PACKS") == "1":
+        dialer.download_resource_packs = False
     var conn = dialer.dial(address)
+    for ref pack in conn.resource_packs():
+        var key = pack.content_key()
+        var url = pack.download_url()
+        print(
+            "PACK",
+            pack.uuid(),
+            pack.version(),
+            len(pack),
+            hex_encode(Span(pack.checksum())),
+            String(t"key={key if key.byte_length() > 0 else '-'}"),
+            String(t"url={url if url.byte_length() > 0 else '-'}"),
+            String(t"name={pack.name()}"),
+        )
     print(
         "SPAWNED runtime_id",
         conn.game_data.entity_runtime_id,

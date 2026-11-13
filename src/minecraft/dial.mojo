@@ -17,6 +17,9 @@ from nethernet.os.time import monotonic_ms, unix_time_s
 from nethernet.signaling.endpoint import EndpointClient
 from nethernet.crypto.base64 import base64_encode
 
+from http.client import HttpClient
+from tls.roots import RootStore
+
 from .conn import Conn
 from .protocol.info import CURRENT_PROTOCOL, CURRENT_VERSION
 from .protocol.login.data import (
@@ -39,6 +42,8 @@ from .protocol.packet.id import (
     ID_ITEM_REGISTRY,
     ID_NETWORK_SETTINGS,
     ID_PLAY_STATUS,
+    ID_RESOURCE_PACK_CHUNK_DATA,
+    ID_RESOURCE_PACK_DATA_INFO,
     ID_RESOURCE_PACK_STACK,
     ID_RESOURCE_PACKS_INFO,
     ID_START_GAME,
@@ -53,16 +58,16 @@ from .protocol.packet.play_status import (
 )
 from .protocol.packet.request_chunk_radius import RequestChunkRadius
 from .protocol.packet.request_network_settings import RequestNetworkSettings
-from .protocol.packet.resource_pack_client_response import (
-    PACK_RESPONSE_ALL_PACKS_DOWNLOADED,
-    PACK_RESPONSE_COMPLETED,
-    ResourcePackClientResponse,
-)
+from .protocol.packet.resource_pack_chunk_data import ResourcePackChunkData
+from .protocol.packet.resource_pack_data_info import ResourcePackDataInfo
+from .protocol.packet.resource_pack_stack import ResourcePackStack
+from .protocol.packet.resource_packs_info import ResourcePacksInfo
 from .protocol.packet.start_game import StartGame
 from .protocol.packet.set_local_player_as_initialised import (
     SetLocalPlayerAsInitialised,
 )
 from .protocol.uuid import UUID
+from .resource_pack_queue import PackFetcher, ResourcePackQueue
 
 comptime _HEX: StaticString = "0123456789abcdef"
 
@@ -98,6 +103,33 @@ struct Credentials(Copyable):
         self.chain = chain^
         self.token = token^
         self.domain = domain^
+
+
+struct _HttpPackFetcher(PackFetcher):
+    """Downloads packs offered by URL with the native HTTPS client."""
+
+    var roots: Optional[RootStore]
+    var deadline: Int
+
+    def __init__(out self, var roots: Optional[RootStore], deadline: Int):
+        self.roots = roots^
+        self.deadline = deadline
+
+    def fetch(mut self, url: String) raises -> List[UInt8]:
+        var left = self.deadline - monotonic_ms()
+        if left <= 0:
+            raise Error("timed out")
+        var client: HttpClient
+        if case .Some(roots) = self.roots:
+            client = HttpClient(roots.copy())
+        else:
+            client = HttpClient.system()
+        var resp = client.get(url, timeout_ms=left)
+        if resp.status != 200:
+            raise Error(t"HTTP status {resp.status} {resp.reason}")
+        var body = resp.body^
+        resp.body = List[UInt8]()
+        return body^
 
 
 def _hex(data: Span[UInt8, _]) -> String:
@@ -206,6 +238,16 @@ struct Dialer(Copyable):
     """The view distance to request."""
     var verbose: Bool
     """Whether to print every packet ID received while joining."""
+    var download_resource_packs: Bool
+    """Whether to download the server's resource packs; `False` skips all
+    of them, like a gophertunnel `DownloadResourcePack` that always returns
+    false."""
+    var skip_resource_packs: List[String]
+    """Packs not to download, as `UUID` or `UUID_Version` (the data form of
+    gophertunnel's `DownloadResourcePack` filter)."""
+    var resource_pack_roots: Optional[RootStore]
+    """Roots trusted for packs offered by HTTPS URL; `None` uses the system
+    bundle."""
 
     def __init__(out self):
         """Creates an offline dialer with default settings."""
@@ -215,6 +257,9 @@ struct Dialer(Copyable):
         self.timeout_ms = 30000
         self.chunk_radius = 16
         self.verbose = False
+        self.download_resource_packs = True
+        self.skip_resource_packs = List[String]()
+        self.resource_pack_roots = None
 
     def dial(self, address: StringSpan) raises -> Conn:
         """Connects, logs in and waits until the player has spawned.
@@ -271,6 +316,15 @@ struct Dialer(Copyable):
         rns.client_protocol = CURRENT_PROTOCOL
         conn.write_packet(rns)
 
+        var packs = ResourcePackQueue()
+        packs.download_resource_packs = self.download_resource_packs
+        packs.skip_resource_packs = self.skip_resource_packs.copy()
+        var fetcher = _HttpPackFetcher(
+            self.resource_pack_roots.copy(), deadline
+        )
+        var replies = List[List[UInt8]]()
+        var logged = 0
+
         var spawn_status = False
         var radius_received = False
         while True:
@@ -313,14 +367,27 @@ struct Dialer(Copyable):
                     t" {d.message}"
                 )
             elif id == ID_RESOURCE_PACKS_INFO:
-                # TODO: download packs; Dragonfly sends none by default.
-                var response = ResourcePackClientResponse()
-                response.response = PACK_RESPONSE_ALL_PACKS_DOWNLOADED
-                conn.write_packet(response)
+                packs.handle_resource_packs_info(
+                    pk.decode[ResourcePacksInfo](conn.shield_id, False),
+                    fetcher,
+                    replies,
+                )
+            elif id == ID_RESOURCE_PACK_DATA_INFO:
+                packs.handle_resource_pack_data_info(
+                    pk.decode[ResourcePackDataInfo](conn.shield_id, False),
+                    replies,
+                )
+            elif id == ID_RESOURCE_PACK_CHUNK_DATA:
+                packs.handle_resource_pack_chunk_data(
+                    pk.decode[ResourcePackChunkData](conn.shield_id, False),
+                    replies,
+                )
             elif id == ID_RESOURCE_PACK_STACK:
-                var response = ResourcePackClientResponse()
-                response.response = PACK_RESPONSE_COMPLETED
-                conn.write_packet(response)
+                packs.handle_resource_pack_stack(
+                    pk.decode[ResourcePackStack](conn.shield_id, False),
+                    replies,
+                )
+                conn._resource_packs = packs.take_resource_packs()
             elif id == ID_START_GAME:
                 var start = pk.decode[StartGame](conn.shield_id, False)
                 conn.game_data.entity_unique_id = start.entity_unique_id
@@ -341,6 +408,13 @@ struct Dialer(Copyable):
                     ChunkRadiusUpdated
                 ]().chunk_radius
                 radius_received = True
+            if len(replies) > 0:
+                conn.write_batch(replies)
+                replies.clear()
+            if self.verbose:
+                while logged < len(packs.log):
+                    print("dial:", packs.log[logged])
+                    logged += 1
             if spawn_status and radius_received:
                 var ready = SetLocalPlayerAsInitialised()
                 ready.entity_runtime_id = conn.game_data.entity_runtime_id

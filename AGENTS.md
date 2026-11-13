@@ -146,7 +146,9 @@ src/minecraft/
   auth/              Xbox Live sign-in: minecraft/auth, minecraft/service and
                      the go-xsapi / go-playfab requests; sans-I/O builders and
                      parsers, `SignIn` drives them over a `Transport`
-  conn.mojo, dial.mojo, game_data.mojo   the client connection over NetherNet
+  conn.mojo, dial.mojo, listener.mojo, game_data.mojo
+                     the connection over NetherNet: client Dialer, server
+                     Listener (sans-blocking: poll/try_accept/next_timeout)
 interop/             Dragonfly server, gophertunnel bot, Go auth helper (a
                      cross-check), authcapture (Go-built requests for the
                      auth tests), mojo/auth.mojo (the native auth helper)

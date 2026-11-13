@@ -37,11 +37,14 @@ from minecraft.protocol.packet.resource_pack_stack import ResourcePackStack
 from minecraft.protocol.packet.resource_packs_info import ResourcePacksInfo
 from minecraft.protocol.resource_pack import StackResourcePack, TexturePackInfo
 from minecraft.protocol.uuid import UUID
+from minecraft.resource.pack import Pack
 from minecraft.resource_pack_queue import (
     NoFetcher,
     PackFetcher,
     ResourcePackQueue,
+    ServerResourcePackQueue,
 )
+from std.memory import ArcPointer
 from nethernet.crypto.sha256 import sha256
 from nethernet.wire import hex_encode
 from std.testing import (
@@ -543,6 +546,69 @@ def test_truncated_archive_fails() raises:
     chunk.data = served.data.copy()
     with assert_raises(contains="invalid full resource pack data"):
         queue.handle_resource_pack_chunk_data(chunk, out)
+
+
+def _server_queue(chunk: UInt32) raises -> ServerResourcePackQueue:
+    var packs = List[ArcPointer[Pack]]()
+    for p in _packs():
+        packs.append(ArcPointer(Pack.read(p.data.copy())))
+    return ServerResourcePackQueue(packs^, chunk)
+
+
+def test_server_queue_sends_requested_packs_in_order() raises:
+    var queue = _server_queue(CHUNK)
+    queue.request(
+        [String(UUID_C) + "_0.0.1", String(UUID_A), String(UUID_A) + "_1.0.0"]
+    )
+    var first = queue.next_pack().value().copy()
+    assert_equal(first.uuid, String(UUID_C) + "_0.0.1")
+    assert_equal(first.data_chunk_size, CHUNK)
+    var served = _packs()
+    assert_equal(first.size, UInt64(len(served[2].data)))
+    assert_equal(first.chunk_count, UInt32((len(served[2].data) + 999) // 1000))
+    var sum = sha256(Span(served[2].data))
+    assert_true(first.hash == List[UInt8](Span(sum)))
+    assert_equal(first.pack_type, RESOURCE_PACK_TYPE_RESOURCES)
+    var content = List[UInt8]()
+    var index = 0
+    while True:
+        var req = ResourcePackChunkRequest()
+        req.uuid = first.uuid.copy()
+        req.chunk_index = Int32(index)
+        var answer = queue.chunk(req)
+        assert_equal(answer[0].chunk_index, UInt32(index))
+        assert_equal(answer[0].data_offset, UInt64(index * CHUNK))
+        content.extend(Span(answer[0].data))
+        index += 1
+        if answer[1]:
+            break
+    assert_true(content == served[2].data)
+    assert_false(queue.all_downloaded())
+    # Duplicates collapse, as in gophertunnel's map.
+    assert_equal(queue.next_pack().value().uuid, String(UUID_A) + "_1.0.0")
+    assert_true(queue.all_downloaded())
+    assert_false(queue.next_pack())
+
+
+def test_server_queue_rejects_bad_requests() raises:
+    var queue = _server_queue(CHUNK)
+    with assert_raises(contains="not found"):
+        queue.request([String(UUID_A) + "_9.9.9"])
+    var req = ResourcePackChunkRequest()
+    req.uuid = String(UUID_A)
+    with assert_raises(contains="no resource pack"):
+        _ = queue.chunk(req)
+    queue.request([String(UUID_B)])
+    _ = queue.next_pack()
+    with assert_raises(contains="expected pack UUID"):
+        _ = queue.chunk(req)
+    req.uuid = String(UUID_B) + "_2.1.0"
+    req.chunk_index = 2
+    with assert_raises(contains="expected chunk index 0"):
+        _ = queue.chunk(req)
+    req.chunk_index = -1
+    with assert_raises(contains="expected chunk index 0"):
+        _ = queue.chunk(req)
 
 
 def main() raises:

@@ -23,8 +23,19 @@ func main() {
 	if err := conn.DoSpawn(); err != nil {
 		panic(err)
 	}
-	fmt.Println("SPAWNED runtime id", conn.GameData().EntityRuntimeID)
+	fmt.Println("SPAWNED runtime id", conn.GameData().EntityRuntimeID, "packs", len(conn.ResourcePacks()))
 	_ = conn.WritePacket(&packet.Text{TextType: packet.TextTypeChat, SourceName: "GoBot", Message: "hello from gophertunnel"})
-	time.Sleep(time.Second)
+	// Print what the server echoes back (the Mojo example server does).
+	_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	for {
+		pk, err := conn.ReadPacket()
+		if err != nil {
+			break
+		}
+		if t, ok := pk.(*packet.Text); ok {
+			fmt.Println("ECHO", t.Message)
+			break
+		}
+	}
 	_ = conn.Close()
 }

@@ -10,11 +10,14 @@ It downloads the server's resource packs and prints one line per pack:
 `PACK <uuid> <version> <size> <sha256> key=<content key> url=<url>`. Set
 `BOT_PACK_ROOTS` to a PEM file to trust its certificates (instead of the
 system bundle) for packs offered by HTTPS URL, and `BOT_SKIP_PACKS=1` to
-skip every pack.
+skip every pack. With `BOT_EXPECT_ECHO=1` it waits for the server to send
+its chat line back and prints `ECHO <message>`, failing if it does not.
 """
 
 from minecraft.dial import Credentials, Dialer
+from minecraft.protocol.packet.id import ID_TEXT
 from minecraft.protocol.packet.text import TEXT_TYPE_CHAT, Text
+from nethernet.os.time import monotonic_ms
 from nethernet.json import json_parse_object, json_parse_string
 from nethernet.wire import hex_decode, hex_encode
 from std.os import getenv
@@ -74,7 +77,7 @@ def main() raises:
         "radius",
         conn.game_data.chunk_radius,
         "world",
-        conn.game_data.start_game.world_name,
+        conn.game_data.world_name,
         "items",
         len(conn.game_data.items),
         "shield",
@@ -86,6 +89,19 @@ def main() raises:
     text.xuid = conn.identity_data.xuid
     text.message = "hello from Mojo"
     conn.write_packet(text)
+    if getenv("BOT_EXPECT_ECHO") == "1":
+        var deadline = monotonic_ms() + 5000
+        var echoed = False
+        while not echoed and monotonic_ms() < deadline:
+            var next = conn.read_packet(deadline - monotonic_ms())
+            if not next:
+                break
+            var pk = next.take()
+            if pk.id() == ID_TEXT:
+                print("ECHO", pk.decode[Text](conn.shield_id, False).message)
+                echoed = True
+        if not echoed:
+            raise Error("the server did not echo the chat line")
     conn.pump(1500)
     conn.close()
     conn.pump(500)

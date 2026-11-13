@@ -12,7 +12,10 @@ The Minecraft: Bedrock Edition network protocol in pure Mojo, ported from
 - `minecraft.auth`: Xbox Live sign-in (Microsoft token refresh, device token,
   SISU, XSTS, PlayFab, Minecraft services, login chain) over the Mojo TLS
   client; `interop/mojo/auth.mojo` writes the credentials the `Dialer` uses.
-- `minecraft`: a client `Dialer` and `Conn`.
+- `minecraft`: a client `Dialer`, a server `Listener` (HTTP signaling and
+  LAN discovery, the server login sequence, resource packs, `start_game`)
+  and the `Conn` both hand out. `examples/server.mojo` is a minimal server
+  driven by one event loop; `examples/bot.mojo` a client.
 
 The transport is [NetherNet](https://github.com/ignis-mc/nethernet), included
 as the `third_party/nethernet` submodule. RakNet is deliberately not

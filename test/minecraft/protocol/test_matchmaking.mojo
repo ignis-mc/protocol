@@ -1,0 +1,37 @@
+from minecraft.protocol.matchmaking import MatchmakingStateOptions
+from minecraft.protocol.io import Marshaler
+from minecraft.protocol.reader import Reader
+from minecraft.protocol.writer import Writer
+from nethernet.wire import hex_decode, hex_encode
+from std.testing import TestSuite, assert_equal, assert_raises, assert_true
+
+
+def _hex[T: Marshaler](mut x: T) raises -> String:
+    var w = Writer()
+    x.marshal(w)
+    return hex_encode(Span(w.buf))
+
+
+def _read[T: Marshaler](text: String) raises -> T:
+    var raw = hex_decode(text)
+    var r = Reader(Span(raw))
+    var x = T()
+    x.marshal(r)
+    assert_equal(r.remaining(), 0)
+    return x^
+
+
+def test_matchmaking_state_options() raises:
+    var o = MatchmakingStateOptions()
+    assert_equal(_hex(o), "0000")
+    o.triggering_player_name = String("p")
+    o.triggered_by_local_player = True
+    assert_equal(_hex(o), "0101700101")
+    var back = _read[MatchmakingStateOptions]("0101700101")
+    assert_equal(back.triggering_player_name.value(), "p")
+    with assert_raises():
+        _ = _read[MatchmakingStateOptions]("0105")
+
+
+def main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

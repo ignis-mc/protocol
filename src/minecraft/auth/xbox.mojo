@@ -90,7 +90,7 @@ def android_config() -> XalConfig:
     """Returns Minecraft: Bedrock Edition for Android's configuration.
 
     Returns:
-        gophertunnel's `auth.AndroidConfig`.
+        The values of gophertunnel's `auth.AndroidConfig`.
     """
     return XalConfig(
         "Android",

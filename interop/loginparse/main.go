@@ -56,9 +56,9 @@ func main() {
 	if res.PublicKey == nil {
 		fail(fmt.Errorf("no public key in the request"))
 	}
-	fmt.Printf("OK name=%s authenticated=%v device_os=%d version=%s skin=%dx%d\n",
-		identity.DisplayName, res.XBOXLiveAuthenticated, client.DeviceOS, client.GameVersion,
-		client.SkinImageWidth, client.SkinImageHeight)
+	fmt.Printf("OK name=%s xuid=%s identity=%s title_id=%s authenticated=%v device_os=%d version=%s skin=%dx%d\n",
+		identity.DisplayName, identity.XUID, identity.Identity, identity.TitleID, res.XBOXLiveAuthenticated,
+		client.DeviceOS, client.GameVersion, client.SkinImageWidth, client.SkinImageHeight)
 }
 
 func fail(err error) {

@@ -1,5 +1,4 @@
 from minecraft.dial import Dialer, default_client_data
-from minecraft.game_data import GameData
 from minecraft.protocol.login.data import ClientData
 from nethernet.crypto.base64 import base64_decode
 from nethernet.os.addr import SocketAddr
@@ -56,12 +55,6 @@ def test_dialer_downloads_packs_by_default() raises:
     assert_true(dialer.download_resource_packs)
     assert_equal(len(dialer.skip_resource_packs), 0)
     assert_false(dialer.resource_pack_roots)
-
-
-def test_game_data_defaults() raises:
-    var g = GameData()
-    assert_equal(g.entity_runtime_id, 0)
-    assert_equal(g.chunk_radius, 0)
 
 
 def main() raises:

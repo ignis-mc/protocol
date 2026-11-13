@@ -493,8 +493,12 @@ struct ClientEngine[V: CertificateVerifier](Movable):
                 var trimmed = String(detail[byte=5:])
                 detail = trimmed^
             if not detail.startswith("peer sent alert"):
+                var alert = _alert_for(detail)
+                var name = alert_name(alert)
+                if not detail.startswith(name + ":"):
+                    detail = String(name, ": ", detail)
                 try:
-                    self._send_alert(2, _alert_for(detail))
+                    self._send_alert(2, alert)
                 except:
                     pass
             self._error = String("tls: ") + detail
@@ -674,12 +678,12 @@ struct ClientEngine[V: CertificateVerifier](Movable):
     ) raises:
         for e in sh.extensions:
             var t = e.ext_type
+            # A HelloRetryRequest introduces the cookie (RFC 8446 4.2.2).
+            if retry and t == EXT_COOKIE:
+                continue
             if not _contains(self._offered_extensions, t):
                 raise Error("unsupported_extension: unsolicited extension")
-            var allowed = t == EXT_SUPPORTED_VERSIONS or t == EXT_KEY_SHARE
-            if retry and t == EXT_COOKIE:
-                allowed = True
-            if not allowed:
+            if t != EXT_SUPPORTED_VERSIONS and t != EXT_KEY_SHARE:
                 raise Error("illegal_parameter: extension not allowed here")
 
     def _on_server_hello(mut self, var message: List[UInt8]) raises -> Bool:

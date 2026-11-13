@@ -226,6 +226,17 @@ def test_synthetic_failures() raises:
     _fails(empty, host, SYN_NOW, roots, "empty")
 
 
+def test_signature_check_budget() raises:
+    # 120 copies of an intermediate whose root is not trusted: each is a
+    # candidate, so path building stops at the budget instead of trying all.
+    var chain = _syn("leaf")
+    var inter = _syn("int")[0].copy()
+    for _ in range(120):
+        chain.append(inter.copy())
+    var other = _roots(String(_CHAINS, "roots.pem"))
+    _fails(chain, "good.example.com", SYN_NOW, other, "too many signature")
+
+
 def _sigs() raises -> Dict[String, List[UInt8]]:
     var out = Dict[String, List[UInt8]]()
     var text = open(String(_SYN, "sigs.txt"), "r").read()

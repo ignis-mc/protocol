@@ -6,6 +6,10 @@
 // 3.5 MB, and one announced with a content key), any archives given in
 // -pack-paths, and with -pack-url one more offered by HTTPS URL. It prints
 // "SERVING <uuid> <version> <size> <sha256> key=<key> url=<url>" for each.
+//
+// With -write-packs DIR it only writes the generated packs to DIR, printing
+// "PACKFILE <path> <key>" for each (key "-" if none), and exits; the Mojo
+// example server serves them in the listener interop cases.
 package main
 
 import (
@@ -28,7 +32,24 @@ func main() {
 	packPaths := flag.String("pack-paths", "", "comma-separated pack archives or directories to serve as well")
 	packURL := flag.Bool("pack-url", false, "also serve a pack by HTTPS URL (needs -packs and -pack-cert)")
 	packCert := flag.String("pack-cert", "", "where to write the CA certificate of the -pack-url server")
+	writePacks := flag.String("write-packs", "", "only write the generated packs to this directory and exit")
 	flag.Parse()
+
+	if *writePacks != "" {
+		for _, g := range generatedPacks {
+			path := filepath.Join(*writePacks, g.file)
+			if err := writePack(path, g); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			key := g.key
+			if key == "" {
+				key = "-"
+			}
+			fmt.Println("PACKFILE", path, key)
+		}
+		return
+	}
 
 	if *debug {
 		slog.SetLogLoggerLevel(slog.LevelDebug)

@@ -3,10 +3,11 @@ is echoed back to them. Nothing else is sent, so clients see no terrain.
 
     mojo run -I src -I third_party/nethernet/src examples/server.mojo \
         [-addr 127.0.0.1:7560] [-auth] [-lan] [-anonymous] [-name NAME] \
-        [-pack PATH]... [-chunk-delay MS] [-max N]
+        [-pack PATH [-pack-key KEY]]... [-chunk-delay MS] [-max N]
 
 Without `-auth` anyone may join offline. `-pack` offers a resource pack
-(an `.mcpack` or zip), repeatable. Prints one line per event for scripts:
+(an `.mcpack` or zip), repeatable; `-pack-key` announces a content key
+for the pack before it. Prints one line per event for scripts:
 `READY <addr>`, `SERVING <uuid> <version> <size> <sha256> key=- url=-`,
 `ACCEPTED <name> xuid=<xuid> authenticated=<bool>`, `SPAWNED <name>`,
 `CHAT <name>: <message>`, `LEFT <name>: <reason>` and `ERROR <reason>`.
@@ -70,6 +71,9 @@ def main() raises:
                 name = value
             elif arg == "-pack":
                 config.resource_packs.append(Pack.read_path(value))
+            elif arg == "-pack-key":
+                var last = config.resource_packs.pop()
+                config.resource_packs.append(last^.with_content_key(value))
             elif arg == "-chunk-delay":
                 config.resource_pack_delivery.chunk_send_delay_ms = Int(value)
             elif arg == "-max":
@@ -80,14 +84,16 @@ def main() raises:
             raise Error(t"unknown flag {arg}")
         i += 1
     config.status_provider = ListenerStatusProvider(name, "Ignis")
+    config.texture_packs_required = len(config.resource_packs) > 0
     for ref pack in config.resource_packs:
+        var key = pack.content_key()
         print(
             "SERVING",
             pack.uuid(),
             pack.version(),
             len(pack),
             hex_encode(Span(pack.checksum())),
-            "key=-",
+            String(t"key={key if key.byte_length() > 0 else '-'}"),
             "url=-",
         )
 

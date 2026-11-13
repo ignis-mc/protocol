@@ -41,10 +41,11 @@ import (
 // Date is sent on every response, so Go's server clock is predictable.
 const Date = "Fri, 13 Nov 2026 10:00:00 GMT"
 
-// CurrentTitle is a made-up NSAL document for the Minecraft title.
+// CurrentTitle is a trimmed NSAL document for the Minecraft title, with the
+// relying parties the live service returned on 2026-11-13.
 const CurrentTitle = `{"EndPoints":[` +
 	`{"Protocol":"https","Host":"multiplayer.minecraft.net","HostType":"fqdn","RelyingParty":"https://multiplayer.minecraft.net/","TokenType":"JWT"},` +
-	`{"Protocol":"https","Host":"*.playfabapi.com","HostType":"wildcard","RelyingParty":"http://playfab.xboxlive.com/","TokenType":"JWT","SignaturePolicyIndex":0}],` +
+	`{"Protocol":"https","Host":"*.playfabapi.com","HostType":"wildcard","RelyingParty":"https://b980a380.minecraft.playfabapi.com/","TokenType":"JWT","SignaturePolicyIndex":0}],` +
 	`"SignaturePolicies":[{"Version":1,"SupportedAlgorithms":["ES256"],"MaxBodyBytes":8192}]}`
 
 const later = `"IssueInstant":"2026-11-13T10:00:00.1234567Z","NotAfter":"2099-01-01T00:00:00.0000000Z"`

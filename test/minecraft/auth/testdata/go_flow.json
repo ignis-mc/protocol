@@ -11,7 +11,7 @@
      ],
      [
       "Signature",
-      "AAAAAQHdc6HeubuElRA4v7yzo6YEksZLtM18OZEhTn0BZeyRv5NBa84B0JxcM9Ofk1Xo4ZcDtzxuJFLaRbDpoAtP952Yhbioce/CXw=="
+      "AAAAAQHdc6TfKGsv07/fmARTqlaT6W9VAKhlotanNquibgg4pXqmwmDY/HFJe4Dd5Lu4JnjFyPiL16MEawC4YwfnFsgNrX2cZTrxIw=="
      ],
      [
       "User-Agent",
@@ -104,7 +104,7 @@
     "headers": [
      [
       "Signature",
-      "AAAAAQHdc1W+tiI7LDRYTZDy/PC56+p338g2hTaNLehOtQdogr8wYo2Bb0Ub9c1v+oPfxGx9zF5tooF+NEhgl8rvXq33+W5QhSNBnw=="
+      "AAAAAQHdc1W+tihPulaO1APZbVF7ixgd8YtjVYAo+TdS9593Hnz7pRKU/GfDTMo7X2PCchRd8eRKA5f2HRgDz2s9zY2cYFUy7r/xGA=="
      ],
      [
       "User-Agent",
@@ -170,7 +170,7 @@
      ],
      [
       "Signature",
-      "AAAAAQHdc1W+thmb441vPImMEJbKuXVcPnnI5R9pcG/2tp4+WobKkYE4IJqTD97qwrqSuBRidgui8ssWSeHXS/aus3DWm3nxO4Pcfg=="
+      "AAAAAQHdc1W+thfYDjOrNTEUtOiPW2Qa+s/Bc0hVL3AKzB3FYbu9Ei8yMzER3jgO21yg2g9sDhzmQu+0qfb65XUMyGbHExzCig8OTg=="
      ],
      [
       "X-Xbl-Contract-Version",
@@ -191,7 +191,7 @@
       "Fri, 13 Nov 2026 10:00:00 GMT"
      ]
     ],
-    "body": "{\"EndPoints\":[{\"Protocol\":\"https\",\"Host\":\"multiplayer.minecraft.net\",\"HostType\":\"fqdn\",\"RelyingParty\":\"https://multiplayer.minecraft.net/\",\"TokenType\":\"JWT\"},{\"Protocol\":\"https\",\"Host\":\"*.playfabapi.com\",\"HostType\":\"wildcard\",\"RelyingParty\":\"http://playfab.xboxlive.com/\",\"TokenType\":\"JWT\",\"SignaturePolicyIndex\":0}],\"SignaturePolicies\":[{\"Version\":1,\"SupportedAlgorithms\":[\"ES256\"],\"MaxBodyBytes\":8192}]}"
+    "body": "{\"EndPoints\":[{\"Protocol\":\"https\",\"Host\":\"multiplayer.minecraft.net\",\"HostType\":\"fqdn\",\"RelyingParty\":\"https://multiplayer.minecraft.net/\",\"TokenType\":\"JWT\"},{\"Protocol\":\"https\",\"Host\":\"*.playfabapi.com\",\"HostType\":\"wildcard\",\"RelyingParty\":\"https://b980a380.minecraft.playfabapi.com/\",\"TokenType\":\"JWT\",\"SignaturePolicyIndex\":0}],\"SignaturePolicies\":[{\"Version\":1,\"SupportedAlgorithms\":[\"ES256\"],\"MaxBodyBytes\":8192}]}"
    }
   },
   {
@@ -205,7 +205,7 @@
      ],
      [
       "Signature",
-      "AAAAAQHdc1W+thFq+JigiwTl2/xU2ikzI3z7FaYIu3bO5QClVQZw0wcnrHpXqxKv22++bceGHKTFFH4B6xZUTkBa5BkBpgW5OgF9Aw=="
+      "AAAAAQHdc1W+thET2i01+qpwAzR7KOl8dVBgAea12VMk0RdV/S5FLW7h56YIIPpeJa/crvpOitmXJL8KaDBerPPkuvawHo9OahzPmA=="
      ],
      [
       "User-Agent",
@@ -216,7 +216,7 @@
       "1"
      ]
     ],
-    "body": "{\"RelyingParty\":\"http://playfab.xboxlive.com/\",\"TokenType\":\"JWT\",\"Properties\":{\"SandboxId\":\"RETAIL\",\"DeviceToken\":\"device-token\",\"TitleToken\":\"title-token\",\"UserTokens\":[\"user-token\"]}}\n"
+    "body": "{\"RelyingParty\":\"https://b980a380.minecraft.playfabapi.com/\",\"TokenType\":\"JWT\",\"Properties\":{\"SandboxId\":\"RETAIL\",\"DeviceToken\":\"device-token\",\"TitleToken\":\"title-token\",\"UserTokens\":[\"user-token\"]}}\n"
    },
    "response": {
     "status": 200,
@@ -230,7 +230,7 @@
       "Fri, 13 Nov 2026 10:00:00 GMT"
      ]
     ],
-    "body": "{\"IssueInstant\":\"2026-11-13T10:00:00.1234567Z\",\"NotAfter\":\"2099-01-01T00:00:00.0000000Z\",\"Token\":\"xsts-playfab-xboxlive-com\",\"DisplayClaims\":{\"xui\":[{\"uhs\":\"1234567890\"}]}}"
+    "body": "{\"IssueInstant\":\"2026-11-13T10:00:00.1234567Z\",\"NotAfter\":\"2099-01-01T00:00:00.0000000Z\",\"Token\":\"xsts-b980a380-minecraft-playfabapi-com\",\"DisplayClaims\":{\"xui\":[{\"uhs\":\"1234567890\"}]}}"
    }
   },
   {
@@ -243,7 +243,7 @@
       "application/json"
      ]
     ],
-    "body": "{\"TitleId\":\"20CA2\",\"CreateAccount\":true,\"XboxToken\":\"XBL3.0 x=1234567890;xsts-playfab-xboxlive-com\"}\n"
+    "body": "{\"TitleId\":\"20CA2\",\"CreateAccount\":true,\"XboxToken\":\"XBL3.0 x=1234567890;xsts-b980a380-minecraft-playfabapi-com\"}\n"
    },
    "response": {
     "status": 200,
@@ -341,7 +341,7 @@
      ],
      [
       "Signature",
-      "AAAAAQHdc1W+thi+PxnG8C/eVubXkOSMVsPoFiC98jtJMJyIkjqCKGT0/UvWt+7oR3E4NUt6BAAi1jGC9iTJL5Kr5C5tR0pCgeOGRQ=="
+      "AAAAAQHdc1W+theJ54C8V+H310FicPGNkBw09YiF95Gr3NRSy3K/+KWF1arhXosgmjkCiIe2C/NlRXLjVCD6HCyGxUgOrH1guvgjrw=="
      ],
      [
       "User-Agent",

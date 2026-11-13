@@ -1,5 +1,9 @@
-"""The client side of resource pack downloading (gophertunnel
-`resource_pack_queue.go` and the client handlers in `conn.go`).
+"""Resource pack downloading (gophertunnel `resource_pack_queue.go` and the
+resource pack handlers in `conn.go`).
+
+`ServerResourcePackQueue`, at the end, is the server half: the listener's
+connections use it to answer `ResourcePackChunkRequest`s. The rest of this
+module is the client half.
 
 `ResourcePackQueue` is sans-I/O: each `handle_*` method takes a decoded
 server packet and appends the encoded packets to send in reply. The dialer
@@ -41,6 +45,7 @@ Differences from gophertunnel v1.63.0, all deliberate:
 """
 
 from nethernet.crypto.sha256 import sha256
+from std.memory import ArcPointer
 
 from .protocol.packet.packet import encode_packet
 from .protocol.packet.resource_pack_chunk_data import ResourcePackChunkData
@@ -53,7 +58,14 @@ from .protocol.packet.resource_pack_client_response import (
     PACK_RESPONSE_SEND_PACKS,
     ResourcePackClientResponse,
 )
-from .protocol.packet.resource_pack_data_info import ResourcePackDataInfo
+from .protocol.packet.resource_pack_data_info import (
+    RESOURCE_PACK_TYPE_ADDON,
+    RESOURCE_PACK_TYPE_BEHAVIOUR,
+    RESOURCE_PACK_TYPE_RESOURCES,
+    RESOURCE_PACK_TYPE_SKINS,
+    RESOURCE_PACK_TYPE_WORLD_TEMPLATE,
+    ResourcePackDataInfo,
+)
 from .protocol.packet.resource_pack_stack import ResourcePackStack
 from .protocol.packet.resource_packs_info import ResourcePacksInfo
 from .resource.pack import Pack
@@ -587,3 +599,180 @@ struct ResourcePackQueue(Movable):
         var response = ResourcePackClientResponse()
         response.response = PACK_RESPONSE_COMPLETED
         out.append(encode_packet(response))
+
+
+# ===----------------------------------------------------------------------=== #
+# Server side
+# ===----------------------------------------------------------------------=== #
+
+
+def pack_type(pack: Pack) -> UInt8:
+    """Classifies a pack for `ResourcePackDataInfo` as gophertunnel's
+    `NextPack` does.
+
+    Args:
+        pack: The pack.
+
+    Returns:
+        One of the `RESOURCE_PACK_TYPE_*` values.
+    """
+    var behaviours = pack.has_behaviours() or pack.has_scripts()
+    if pack.has_world_template():
+        return RESOURCE_PACK_TYPE_WORLD_TEMPLATE
+    if pack.has_textures() and behaviours:
+        return RESOURCE_PACK_TYPE_ADDON
+    if not pack.has_textures() and behaviours:
+        return RESOURCE_PACK_TYPE_BEHAVIOUR
+    if pack.has_textures():
+        return RESOURCE_PACK_TYPE_RESOURCES
+    return RESOURCE_PACK_TYPE_SKINS
+
+
+struct ServerResourcePackQueue(Movable):
+    """The packs a client asked a server for (the server half of
+    gophertunnel's `resourcePackQueue`).
+
+    Packs are sent one at a time in the order the client requested them;
+    gophertunnel takes them from a map, in random order.
+    """
+
+    var packs: List[ArcPointer[Pack]]
+    """Every pack the server offered."""
+    var chunk_size: UInt32
+    """The bytes per chunk."""
+    var current_offset: UInt64
+    """The offset of the next chunk of the current pack."""
+    var _to_download: List[ArcPointer[Pack]]
+    var _current: Optional[ArcPointer[Pack]]
+
+    def __init__(
+        out self, var packs: List[ArcPointer[Pack]], chunk_size: UInt32
+    ):
+        """Creates a queue over the offered packs.
+
+        Args:
+            packs: The packs offered in `ResourcePacksInfo`.
+            chunk_size: The bytes per chunk; must be positive.
+        """
+        self.packs = packs^
+        self.chunk_size = chunk_size
+        self.current_offset = 0
+        self._to_download = List[ArcPointer[Pack]]()
+        self._current = None
+
+    def request(mut self, packs: List[String]) raises:
+        """Queues the packs a client asked for (`Request`).
+
+        Args:
+            packs: `UUID` or `UUID_Version` strings.
+
+        Raises:
+            Error: If a requested pack was not offered.
+        """
+        self._to_download.clear()
+        for requested in packs:
+            var uuid: String
+            var version = String()
+            var cut = requested.find("_")
+            if cut >= 0:
+                uuid = String(requested[byte=0:cut])
+                version = String(requested[byte = cut + 1 :])
+            else:
+                uuid = requested.copy()
+            var found = False
+            for p in self.packs:
+                ref pack = p[]
+                if String(pack.uuid()) == uuid and (
+                    version.byte_length() == 0 or version == pack.version()
+                ):
+                    found = True
+                    var queued = False
+                    for q in self._to_download:
+                        if String(q[].uuid()) == uuid:
+                            queued = True
+                    if not queued:
+                        self._to_download.append(p.copy())
+                    break
+            if not found:
+                raise Error(t"resource pack (UUID={requested}) not found")
+
+    def next_pack(mut self) -> Optional[ResourcePackDataInfo]:
+        """Moves to the next requested pack (`NextPack`).
+
+        Returns:
+            The `ResourcePackDataInfo` announcing it, or `None` if every
+            requested pack was sent.
+        """
+        if len(self._to_download) == 0:
+            return None
+        var p = self._to_download.pop(0)
+        ref pack = p[]
+        var pk = ResourcePackDataInfo()
+        pk.uuid = String(t"{pack.uuid()}_{pack.version()}")
+        pk.data_chunk_size = self.chunk_size
+        pk.chunk_count = UInt32(pack.data_chunk_count(Int(self.chunk_size)))
+        pk.size = UInt64(len(pack))
+        var checksum = pack.checksum()
+        pk.hash = List[UInt8](Span(checksum))
+        pk.pack_type = pack_type(pack)
+        self._current = p^
+        self.current_offset = 0
+        return pk^
+
+    def all_downloaded(self) -> Bool:
+        """Checks whether every requested pack was announced.
+
+        Returns:
+            `True` once `next_pack()` has nothing left.
+        """
+        return len(self._to_download) == 0
+
+    def chunk(
+        mut self, pk: ResourcePackChunkRequest
+    ) raises -> Tuple[ResourcePackChunkData, Bool]:
+        """Answers a chunk request (gophertunnel
+        `handleResourcePackChunkRequest`).
+
+        Args:
+            pk: The request.
+
+        Returns:
+            The chunk, and whether it is the last of the current pack.
+
+        Raises:
+            Error: If no pack is being sent, the UUID is not the current
+                pack's, or the index is not the next one.
+        """
+        if not self._current:
+            raise Error("no resource pack is being downloaded")
+        ref current = self._current.value()[]
+        var chunk_size = UInt64(self.chunk_size)
+        var uuid = pk.uuid.copy()
+        var cut = uuid.find("_")
+        if cut >= 0:
+            uuid = String(pk.uuid[byte=0:cut])
+        if String(current.uuid()) != uuid:
+            raise Error(
+                t"expected pack UUID {current.uuid()}, but got {pk.uuid}"
+            )
+        if (
+            pk.chunk_index < 0
+            or self.current_offset != UInt64(pk.chunk_index) * chunk_size
+        ):
+            raise Error(
+                t"expected chunk index {self.current_offset // chunk_size},"
+                t" but got {pk.chunk_index}"
+            )
+        var response = ResourcePackChunkData()
+        response.uuid = pk.uuid.copy()
+        response.chunk_index = UInt32(pk.chunk_index)
+        response.data_offset = self.current_offset
+        var content = current.content()
+        var start = min(Int(self.current_offset), len(content))
+        var end = min(start + Int(chunk_size), len(content))
+        response.data = List[UInt8](content[start:end])
+        self.current_offset += chunk_size
+        var last = response.data_offset + UInt64(len(response.data)) >= UInt64(
+            len(current)
+        )
+        return (response^, last)

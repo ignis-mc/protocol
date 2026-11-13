@@ -2,18 +2,23 @@
 
 Port of gophertunnel `minecraft/service/discovery.go` (`Discover`,
 `Discovery.Environment`) and `token.go` (`AuthorizationEnvironment.Token`,
-`MultiplayerToken`, the default device and user configuration and the
-`pmid` claim check). The session token (`MCToken …`) is obtained with the
-PlayFab session ticket; the multiplayer token is an OpenID JWT whose `cpk`
-claim is the client's P-384 public key, which servers verify against the
-issuer.
+`MultiplayerToken`, `VerifierContext`, the default device and user
+configuration and the `pmid` claim check). The session token (`MCToken …`)
+is obtained with the PlayFab session ticket; the multiplayer token is an
+OpenID JWT whose `cpk` claim is the client's P-384 public key, which servers
+verify against the issuer with `verifier`.
 """
 
+from jose.json import array_values, decode_object, string_value
+from jose.json import lookup as jose_lookup
+from jose.json import opt_string as jose_opt_string
+from jose.oidc import Config, IDTokenVerifier
 from nethernet.crypto.base64 import base64url_decode
 from nethernet.json import json_parse_string
 
 from ..protocol.info import CURRENT_VERSION
-from ..protocol.login.request import marshal_public_key
+from ..protocol.login.request import MULTIPLAYER_AUDIENCE, marshal_public_key
+from .jwks import DEFAULT_KEY_REFRESH_INTERVAL, RefreshingKeySet
 from .json import (
     get_raw,
     get_string,
@@ -24,7 +29,13 @@ from .json import (
     parse_object,
 )
 from .timestamp import NANOS_PER_SECOND, parse_rfc3339
-from .transport import Request, Response, join_path, status_error
+from .transport import (
+    Request,
+    Response,
+    Transport,
+    join_path,
+    status_error,
+)
 
 comptime DISCOVERY_URL = "https://client.discovery.minecraft-services.net"
 """The discovery service."""
@@ -381,3 +392,116 @@ def parse_multiplayer_token_response(
     if signed.byte_length() == 0:
         raise Error("minecraft/service: invalid multiplayer token result")
     return signed^
+
+
+def openid_configuration_request(env: AuthorizationEnvironment) -> Request:
+    """Builds the OpenID configuration request
+    (`AuthorizationEnvironment.configuration`).
+
+    Args:
+        env: The authorization environment.
+
+    Returns:
+        `GET <issuer>/.well-known/openid-configuration`.
+    """
+    var headers = List[Tuple[String, String]]()
+    headers.append(("Accept", "application/json"))
+    headers.append(("Content-Type", "application/json"))
+    headers.append(("User-Agent", USER_AGENT))
+    return Request(
+        "GET",
+        join_path(env.issuer, "/.well-known/openid-configuration"),
+        headers^,
+        List[UInt8](),
+    )
+
+
+@fieldwise_init
+struct ProviderConfig(Copyable, Movable):
+    """The parts of an OpenID configuration a verifier needs (go-oidc
+    `ProviderConfig`)."""
+
+    var issuer: String
+    """`issuer`, informational: the verifier uses the environment's."""
+    var jwks_url: String
+    """`jwks_uri`."""
+    var algorithms: List[String]
+    """`id_token_signing_alg_values_supported`."""
+
+
+def parse_openid_configuration(
+    request: Request, response: Response
+) raises -> ProviderConfig:
+    """Decodes the OpenID configuration.
+
+    Args:
+        request: The request that was sent.
+        response: Its response.
+
+    Returns:
+        The configuration.
+
+    Raises:
+        Error: On a non-200 status or a malformed document.
+    """
+    if response.status != 200:
+        raise _service_error(request, response)
+    var obj = decode_object(Span(response.body))
+    var algs = List[String]()
+    if case .Some(raw) = jose_lookup(
+        obj, "id_token_signing_alg_values_supported"
+    ):
+        for item in array_values(raw):
+            algs.append(string_value(item))
+    return ProviderConfig(
+        jose_opt_string(obj, "issuer"), jose_opt_string(obj, "jwks_uri"), algs^
+    )
+
+
+def verifier[
+    T: Transport
+](
+    env: AuthorizationEnvironment,
+    var transport: T,
+    refresh_interval: Int = DEFAULT_KEY_REFRESH_INTERVAL,
+) raises -> IDTokenVerifier[RefreshingKeySet[T]]:
+    """Creates the multiplayer token verifier a server checks logins with
+    (`AuthorizationEnvironment.VerifierContext`).
+
+    Fetches the OpenID configuration now; the JWKS is fetched on the first
+    verification. The required issuer is the environment's, with a `/`
+    path added, and the audience is the multiplayer audience.
+
+    Parameters:
+        T: The HTTP transport.
+
+    Args:
+        env: The authorization environment from discovery.
+        transport: Fetches the configuration and keys.
+        refresh_interval: Seconds between JWKS refreshes for unknown key
+            IDs.
+
+    Returns:
+        The verifier, for `login.request.parse`.
+
+    Raises:
+        Error: If the configuration cannot be fetched or decoded.
+    """
+    var request = openid_configuration_request(env)
+    var config: ProviderConfig
+    try:
+        config = parse_openid_configuration(
+            request, transport.round_trip(request)
+        )
+    except e:
+        raise Error(t"obtain OpenID configuration: {e}")
+    var key_set = RefreshingKeySet(
+        transport^,
+        config.jwks_url.copy(),
+        refresh_interval,
+        config.algorithms.copy(),
+    )
+    var oidc_config = Config()
+    oidc_config.client_id = String(MULTIPLAYER_AUDIENCE)
+    oidc_config.supported_signing_algs = config.algorithms.copy()
+    return IDTokenVerifier(env.issuer_domain(), key_set^, oidc_config^)

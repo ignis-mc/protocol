@@ -112,5 +112,64 @@ def test_rejects_malformed() raises:
         nbt(r4, v, NETWORK_LITTLE_ENDIAN)
 
 
+def _read(data: List[UInt8], encoding: Int = NETWORK_LITTLE_ENDIAN) raises:
+    var r = Reader(Span(data))
+    var v = NBT()
+    nbt(r, v, encoding)
+
+
+def _nested_compounds(levels: Int) -> List[UInt8]:
+    var out: List[UInt8] = [0x0A, 0x00]
+    for _ in range(levels - 1):
+        out.append(0x0A)
+        out.append(0x01)
+        out.append(0x63)
+    for _ in range(levels):
+        out.append(0x00)
+    return out^
+
+
+def test_depth_limit_matches_gophertunnel() raises:
+    # gophertunnel fails reading the entries of a compound nested 512 deep;
+    # the walk used to accept 513 levels.
+    _read(_nested_compounds(511))
+    with assert_raises(contains="nesting too deep"):
+        _read(_nested_compounds(512))
+
+
+def test_rejects_unknown_type_of_empty_list() raises:
+    # gophertunnel checks the element type even when the list is empty.
+    with assert_raises(contains="unknown tag"):
+        _read(hex_decode("0a00" + "09016c" + "0d00" + "00"))
+    _read(hex_decode("0a00" + "09016c" + "0000" + "00"))
+
+
+def test_network_offset_limit() raises:
+    # Root (2) + entry header (3) + 4-byte length + n bytes, then TAG_End
+    # read at offset 9 + n; gophertunnel refuses tags at 4 MiB or later.
+    var limit = 4 * 1024 * 1024
+    comptime for over in range(2):
+        var n = limit - 10 + over
+        var raw: List[UInt8] = [0x0A, 0x00, 0x07, 0x01, 0x61]
+        var ux = UInt32(n) << 1
+        while ux >= 0x80:
+            raw.append(UInt8(ux & 0x7F) | 0x80)
+            ux >>= 7
+        raw.append(UInt8(ux))
+        for _ in range(n):
+            raw.append(0)
+        raw.append(0)
+        comptime if over == 0:
+            _read(raw)
+        else:
+            with assert_raises(contains="limit of bytes read"):
+                _read(raw)
+
+
+def test_string_length_keeps_low_32_bits() raises:
+    # A 5-byte varuint length of 2^32 + 1 is 1 in Go.
+    _read(hex_decode("0a00" + "0801738180808010" + "78" + "00"))
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

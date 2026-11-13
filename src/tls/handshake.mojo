@@ -57,9 +57,9 @@ comptime EXT_KEY_SHARE: UInt16 = 51
 
 # Named groups and versions.
 comptime GROUP_SECP256R1: UInt16 = 0x0017
-"""secp256r1 (NIST P-256)."""
+"""The secp256r1 group (NIST P-256)."""
 comptime GROUP_X25519: UInt16 = 0x001D
-"""x25519."""
+"""The x25519 group."""
 comptime TLS13_VERSION: UInt16 = 0x0304
 """TLS 1.3 in `supported_versions`."""
 comptime LEGACY_VERSION: UInt16 = 0x0303
@@ -67,21 +67,21 @@ comptime LEGACY_VERSION: UInt16 = 0x0303
 
 # Signature schemes (4.2.3).
 comptime SIG_RSA_PKCS1_SHA256: UInt16 = 0x0401
-"""rsa_pkcs1_sha256 (certificates only in TLS 1.3)."""
+"""`rsa_pkcs1_sha256` (certificates only in TLS 1.3)."""
 comptime SIG_RSA_PKCS1_SHA384: UInt16 = 0x0501
-"""rsa_pkcs1_sha384 (certificates only in TLS 1.3)."""
+"""`rsa_pkcs1_sha384` (certificates only in TLS 1.3)."""
 comptime SIG_RSA_PKCS1_SHA512: UInt16 = 0x0601
-"""rsa_pkcs1_sha512 (certificates only in TLS 1.3)."""
+"""`rsa_pkcs1_sha512` (certificates only in TLS 1.3)."""
 comptime SIG_ECDSA_SECP256R1_SHA256: UInt16 = 0x0403
-"""ecdsa_secp256r1_sha256."""
+"""`ecdsa_secp256r1_sha256`."""
 comptime SIG_ECDSA_SECP384R1_SHA384: UInt16 = 0x0503
-"""ecdsa_secp384r1_sha384."""
+"""`ecdsa_secp384r1_sha384`."""
 comptime SIG_RSA_PSS_RSAE_SHA256: UInt16 = 0x0804
-"""rsa_pss_rsae_sha256."""
+"""`rsa_pss_rsae_sha256`."""
 comptime SIG_RSA_PSS_RSAE_SHA384: UInt16 = 0x0805
-"""rsa_pss_rsae_sha384."""
+"""`rsa_pss_rsae_sha384`."""
 comptime SIG_RSA_PSS_RSAE_SHA512: UInt16 = 0x0806
-"""rsa_pss_rsae_sha512."""
+"""`rsa_pss_rsae_sha512`."""
 
 comptime ALPN_HTTP11 = "http/1.1"
 """The only application protocol this client offers."""

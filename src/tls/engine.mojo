@@ -400,7 +400,11 @@ struct ClientEngine[V: CertificateVerifier](Movable):
             pos = end
 
     def close(mut self) raises:
-        """Queues a close_notify alert. Further writes are refused."""
+        """Queues a close_notify alert. Further writes are refused.
+
+        Raises:
+            Error: If the alert cannot be sealed.
+        """
         if self._sent_close or self._state == _FAILED:
             return
         self._sent_close = True

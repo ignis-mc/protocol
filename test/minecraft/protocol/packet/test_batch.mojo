@@ -1,11 +1,12 @@
 from minecraft.protocol.packet.compression import (
     COMPRESSION_ALGORITHM_FLATE,
     COMPRESSION_ALGORITHM_NONE,
+    COMPRESSION_ALGORITHM_SNAPPY,
 )
 from minecraft.protocol.packet.decoder import MAXIMUM_IN_BATCH, Decoder
 from minecraft.protocol.packet.encoder import Encoder
 from nethernet.wire import hex_decode, hex_encode
-from std.testing import TestSuite, assert_equal, assert_raises
+from std.testing import TestSuite, assert_equal, assert_raises, assert_true
 
 
 def test_uncompressed_framing() raises:
@@ -54,6 +55,38 @@ def test_decoder_rejections() raises:
     small.enable_compression(COMPRESSION_ALGORITHM_NONE, 2)
     with assert_raises(contains="exceeds limit"):
         _ = small.decode(Span(hex_decode("ff020901")))
+
+
+def _round_trip(algorithm: UInt16) raises:
+    var enc = Encoder()
+    enc.enable_compression(algorithm, 256)
+    var big = List[UInt8]()
+    for i in range(5000):
+        big.append(UInt8(i % 7))
+    var packets: List[List[UInt8]] = [big.copy(), [9, 1]]
+    var batch = enc.encode(packets)
+    assert_equal(Int(batch[0]), Int(algorithm))
+    assert_true(len(batch) < 1000)
+    var dec = Decoder()
+    dec.enable_compression(algorithm)
+    var back = dec.decode(Span(batch))
+    assert_equal(len(back), 2)
+    assert_equal(len(back[0]), 5000)
+    assert_equal(hex_encode(Span(back[1])), "0901")
+
+
+def test_flate_and_snappy_batches_round_trip() raises:
+    _round_trip(COMPRESSION_ALGORITHM_FLATE)
+    _round_trip(COMPRESSION_ALGORITHM_SNAPPY)
+
+
+def test_go_flate_batch_decodes() raises:
+    # klauspost flate level 6 of the body 03 09 01 02 (one packet 09 01 02).
+    var dec = Decoder()
+    dec.enable_compression(COMPRESSION_ALGORITHM_FLATE)
+    var batch = hex_decode("00" + "000400fbff030901020300")
+    var back = dec.decode(Span(batch))
+    assert_equal(hex_encode(Span(back[0])), "090102")
 
 
 def main() raises:

@@ -161,6 +161,55 @@ def jwt_header_field(token: StringSpan, name: StringSpan) raises -> String:
     return json_parse_string(header[String(name)])
 
 
+def _jwt_claims(token: StringSpan) raises -> Dict[String, String]:
+    var bytes = token.as_bytes()
+    var first = -1
+    var second = -1
+    for i in range(len(bytes)):
+        if Int(bytes[i]) == ord("."):
+            if first < 0:
+                first = i
+            else:
+                second = i
+                break
+    if first <= 0 or second <= first:
+        raise Error("login: malformed JWT")
+    var payload = base64url_decode(String(from_utf8=bytes[first + 1 : second]))
+    return json_parse_object(String(from_utf8=Span(payload)))
+
+
+def chain_identity(login_chain: StringSpan) raises -> IdentityData:
+    """Reads the identity from the chain's `extraData` claims, without
+    verifying it (gophertunnel `readChainIdentityData`).
+
+    Args:
+        login_chain: The certificate JSON from the Minecraft auth service.
+
+    Returns:
+        The identity the server will see.
+
+    Raises:
+        Error: If the chain is malformed or no link carries `extraData`.
+    """
+    var chain = parse_chain(login_chain)
+    for i in range(len(chain)):
+        var claims = _jwt_claims(chain[i])
+        if "extraData" not in claims:
+            continue
+        var extra = json_parse_object(claims["extraData"])
+        var out = IdentityData()
+        if "XUID" in extra:
+            out.xuid = json_parse_string(extra["XUID"])
+        if "identity" in extra:
+            out.identity = json_parse_string(extra["identity"])
+        if "displayName" in extra:
+            out.display_name = json_parse_string(extra["displayName"])
+        if "titleId" in extra:
+            out.title_id = json_parse_string(extra["titleId"])
+        return out^
+    raise Error("login: no chain link carries extraData")
+
+
 def _encode_request(
     request_json: StringSpan, raw_token: StringSpan
 ) -> List[UInt8]:

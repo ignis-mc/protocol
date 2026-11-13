@@ -1,5 +1,6 @@
 from minecraft.protocol.login.data import ClientData, IdentityData
 from minecraft.protocol.login.request import (
+    chain_identity,
     encode,
     encode_offline,
     jwt_header_field,
@@ -158,6 +159,24 @@ def test_parse_chain_cases() raises:
         _ = jwt_header_field("nodots", "x5u")
     with assert_raises():
         _ = encode('{"chain":[]}', ClientData(), Span(_key(1)), "t", 0)
+
+
+def test_chain_identity_reads_extra_data() raises:
+    var key = _key(13)
+    var first = sign_jwt(Span(key), '{"identityPublicKey":"x"}')
+    var second = sign_jwt(
+        Span(key),
+        '{"extraData":{"XUID":"2535","displayName":"Steve",'
+        + '"identity":"c0ffee00-1234-4abc-8def-0123456789ab",'
+        + '"titleId":"1739947436"}}',
+    )
+    var chain = String(t'{{"chain":["{first}","{second}"]}}')
+    var id = chain_identity(chain)
+    assert_equal(id.xuid, "2535")
+    assert_equal(id.display_name, "Steve")
+    assert_equal(id.title_id, "1739947436")
+    with assert_raises(contains="extraData"):
+        _ = chain_identity(String(t'{{"chain":["{first}"]}}'))
 
 
 def main() raises:

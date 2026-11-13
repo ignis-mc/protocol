@@ -25,7 +25,7 @@ from .protocol.login.data import (
     ClientData,
     IdentityData,
 )
-from .protocol.login.request import encode, encode_offline
+from .protocol.login.request import chain_identity, encode, encode_offline
 from .protocol.login.skin import (
     DEFAULT_SKIN_GEOMETRY,
     DEFAULT_SKIN_RESOURCE_PATCH,
@@ -252,6 +252,8 @@ struct Dialer(Copyable):
 
         var request: List[UInt8]
         if case .Some(creds) = self.credentials:
+            identity = chain_identity(creds.chain)
+            data.third_party_name = identity.display_name
             data.device_os = DEVICE_ANDROID
             data.game_version = CURRENT_VERSION
             request = encode(
@@ -263,6 +265,7 @@ struct Dialer(Copyable):
         var signaling = EndpointClient(addr)
         var transport = dial_nethernet(signaling, signaling.url(), config)
         var conn = Conn(transport^)
+        conn.identity_data = identity^
         var rns = RequestNetworkSettings()
         rns.client_protocol = CURRENT_PROTOCOL
         conn.write_packet(rns)

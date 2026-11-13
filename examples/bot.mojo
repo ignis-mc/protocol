@@ -50,7 +50,8 @@ def main() raises:
     )
     var text = Text()
     text.text_type = TEXT_TYPE_CHAT
-    text.source_name = name
+    text.source_name = conn.identity_data.display_name
+    text.xuid = conn.identity_data.xuid
     text.message = "hello from Mojo"
     conn.write_packet(text)
     conn.pump(1500)

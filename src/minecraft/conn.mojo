@@ -10,6 +10,7 @@ from nethernet.os.poll import PollSet
 from nethernet.os.time import monotonic_ms
 
 from .game_data import GameData
+from .protocol.login.data import IdentityData
 from .protocol.packet.decoder import Decoder
 from .protocol.packet.encoder import Encoder
 from .protocol.packet.packet import Packet, PacketData, encode_packet
@@ -26,6 +27,8 @@ struct Conn(Movable):
     """What the server sent while the client joined."""
     var shield_id: Int32
     """The runtime ID of `minecraft:shield`, needed to decode items."""
+    var identity_data: IdentityData
+    """The identity the server sees: from the Xbox chain when online."""
 
     def __init__(out self, var transport: NetherNetConn):
         """Wraps an open NetherNet connection.
@@ -39,6 +42,7 @@ struct Conn(Movable):
         self._incoming = List[List[UInt8]]()
         self.game_data = GameData()
         self.shield_id = 0
+        self.identity_data = IdentityData()
 
     def enable_compression(mut self, algorithm: UInt16, threshold: Int):
         """Switches both directions to compressed batches.

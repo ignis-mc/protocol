@@ -1,0 +1,7 @@
+.pixi
+*.egg-info
+build/
+*.mojoc
+output/
+interop/**/bin/
+.secrets/

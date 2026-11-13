@@ -1,0 +1,407 @@
+from jose.base64 import std_decode
+from jose.json import array_values, decode_object, opt_string
+from jose.jwk import JSONWebKey, parse_key
+from jose.oidc import Config, IDTokenVerifier, StaticKeySet
+from minecraft.protocol.login.data import ClientData, IdentityData
+from minecraft.protocol.login.request import (
+    MOJANG_PUBLIC_KEY,
+    MULTIPLAYER_AUDIENCE,
+    LoginResult,
+    chain_identity,
+    encode,
+    encode_offline,
+    identity_from_xuid,
+    jwt_header_field,
+    marshal_public_key,
+    parse,
+    parse_chain,
+    parse_legacy_chain,
+    parse_login_request,
+    parse_public_key,
+    sign_jwt,
+)
+from nethernet.crypto.base64 import base64_decode, base64url_decode
+from nethernet.crypto.p384 import (
+    p384_private_key_from_bytes,
+    p384_public_key,
+    p384_verify,
+)
+from nethernet.crypto.sha512 import sha384
+from nethernet.crypto.x509 import parse_public_key_info
+from nethernet.json import json_parse_int, json_parse_object, json_parse_string
+from std.testing import TestSuite, assert_equal, assert_raises, assert_true
+
+
+def _key(fill: UInt8) raises -> List[UInt8]:
+    var seed = List[UInt8](length=56, fill=fill)
+    var k = p384_private_key_from_bytes(Span(seed))
+    return List[UInt8](Span(k))
+
+
+def _parts(token: String) -> List[String]:
+    var out = List[String]()
+    var start = 0
+    var b = token.as_bytes()
+    for i in range(len(b)):
+        if b[i] == 0x2E:
+            out.append(String(from_utf8_lossy=b[start:i]))
+            start = i + 1
+    out.append(String(from_utf8_lossy=b[start : len(b)]))
+    return out^
+
+
+def _claims(token: String) raises -> Dict[String, String]:
+    var p = _parts(token)
+    return json_parse_object(String(from_utf8=Span(base64url_decode(p[1]))))
+
+
+def _read_le32(data: Span[UInt8, _], at: Int) -> Int:
+    return (
+        Int(data[at])
+        | (Int(data[at + 1]) << 8)
+        | (Int(data[at + 2]) << 16)
+        | (Int(data[at + 3]) << 24)
+    )
+
+
+struct Request(Movable):
+    var json: Dict[String, String]
+    var raw_token: String
+
+    def __init__(out self, data: Span[UInt8, _]) raises:
+        var n = _read_le32(data, 0)
+        var json = json_parse_object(String(from_utf8=data[4 : 4 + n]))
+        var m = _read_le32(data, 4 + n)
+        assert_equal(4 + n + 4 + m, len(data))
+        self.raw_token = String(from_utf8=data[8 + n : 8 + n + m])
+        self.json = json^
+
+
+def test_sign_jwt_verifies_with_x5u_key() raises:
+    var key = _key(3)
+    var token = sign_jwt(Span(key), '{"a":1}')
+    var p = _parts(token)
+    assert_equal(len(p), 3)
+    var x5u = jwt_header_field(token, "x5u")
+    assert_equal(x5u, marshal_public_key(Span(key)))
+    assert_equal(jwt_header_field(token, "alg"), "ES384")
+    var info = parse_public_key_info(Span(base64_decode(x5u)))
+    var point = p384_public_key(Span(key))
+    assert_equal(len(info.key), len(point))
+    var input = String(t"{p[0]}.{p[1]}")
+    assert_true(
+        p384_verify(
+            Span(point),
+            Span(sha384(input.as_bytes())),
+            Span(base64url_decode(p[2])),
+        )
+    )
+    assert_equal(json_parse_int(_claims(token)["a"]), 1)
+
+
+def test_offline_request_layout() raises:
+    var key = _key(5)
+    var identity = IdentityData()
+    identity.display_name = "Bot"
+    identity.identity = "c0ffee00-1234-4abc-8def-0123456789ab"
+    var data = ClientData()
+    data.skin_id = "skin"
+    var raw = encode_offline(identity, data, Span(key), 1_700_000_000)
+    var req = Request(Span(raw))
+    assert_equal(json_parse_int(req.json["AuthenticationType"]), 2)
+    var cert = json_parse_object(json_parse_string(req.json["Certificate"]))
+    assert_equal(cert["chain"], '[""]')
+    var token = json_parse_string(req.json["Token"])
+    var claims = _claims(token)
+    assert_equal(json_parse_string(claims["xname"]), "Bot")
+    assert_equal(
+        json_parse_string(claims["leguuid"]),
+        "c0ffee00-1234-4abc-8def-0123456789ab",
+    )
+    assert_equal(
+        json_parse_string(claims["cpk"]), marshal_public_key(Span(key))
+    )
+    assert_equal(
+        json_parse_string(claims["aud"]),
+        "api://auth-minecraft-services/multiplayer",
+    )
+    assert_equal(json_parse_int(claims["exp"]), 1_700_000_000 + 6 * 3600)
+    assert_equal(json_parse_int(claims["nbf"]), 1_700_000_000 - 6 * 3600)
+    var client = _claims(req.raw_token)
+    assert_equal(json_parse_string(client["SkinId"]), "skin")
+    assert_equal(client["AnimatedImageData"], "[]")
+
+
+def test_online_request_prepends_a_handover_jwt() raises:
+    var xbox_key = _key(9)
+    var key = _key(11)
+    var link = sign_jwt(Span(xbox_key), '{"identityPublicKey":"x"}')
+    var chain_json = String(t'{{"chain": ["{link}"]}}')
+    var raw = encode(chain_json, ClientData(), Span(key), "mp.token.x", 100)
+    var req = Request(Span(raw))
+    assert_equal(json_parse_int(req.json["AuthenticationType"]), 0)
+    assert_equal(json_parse_string(req.json["Token"]), "mp.token.x")
+    var cert = json_parse_string(req.json["Certificate"])
+    var chain = parse_chain(cert)
+    assert_equal(len(chain), 2)
+    assert_equal(chain[1], link)
+    var first = _claims(chain[0])
+    assert_equal(
+        json_parse_string(first["identityPublicKey"]),
+        marshal_public_key(Span(xbox_key)),
+    )
+    assert_equal(first["certificateAuthority"], "true")
+    assert_equal(
+        jwt_header_field(chain[0], "x5u"), marshal_public_key(Span(key))
+    )
+
+
+def test_parse_chain_cases() raises:
+    var c = parse_chain('{"chain":[ "a.b.c" ,\n"d\\"e" ]}')
+    assert_equal(len(c), 2)
+    assert_equal(c[1], 'd"e')
+    assert_equal(len(parse_chain('{"chain":[]}')), 0)
+    with assert_raises(contains="no chain"):
+        _ = parse_chain('{"x":1}')
+    with assert_raises(contains="not a string"):
+        _ = parse_chain('{"chain":[1]}')
+    with assert_raises(contains="not an array"):
+        _ = parse_chain('{"chain":"x"}')
+    with assert_raises(contains="malformed JWT"):
+        _ = jwt_header_field("nodots", "x5u")
+    with assert_raises():
+        _ = encode('{"chain":[]}', ClientData(), Span(_key(1)), "t", 0)
+
+
+def test_chain_identity_reads_extra_data() raises:
+    var key = _key(13)
+    var first = sign_jwt(Span(key), '{"identityPublicKey":"x"}')
+    var second = sign_jwt(
+        Span(key),
+        '{"extraData":{"XUID":"2535","displayName":"Steve",'
+        + '"identity":"c0ffee00-1234-4abc-8def-0123456789ab",'
+        + '"titleId":"1739947436"}}',
+    )
+    var chain = String(t'{{"chain":["{first}","{second}"]}}')
+    var id = chain_identity(chain)
+    assert_equal(id.xuid, "2535")
+    assert_equal(id.display_name, "Steve")
+    assert_equal(id.title_id, "1739947436")
+    with assert_raises(contains="extraData"):
+        _ = chain_identity(String(t'{{"chain":["{first}"]}}'))
+
+
+# --- login.Parse, checked against gophertunnel (interop/loginvectors) ---
+
+comptime VECTORS = "test/minecraft/protocol/login/testdata/login_vectors.json"
+
+
+def _vectors() raises -> Dict[String, String]:
+    with open(VECTORS, "r") as f:
+        return decode_object(f.read().as_bytes())
+
+
+def _verifier(
+    vectors: Dict[String, String], env: String
+) raises -> IDTokenVerifier[StaticKeySet]:
+    var jwks = decode_object(
+        json_parse_string(
+            decode_object(vectors["jwks"].as_bytes())[env]
+        ).as_bytes()
+    )
+    var keys = List[JSONWebKey]()
+    for raw in array_values(jwks["keys"]):
+        keys.append(parse_key(raw))
+    var config = Config()
+    config.client_id = String(MULTIPLAYER_AUDIENCE)
+    config.supported_signing_algs = ["RS256"] if env == "rsa" else ["ES256"]
+    var issuer = json_parse_string(vectors["issuer"]) + "/"
+    return IDTokenVerifier(issuer, StaticKeySet(keys^), config^)
+
+
+def _compact(text: StringSpan) -> String:
+    # Drops the indentation Go's encoder added outside strings.
+    var out = List[UInt8]()
+    var in_string = False
+    var escaped = False
+    for c in text.as_bytes():
+        if in_string:
+            out.append(c)
+            if escaped:
+                escaped = False
+            elif c == 0x5C:
+                escaped = True
+            elif c == 0x22:
+                in_string = False
+        elif c == 0x22:
+            in_string = True
+            out.append(c)
+        elif c != 0x20 and c != 0x0A and c != 0x09 and c != 0x0D:
+            out.append(c)
+    return String(from_utf8_lossy=Span(out))
+
+
+def _prefix(message: String) -> String:
+    var i = message.find(":")
+    return String(message[byte=0:i]) if i >= 0 else message
+
+
+def test_parse_matches_gophertunnel() raises:
+    var vectors = _vectors()
+    var now = json_parse_int(vectors["now"])
+    var checked = 0
+    for raw in array_values(vectors["cases"]):
+        var c = decode_object(raw.as_bytes())
+        var name = opt_string(c, "name")
+        var env = opt_string(c, "env")
+        var request = std_decode(opt_string(c, "request"))
+        var want_ok = c["ok"] == "true"
+        var got_error = String()
+        var result: Optional[LoginResult] = None
+        try:
+            if env.byte_length() == 0:
+                result = parse(Span(request), now)
+            else:
+                var v = _verifier(vectors, env)
+                result = parse(Span(request), v, now)
+        except e:
+            got_error = String(e)
+        if not want_ok:
+            assert_true(
+                not result, String(name, ": Mojo accepted what Go rejected")
+            )
+            assert_equal(
+                _prefix(got_error),
+                _prefix(opt_string(c, "error")),
+                String(name, ": ", got_error),
+            )
+            checked += 1
+            continue
+        assert_true(Bool(result), String(name, ": ", got_error))
+        ref r = result.value()
+        ref id = r.identity_data
+        assert_equal(id.xuid, opt_string(c, "xuid"), name)
+        if c["identity_random"] == "true":
+            assert_equal(id.identity.byte_length(), 36, name)
+            assert_equal(String(id.identity[byte=14:15]), "4", name)
+        else:
+            assert_equal(id.identity, opt_string(c, "identity"), name)
+        assert_equal(id.display_name, opt_string(c, "display_name"), name)
+        assert_equal(id.title_id, opt_string(c, "title_id"), name)
+        assert_equal(id.playfab_id, opt_string(c, "playfab_id"), name)
+        assert_equal(
+            id.playfab_title_id, opt_string(c, "playfab_title_id"), name
+        )
+        assert_equal(
+            r.auth_result.xbox_live_authenticated,
+            c["authenticated"] == "true",
+            name,
+        )
+        assert_equal(
+            r.auth_result.public_key.marshal(),
+            opt_string(c, "public_key"),
+            name,
+        )
+        # The client data re-encodes to exactly what Go's json.Marshal made.
+        assert_equal(r.client_data.to_json(), _compact(c["client"]), name)
+        checked += 1
+    assert_true(checked >= 50)
+
+
+def test_legacy_chain_with_trusted_root() raises:
+    # Go only trusts the real Mojang key; with the fake root trusted, the
+    # same chain authenticates and carries its XUID and title ID.
+    var vectors = _vectors()
+    var now = json_parse_int(vectors["now"])
+    var root = json_parse_string(vectors["fake_root"])
+    for raw in array_values(vectors["cases"]):
+        var c = decode_object(raw.as_bytes())
+        if opt_string(c, "name") != "legacy_fake_root_xuid":
+            continue
+        var req = parse_login_request(
+            Span(std_decode(opt_string(c, "request")))
+        )
+        var legacy = parse_legacy_chain(req.chain, now, root)
+        assert_true(legacy.authenticated)
+        assert_equal(legacy.identity_data.xuid, "2535400000000001")
+        assert_equal(legacy.identity_data.title_id, "896928775")
+        assert_equal(
+            legacy.public_key.marshal(),
+            json_parse_string(vectors["client_key"]),
+        )
+        with assert_raises(contains="XUID"):
+            _ = parse_legacy_chain(req.chain, now)
+        with assert_raises(contains="expired"):
+            _ = parse_legacy_chain(req.chain, now + 7 * 3600, root)
+        return
+    raise Error("case not found")
+
+
+def test_negative_raw_length_is_an_error() raises:
+    # Go's bytes.Buffer.Next panics on a negative length; this rejects it.
+    var req: List[UInt8] = [2, 0, 0, 0, 0x7B, 0x7D, 0xFF, 0xFF, 0xFF, 0xFF]
+    with assert_raises(contains="invalid raw token length"):
+        _ = parse(Span(req), 0)
+
+
+def test_client_data_cannot_replace_the_key() raises:
+    # gophertunnel's parseFullClaim would switch AuthResult.PublicKey to an
+    # identityPublicKey found in the client data; the identity decides it.
+    var key = _key(0x31)
+    var other = _key(0x32)
+    var identity = IdentityData()
+    identity.display_name = "Steve"
+    identity.identity = "c0ffee00-1234-4abc-8def-0123456789ab"
+    var vectors = _vectors()
+    var data: ClientData
+    for raw in array_values(vectors["cases"]):
+        var c = decode_object(raw.as_bytes())
+        if opt_string(c, "name") == "offline":
+            data = ClientData.decode(_compact(c["client"]).as_bytes())
+            break
+    else:
+        raise Error("no offline case")
+    var request = encode_offline(identity, data, Span(key), 1_800_000_000)
+    var n = Int(request[0]) | (Int(request[1]) << 8) | (Int(request[2]) << 16)
+    var json = data.to_json()
+    var patched = String(
+        json[byte = 0 : json.byte_length() - 1],
+        ',"identityPublicKey":',
+        '"',
+        marshal_public_key(Span(other)),
+        '"}',
+    )
+    var raw_token = sign_jwt(Span(key), patched)
+    var out = List[UInt8](Span(request)[0 : 4 + n])
+    var m = raw_token.byte_length()
+    for s in range(4):
+        out.append(UInt8((m >> (8 * s)) & 0xFF))
+    out.extend(raw_token.as_bytes())
+    var r = parse(Span(out), 1_800_000_000)
+    assert_equal(
+        r.auth_result.public_key.marshal(), marshal_public_key(Span(key))
+    )
+
+
+def test_identity_from_xuid() raises:
+    assert_equal(
+        identity_from_xuid("2535400000000001"),
+        "058728db-7a88-3a63-af82-7174a02a2e35",
+    )
+    assert_equal(
+        identity_from_xuid("123"), "ebe094da-4482-31c0-8844-5e422cb123d5"
+    )
+
+
+def test_parse_public_key() raises:
+    var k = parse_public_key(MOJANG_PUBLIC_KEY)
+    assert_equal(len(k.point), 97)
+    assert_equal(k.marshal(), MOJANG_PUBLIC_KEY)
+    with assert_raises():
+        _ = parse_public_key("bm90IGEga2V5")
+    with assert_raises():
+        _ = parse_public_key(String(MOJANG_PUBLIC_KEY) + "AAAA")
+
+
+def main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

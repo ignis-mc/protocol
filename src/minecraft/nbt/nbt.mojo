@@ -269,7 +269,8 @@ def _copy_payload[
 def nbt[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
     """Marshals one named root tag (gophertunnel `IO.NBT`).
 
-    A root `TAG_END` is accepted and means "no value".
+    A root `TAG_END` is accepted and means "no value". An empty `NBT()` is
+    written as an empty compound, like Go's nil map.
 
     Parameters:
         I: The reader or writer type.
@@ -284,8 +285,9 @@ def nbt[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
     """
     if not io.reads():
         if len(x.raw) == 0:
-            var end = TAG_END
-            io.uint8(end)
+            # Go writes a nil map as an empty compound.
+            var empty = NBT.empty_compound(encoding)
+            io.bytes(empty.raw)
             return
         if x.encoding != encoding:
             raise Error("nbt: value is in a different encoding")
@@ -313,6 +315,15 @@ def nbt_list[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
     Raises:
         If the input is malformed or a value is invalid.
     """
+    if not io.reads() and len(x.raw) == 0:
+        # Go writes a nil slice as an empty list of TAG_End.
+        var raw: List[UInt8] = [TAG_LIST, 0, 0]
+        if encoding == NETWORK_LITTLE_ENDIAN:
+            raw.append(0)
+        else:
+            raw = [TAG_LIST, 0, 0, TAG_END, 0, 0, 0, 0]
+        io.bytes(raw)
+        return
     nbt(io, x, encoding)
     if io.reads() and x.root_type() != TAG_LIST and not x.is_empty():
         raise Error("nbt: expected a list tag")

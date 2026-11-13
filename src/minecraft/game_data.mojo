@@ -1,12 +1,19 @@
 """Game data a client learns while joining (gophertunnel `game_data.go`).
 
-TODO: fill the remaining `StartGame` fields once the full packet is ported.
+The whole `StartGame` packet is kept rather than copying each field.
 """
+
+from .protocol.item import ItemEntry
+from .protocol.packet.start_game import StartGame
 
 
 struct GameData(Copyable, Defaultable):
-    """The parts of `StartGame` and the join sequence a client keeps."""
+    """What the server sent while the client joined."""
 
+    var start_game: StartGame
+    """The `StartGame` packet."""
+    var items: List[ItemEntry]
+    """The item registry."""
     var entity_unique_id: Int64
     """The player's unique entity ID."""
     var entity_runtime_id: UInt64
@@ -16,6 +23,8 @@ struct GameData(Copyable, Defaultable):
 
     def __init__(out self):
         """Creates empty game data."""
+        self.start_game = StartGame()
+        self.items = List[ItemEntry]()
         self.entity_unique_id = 0
         self.entity_runtime_id = 0
         self.chunk_radius = 0

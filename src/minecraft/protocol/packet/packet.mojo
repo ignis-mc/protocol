@@ -149,7 +149,9 @@ struct PacketData(Copyable, Writable):
         """
         return self.header.packet_id
 
-    def decode[P: Packet](self, shield_id: Int32 = 0) raises -> P:
+    def decode[
+        P: Packet
+    ](self, shield_id: Int32 = 0, limits: Bool = True) raises -> P:
         """Decodes the payload as packet type `P`.
 
         Parameters:
@@ -157,6 +159,10 @@ struct PacketData(Copyable, Writable):
 
         Args:
             shield_id: The shield's item runtime ID, for packets with items.
+            limits: Whether to enforce slice length limits. gophertunnel
+                enforces them only when a server reads a client's packets;
+                clients read server packets (item registries, creative
+                content) without them.
 
         Returns:
             The decoded packet.
@@ -169,7 +175,7 @@ struct PacketData(Copyable, Writable):
             raise Error(
                 t"packet {self.header.packet_id} is not the expected {P.ID}"
             )
-        var r = Reader(Span(self.payload), shield_id)
+        var r = Reader(Span(self.payload), shield_id, limits)
         var pk = P()
         pk.marshal(r)
         if r.remaining() != 0:

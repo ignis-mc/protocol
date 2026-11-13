@@ -43,6 +43,7 @@ from .protocol.packet.id import (
     ID_RESOURCE_PACKS_INFO,
     ID_START_GAME,
 )
+from .protocol.packet.item_registry import ItemRegistry
 from .protocol.packet.login import Login
 from .protocol.packet.network_settings import NetworkSettings
 from .protocol.packet.play_status import (
@@ -57,10 +58,10 @@ from .protocol.packet.resource_pack_client_response import (
     PACK_RESPONSE_COMPLETED,
     ResourcePackClientResponse,
 )
+from .protocol.packet.start_game import StartGame
 from .protocol.packet.set_local_player_as_initialised import (
     SetLocalPlayerAsInitialised,
 )
-from .protocol.reader import Reader
 from .protocol.uuid import UUID
 
 comptime _HEX: StaticString = "0123456789abcdef"
@@ -321,18 +322,16 @@ struct Dialer(Copyable):
                 response.response = PACK_RESPONSE_COMPLETED
                 conn.write_packet(response)
             elif id == ID_START_GAME:
-                # TODO: decode the whole StartGame once it is ported; the
-                # two entity IDs lead the payload.
-                var r = Reader(Span(pk.payload))
-                var unique = Int64(0)
-                var runtime = UInt64(0)
-                r.varint64(unique)
-                r.varuint64(runtime)
-                conn.game_data.entity_unique_id = unique
-                conn.game_data.entity_runtime_id = runtime
+                var start = pk.decode[StartGame](conn.shield_id, False)
+                conn.game_data.entity_unique_id = start.entity_unique_id
+                conn.game_data.entity_runtime_id = start.entity_runtime_id
+                conn.game_data.start_game = start^
             elif id == ID_ITEM_REGISTRY:
-                # TODO: read the shield's runtime ID once ItemRegistry is
-                # ported.
+                var registry = pk.decode[ItemRegistry](conn.shield_id, False)
+                for i in range(len(registry.items)):
+                    if registry.items[i].name == "minecraft:shield":
+                        conn.shield_id = Int32(registry.items[i].runtime_id)
+                conn.game_data.items = registry.items.copy()
                 var request_radius = RequestChunkRadius()
                 request_radius.chunk_radius = self.chunk_radius
                 request_radius.max_chunk_radius = UInt8(self.chunk_radius)

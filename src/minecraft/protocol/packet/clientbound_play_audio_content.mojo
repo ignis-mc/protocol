@@ -1,13 +1,9 @@
-"""The `ClientboundPlayAudioContent` packet (gophertunnel `packet/clientbound_play_audio_content.go`).
-
-The `Sound` field (a `PlaySound` packet body) is missing until the
-`play_sound.mojo` port is merged; until then a full packet decodes with unread
-bytes left over.
-"""
+"""The `ClientboundPlayAudioContent` packet (gophertunnel `packet/clientbound_play_audio_content.go`)."""
 
 from ..io import IO
 from .id import ID_CLIENTBOUND_PLAY_AUDIO_CONTENT
 from .packet import Packet
+from .play_sound import PlaySound
 
 
 struct ClientboundPlayAudioContent(Packet):
@@ -21,12 +17,15 @@ struct ClientboundPlayAudioContent(Packet):
     """A compact JWT with the signed playback content."""
     var playback_type: String
     """One of the audio content playback type values."""
+    var sound: PlaySound
+    """The sound to play, as a `PlaySound` packet body."""
 
     def __init__(out self):
         """Creates the packet with every field zero."""
         self.shared_metadata = String()
         self.playback_content = String()
         self.playback_type = String()
+        self.sound = PlaySound()
 
     def marshal[I: IO](mut self, mut io: I) raises:
         """Reads or writes the packet's fields.
@@ -43,5 +42,4 @@ struct ClientboundPlayAudioContent(Packet):
         io.string(self.shared_metadata)
         io.string(self.playback_content)
         io.string(self.playback_type)
-        # TODO(packets3): marshal `sound: PlaySound` here once `play_sound.mojo`
-        # is merged: `self.sound.marshal(io)`.
+        self.sound.marshal(io)

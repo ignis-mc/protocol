@@ -47,6 +47,12 @@ def main() raises:
         conn.game_data.entity_runtime_id,
         "radius",
         conn.game_data.chunk_radius,
+        "world",
+        conn.game_data.start_game.world_name,
+        "items",
+        len(conn.game_data.items),
+        "shield",
+        conn.shield_id,
     )
     var text = Text()
     text.text_type = TEXT_TYPE_CHAT

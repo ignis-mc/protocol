@@ -1,3 +1,5 @@
+from minecraft.protocol.math import Vec3
+
 # Expected bytes come from gophertunnel v1.63.0 (header and payload).
 from minecraft.protocol.attribute_layer import (
     ATTRIBUTE_BOOL_OPERATION_XOR,
@@ -293,10 +295,17 @@ def test_clientbound_play_audio_content() raises:
     pk.shared_metadata = "m"
     pk.playback_content = "c"
     pk.playback_type = "music"
-    # Go appends the `PlaySound` body
-    # (01731020300000803f0000803f01000000); its port is a dependency.
-    var back = _check(pk, "e702016d0163056d75736963")
+    pk.sound.sound_name = "s"
+    pk.sound.position = Vec3(1, 2, 3)
+    pk.sound.volume = 1
+    pk.sound.pitch = 1
+    pk.sound.loop_count = -1
+    var back = _check(
+        pk, "e702016d0163056d7573696301731020300000803f0000803f01000000"
+    )
     assert_equal(back.playback_type, "music")
+    assert_equal(back.sound.sound_name, "s")
+    assert_equal(back.sound.loop_count, -1)
 
 
 def test_clientbound_stonecutter_set_recipe() raises:

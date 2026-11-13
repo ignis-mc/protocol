@@ -127,5 +127,18 @@ def test_header_sub_clients() raises:
     assert_equal(back.target_sub_client, 2)
 
 
+def test_decode_limits_can_be_disabled() raises:
+    # A client reads server packets without slice limits, like gophertunnel.
+    var pk = ResourcePackClientResponse()
+    pk.response = PACK_RESPONSE_SEND_PACKS
+    for _ in range(1100):
+        pk.packs_to_download.append("p")
+    var data = PacketData.parse(Span(encode_packet(pk)))
+    with assert_raises(contains="slice length was too long"):
+        _ = data.decode[ResourcePackClientResponse]()
+    var back = data.decode[ResourcePackClientResponse](0, False)
+    assert_equal(len(back.packs_to_download), 1100)
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

@@ -5,6 +5,7 @@ from minecraft.nbt.nbt import (
     NETWORK_LITTLE_ENDIAN,
     TAG_COMPOUND,
     nbt,
+    nbt_list,
 )
 from minecraft.protocol.reader import Reader
 from minecraft.protocol.writer import Writer
@@ -53,7 +54,20 @@ def test_empty_and_end() raises:
     var w = Writer()
     var none = NBT()
     nbt(w, none, NETWORK_LITTLE_ENDIAN)
-    assert_equal(hex_encode(Span(w.buf)), "00")
+    # Go writes a nil map as an empty compound and a nil slice as an empty
+    # list.
+    assert_equal(hex_encode(Span(w.buf)), "0a0000")
+    var wl = Writer()
+    var no_list = NBT()
+    nbt_list(wl, no_list, NETWORK_LITTLE_ENDIAN)
+    assert_equal(hex_encode(Span(wl.buf)), "09000000")
+    var wl2 = Writer()
+    nbt_list(wl2, no_list, LITTLE_ENDIAN)
+    assert_equal(hex_encode(Span(wl2.buf)), "0900000000000000")
+    # A value read as a lone TAG_End is written back unchanged.
+    var w3 = Writer()
+    nbt(w3, v, NETWORK_LITTLE_ENDIAN)
+    assert_equal(hex_encode(Span(w3.buf)), "00")
     var w2 = Writer()
     var empty = NBT.empty_compound(LITTLE_ENDIAN)
     nbt(w2, empty, LITTLE_ENDIAN)

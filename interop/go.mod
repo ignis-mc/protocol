@@ -7,6 +7,7 @@ require (
 	github.com/df-mc/dragonfly v0.11.6
 	github.com/df-mc/go-playfab/v2 v2.0.2
 	github.com/df-mc/go-xsapi/v2 v2.0.3
+	github.com/google/uuid v1.6.0
 	github.com/sandertv/gophertunnel v1.63.0
 	golang.org/x/crypto v0.48.0
 	golang.org/x/oauth2 v0.36.0
@@ -23,7 +24,6 @@ require (
 	github.com/go-gl/mathgl v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/pion/datachannel v1.6.3 // indirect
 	github.com/pion/dtls/v3 v3.1.9 // indirect

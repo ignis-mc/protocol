@@ -17,8 +17,8 @@ mojo = ">=1.2.0,<1.3.0"
 test = { cmd = "bash scripts/run_tests.sh", description = "Run every unit test file" }
 format = { cmd = "mojo format src test examples", description = "Format all Mojo sources" }
 format-check = { cmd = "bash scripts/check_format.sh", description = "Fail if formatting would change anything" }
-lint-docs = { cmd = "mojo doc -I third_party/nethernet/src --diagnose-missing-doc-strings --Werror -o /dev/null src/minecraft && mojo doc -I third_party/nethernet/src --diagnose-missing-doc-strings --Werror -o /dev/null src/tls", description = "Fail on missing or malformed docstrings" }
-build = { cmd = "mkdir -p build && mojo precompile -I third_party/nethernet/src src/minecraft -o build/minecraft.mojoc && mojo precompile -I third_party/nethernet/src src/tls -o build/tls.mojoc", description = "Precompile the packages" }
+lint-docs = { cmd = "for p in minecraft tls http net; do mojo doc -I src -I third_party/nethernet/src --diagnose-missing-doc-strings --Werror -o /dev/null src/$p || exit 1; done", description = "Fail on missing or malformed docstrings" }
+build = { cmd = "mkdir -p build && for p in minecraft tls http net; do mojo precompile -I src -I third_party/nethernet/src src/$p -o build/$p.mojoc || exit 1; done", description = "Precompile the packages" }
 check = { depends-on = ["format-check", "lint-docs", "test"], description = "Everything CI runs except interop" }
 
 # The Dragonfly server, the gophertunnel reference bot and the Xbox Live

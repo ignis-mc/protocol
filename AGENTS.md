@@ -143,11 +143,17 @@ src/minecraft/
     login/           ConnectionRequest encoding, IdentityData, ClientData
   nbt/               NBT walk/copy (nbt.mojo) and tree codec
   internal/          flate.mojo (inflate/deflate), snappy.mojo
+  auth/              Xbox Live sign-in: minecraft/auth, minecraft/service and
+                     the go-xsapi / go-playfab requests; sans-I/O builders and
+                     parsers, `SignIn` drives them over a `Transport`
   conn.mojo, dial.mojo, game_data.mojo   the client connection over NetherNet
-interop/             Go programs: Dragonfly server, gophertunnel bot, auth helper
+interop/             Dragonfly server, gophertunnel bot, Go auth helper (a
+                     cross-check), authcapture (Go-built requests for the
+                     auth tests), mojo/auth.mojo (the native auth helper)
 ```
 
 - Packages depend downward: `protocol` → `packet` → `login` → `conn`.
+  `auth` uses `login` (public key encoding) and the top-level `http` client.
   `protocol` and `nbt` never import `nethernet` or touch sockets.
 - Inside `src/minecraft` import relatively; tests and examples import
   absolutely (`from minecraft.protocol.packet.text import Text`).

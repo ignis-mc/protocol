@@ -9,6 +9,9 @@ The Minecraft: Bedrock Edition network protocol in pure Mojo, ported from
   codec (flate, snappy or none).
 - `minecraft.protocol.login`: login request encoding and client data.
 - `minecraft.nbt`: NBT in the network and storage encodings.
+- `minecraft.auth`: Xbox Live sign-in (Microsoft token refresh, device token,
+  SISU, XSTS, PlayFab, Minecraft services, login chain) over the Mojo TLS
+  client; `interop/mojo/auth.mojo` writes the credentials the `Dialer` uses.
 - `minecraft`: a client `Dialer` and `Conn`.
 
 The transport is [NetherNet](https://github.com/ignis-mc/nethernet), included

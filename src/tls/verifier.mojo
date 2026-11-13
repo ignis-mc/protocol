@@ -6,12 +6,9 @@ library and always checks the chain against a `RootStore`. There is no
 switch that turns verification off.
 """
 
-from ._pki_stub import (
-    PeerKey,
-    RootStore,
-    verify_chain,
-    verify_handshake_signature,
-)
+from .roots import RootStore
+from .verify import verify_chain, verify_handshake_signature
+from .x509 import PeerKey
 
 
 trait CertificateVerifier(Deinitable, Movable):

@@ -10,6 +10,7 @@ issuer.
 """
 
 from nethernet.crypto.base64 import base64url_decode
+from nethernet.json import json_parse_string
 
 from ..protocol.info import CURRENT_VERSION
 from ..protocol.login.request import marshal_public_key
@@ -310,7 +311,7 @@ def parse_session_start_response(
     var result = parse_object(get_raw(root, "result").as_bytes())
     var valid_until = 0
     if case .Some(v) = lookup(result, "validUntil"):
-        valid_until = parse_rfc3339(opt_string(result, "validUntil"))
+        valid_until = parse_rfc3339(json_parse_string(v))
     var token = ServiceToken(
         opt_string(result, "authorizationHeader"), valid_until
     )

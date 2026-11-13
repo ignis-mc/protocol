@@ -3,14 +3,27 @@
 #
 #   interop/run.sh            offline join, plus gophertunnel login checks
 #   interop/run.sh --online   also an Xbox Live join with the Lunar shared
-#                             account (needs ~/.config/lunar-dev and network)
+#                             account (needs ~/.config/lunar-dev and network);
+#                             credentials are minted by interop/mojo/auth.mojo
+#   interop/run.sh --online --go-auth
+#                             the same, minting with the Go helper interop/auth
 #
 # Every Go program runs from interop/bin; nothing here prints a token.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 online=0
-[[ "${1:-}" == "--online" ]] && online=1
+go_auth=0
+for arg in "$@"; do
+    case "$arg" in
+    --online) online=1 ;;
+    --go-auth) go_auth=1 ;;
+    *)
+        echo "usage: interop/run.sh [--online [--go-auth]]" >&2
+        exit 2
+        ;;
+    esac
+done
 
 export CGO_ENABLED=0 GOFLAGS=-mod=mod
 inc=(-I src -I third_party/nethernet/src)
@@ -27,6 +40,9 @@ echo "== building"
 mkdir -p build
 mojo build "${inc[@]}" examples/bot.mojo -o build/bot
 mojo build "${inc[@]}" interop/mojo/write_login.mojo -o build/write_login
+if [[ $online -eq 1 && $go_auth -eq 0 ]]; then
+    mojo build "${inc[@]}" interop/mojo/auth.mojo -o build/auth
+fi
 
 start_dragonfly() { # auth port
     : >"$work/df.log"
@@ -71,8 +87,13 @@ expect_join MojoBot
 stop_dragonfly
 
 if [[ $online -eq 1 ]]; then
-    echo "== minting credentials from the shared account"
-    interop/bin/auth -out .secrets/auth.json
+    if [[ $go_auth -eq 1 ]]; then
+        echo "== minting credentials from the shared account (Go helper)"
+        interop/bin/auth -out .secrets/auth.json
+    else
+        echo "== minting credentials from the shared account (Mojo)"
+        build/auth -v -out .secrets/auth.json
+    fi
     echo "== gophertunnel verifies the online login request"
     build/write_login "$work/online.bin" .secrets/auth.json
     interop/bin/loginparse -verify "$work/online.bin"

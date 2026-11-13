@@ -11,12 +11,34 @@ from nethernet.os.random import random_bytes
 from nethernet.os.tcp import TcpStream
 from nethernet.os.time import monotonic_ms, unix_time_s
 
-from net.dns import resolve_ipv4
+from net.dns import resolve_ipv4_all
 from .engine import ENTROPY_LEN, ClientEngine
 from .key_schedule import CipherSuite
 from .verifier import CertificateVerifier, PkiVerifier, RootStore
 
 comptime _READ_CHUNK = 16384 + 512
+comptime _CONNECT_ATTEMPT_MS = 4000
+
+
+def _connect_any(
+    addresses: List[UInt32], port: UInt16, deadline: Int
+) raises -> TcpStream:
+    # Cycle through the addresses with short attempts: a SYN that is lost on
+    # one path should not use up the whole budget.
+    var last = String("tls: no address")
+    var i = 0
+    while True:
+        var left = deadline - monotonic_ms()
+        if left <= 0:
+            raise Error(last)
+        try:
+            return TcpStream.connect(
+                SocketAddr(addresses[i % len(addresses)], port),
+                min(left, _CONNECT_ATTEMPT_MS),
+            )
+        except e:
+            last = String(e)
+        i += 1
 
 
 struct TlsStream[V: CertificateVerifier](Movable):
@@ -63,9 +85,8 @@ struct TlsStream[V: CertificateVerifier](Movable):
                 takes longer than `timeout_ms`.
         """
         var deadline = monotonic_ms() + timeout_ms
-        var ip = resolve_ipv4(host, timeout_ms)
-        var tcp = TcpStream.connect(
-            SocketAddr(ip, UInt16(port)), max(1, deadline - monotonic_ms())
+        var tcp = _connect_any(
+            resolve_ipv4_all(host, timeout_ms), UInt16(port), deadline
         )
         var entropy = random_bytes(ENTROPY_LEN)
         var engine = ClientEngine[Self.V](host, verifier^, Span(entropy))

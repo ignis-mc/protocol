@@ -199,19 +199,35 @@ def resolve_ipv4(host: String, timeout_ms: Int) raises -> UInt32:
         timeout_ms: The longest time to spend in total.
 
     Returns:
-        The address in host byte order.
+        The first address, in host byte order.
+
+    Raises:
+        Error: If the name cannot be resolved in time.
+    """
+    return resolve_ipv4_all(host, timeout_ms)[0]
+
+
+def resolve_ipv4_all(host: String, timeout_ms: Int) raises -> List[UInt32]:
+    """Resolves a host name to all of its IPv4 addresses.
+
+    Args:
+        host: A host name or dotted-decimal address.
+        timeout_ms: The longest time to spend in total.
+
+    Returns:
+        At least one address, in host byte order, in answer order.
 
     Raises:
         Error: If the name cannot be resolved in time.
     """
     try:
-        return SocketAddr.parse_ip(host)
+        return [SocketAddr.parse_ip(host)]
     except:
         pass
     if host.lower() == "localhost":
-        return SocketAddr.parse_ip("127.0.0.1")
+        return [SocketAddr.parse_ip("127.0.0.1")]
     if case .Some(ip) = lookup_hosts(_read_file("/etc/hosts"), host):
-        return ip
+        return [ip]
     var servers = parse_nameservers(_read_file("/etc/resolv.conf"))
     if len(servers) == 0:
         servers.append(SocketAddr.parse_ip("127.0.0.1"))
@@ -244,7 +260,7 @@ def resolve_ipv4(host: String, timeout_ms: Int) raises -> UInt32:
                     var ips = parse_response(Span(buf)[0:n], id)
                     if len(ips) == 0:
                         raise Error(t"dns: no A record for {host}")
-                    return ips[0]
+                    return ips^
                 except e:
                     var text = String(e)
                     if "id mismatch" in text:

@@ -24,39 +24,18 @@ struct Unknown(Marshaler, Writable):
 
     @staticmethod
     def from_data(data: PacketData) -> Unknown:
-        """Wraps a packet read from a batch.
-
-        Args:
-            data: The header and payload.
-
-        Returns:
-            The packet with the same ID and a copy of the payload.
-        """
+        """Wraps a packet read from a batch."""
         var pk = Unknown()
         pk.packet_id = data.id()
         pk.payload = data.payload.copy()
         return pk^
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads every remaining byte, or writes the payload.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads every remaining byte, or writes the payload."""
         io.bytes(self.payload)
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the ID and payload in hexadecimal, like Go's `String`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the ID and payload in hexadecimal, like Go's `String`."""
         comptime digits = "0123456789abcdef"
         writer.write("{ID:", hex(Int(self.packet_id)), " Payload:0x")
         for b in self.payload:

@@ -68,17 +68,7 @@ comptime _SIX_HOURS = 6 * 3600
 
 def marshal_public_key(private_key: Span[UInt8, _]) raises -> String:
     """Encodes the public half of a P-384 key as base64 PKIX DER
-    (gophertunnel `login.MarshalPublicKey`).
-
-    Args:
-        private_key: The 48-byte private scalar.
-
-    Returns:
-        The base64 text used in `x5u` headers and `cpk` claims.
-
-    Raises:
-        Error: If the key is invalid.
-    """
+    (gophertunnel `login.MarshalPublicKey`)."""
     var point = p384_public_key(private_key)
     var der = encode_ec_public_key_info(KEY_ALGORITHM_EC_P384, Span(point))
     return base64_encode(Span(der))
@@ -88,18 +78,7 @@ def sign_jwt(
     private_key: Span[UInt8, _], claims_json: StringSpan
 ) raises -> String:
     """Signs claims as a compact ES384 JWT with an `x5u` header holding the
-    signer's public key.
-
-    Args:
-        private_key: The 48-byte P-384 private scalar.
-        claims_json: The claims object as JSON text.
-
-    Returns:
-        `header.claims.signature`, each part base64url without padding.
-
-    Raises:
-        Error: If the key is invalid.
-    """
+    signer's public key."""
     var header = String(
         t'{{"alg":"ES384","x5u":{json_quote(marshal_public_key(private_key))}}}'
     )
@@ -111,18 +90,7 @@ def sign_jwt(
 
 
 def parse_chain(chain_json: StringSpan) raises -> List[String]:
-    """Reads the `chain` array of `{"chain":["jwt", ...]}`.
-
-    Args:
-        chain_json: The certificate JSON returned by the Minecraft auth
-            service.
-
-    Returns:
-        The JWTs in order.
-
-    Raises:
-        Error: If the JSON is not an object with a `chain` array of strings.
-    """
+    """Reads the `chain` array of `{"chain":["jwt", ...]}`."""
     var obj = json_parse_object(chain_json)
     if "chain" not in obj:
         raise Error("login: certificate has no chain")
@@ -163,18 +131,7 @@ def parse_chain(chain_json: StringSpan) raises -> List[String]:
 
 
 def jwt_header_field(token: StringSpan, name: StringSpan) raises -> String:
-    """Reads a string field from a JWT's (unverified) header.
-
-    Args:
-        token: A compact JWT.
-        name: The header field.
-
-    Returns:
-        The field's string value.
-
-    Raises:
-        Error: If the token or header is malformed or lacks the field.
-    """
+    """Reads a string field from a JWT's (unverified) header."""
     var bytes = token.as_bytes()
     var dot = -1
     for i in range(len(bytes)):
@@ -210,17 +167,7 @@ def _jwt_claims(token: StringSpan) raises -> Dict[String, String]:
 
 def chain_identity(login_chain: StringSpan) raises -> IdentityData:
     """Reads the identity from the chain's `extraData` claims, without
-    verifying it (gophertunnel `readChainIdentityData`).
-
-    Args:
-        login_chain: The certificate JSON from the Minecraft auth service.
-
-    Returns:
-        The identity the server will see.
-
-    Raises:
-        Error: If the chain is malformed or no link carries `extraData`.
-    """
+    verifying it (gophertunnel `readChainIdentityData`)."""
     var chain = parse_chain(login_chain)
     for i in range(len(chain)):
         var claims = _jwt_claims(chain[i])
@@ -281,20 +228,6 @@ def encode(
 
     A self-signed JWT that hands the chain's first `x5u` key to this
     connection's key is put in front of the Xbox Live chain.
-
-    Args:
-        login_chain: The certificate JSON from the Minecraft auth service,
-            requested for `private_key`.
-        data: The client data to sign.
-        private_key: The connection's 48-byte P-384 private scalar.
-        token: The multiplayer token issued for `private_key`.
-        now_unix_s: The current time in Unix seconds.
-
-    Returns:
-        The connection request bytes for the `Login` packet.
-
-    Raises:
-        Error: If the chain is malformed or the key is invalid.
     """
     var chain = parse_chain(login_chain)
     if len(chain) == 0:
@@ -325,20 +258,7 @@ def encode_offline(
     now_unix_s: Int,
 ) raises -> List[UInt8]:
     """Encodes a self-signed login request (gophertunnel `login.EncodeOffline`,
-    non-legacy).
-
-    Args:
-        identity: The player's identity.
-        data: The client data to sign.
-        private_key: The connection's 48-byte P-384 private scalar.
-        now_unix_s: The current time in Unix seconds.
-
-    Returns:
-        The connection request bytes for the `Login` packet.
-
-    Raises:
-        Error: If the key is invalid.
-    """
+    non-legacy)."""
     var key_data = marshal_public_key(private_key)
     var claims = String(
         t'{{"aud":{json_quote(MULTIPLAYER_AUDIENCE)},"exp":'
@@ -379,25 +299,11 @@ struct PublicKey(Copyable, Equatable, Movable):
     """The uncompressed point."""
 
     def __eq__(self, other: PublicKey) -> Bool:
-        """Compares keys (Go's `ecdsa.PublicKey.Equal`).
-
-        Args:
-            other: The other key.
-
-        Returns:
-            True if both are the same point on the same curve.
-        """
+        """Compares keys (Go's `ecdsa.PublicKey.Equal`)."""
         return self.curve == other.curve and self.point == other.point
 
     def marshal(self) raises -> String:
-        """Encodes the key as base64 PKIX DER (`login.MarshalPublicKey`).
-
-        Returns:
-            The base64 text.
-
-        Raises:
-            Error: If the point does not fit the curve's encoding.
-        """
+        """Encodes the key as base64 PKIX DER (`login.MarshalPublicKey`)."""
         var alg = (
             KEY_ALGORITHM_EC_P384 if self.curve
             == CURVE_P384 else KEY_ALGORITHM_EC_P256
@@ -411,17 +317,6 @@ def parse_public_key(b64_data: StringSpan) raises -> PublicKey:
 
     P-521 keys, which Go would also accept, are rejected: nothing in a
     login can verify with one.
-
-    Args:
-        b64_data: Standard base64 of the DER `SubjectPublicKeyInfo`.
-
-    Returns:
-        The key.
-
-    Raises:
-        Error: If the text is not base64, the DER is malformed or has
-            trailing data, the key is not a P-256 or P-384 key, or the point
-            is not on its curve.
     """
     var der: List[UInt8]
     try:
@@ -461,12 +356,7 @@ struct AuthResult(Copyable, Movable):
     multiplayer token with an XUID, or a legacy chain from Mojang's key."""
 
     def __init__(out self, var public_key: PublicKey, authenticated: Bool):
-        """Creates a result.
-
-        Args:
-            public_key: The client's key.
-            authenticated: Whether Xbox Live authenticated the client.
-        """
+        """Creates a result."""
         self.public_key = public_key^
         self.xbox_live_authenticated = authenticated
 
@@ -487,13 +377,7 @@ struct LoginResult(Movable):
         var client_data: ClientData,
         var auth_result: AuthResult,
     ):
-        """Creates a result.
-
-        Args:
-            identity_data: The identity.
-            client_data: The client data.
-            auth_result: The key and flag.
-        """
+        """Creates a result."""
         self.identity_data = identity_data^
         self.client_data = client_data^
         self.auth_result = auth_result^
@@ -542,16 +426,6 @@ def parse_login_request(data: Span[UInt8, _]) raises -> LoginRequest:
 
     The JSON is either the legacy `{"chain":[...]}` or
     `{"Certificate":"<chain JSON>","AuthenticationType":n,"Token":"..."}`.
-
-    Args:
-        data: The connection request bytes of a `Login` packet.
-
-    Returns:
-        The chain, authentication type, token and client data JWT.
-
-    Raises:
-        Error: If a length is missing or invalid, the JSON is malformed, the
-            login is a guest login, or bytes are left over.
     """
     var out = LoginRequest()
     if len(data) < 4:
@@ -657,13 +531,7 @@ struct LegacyChain(Movable):
         var public_key: PublicKey,
         authenticated: Bool,
     ):
-        """Creates a result.
-
-        Args:
-            identity_data: The identity.
-            public_key: The client key.
-            authenticated: Whether the chain is rooted at the trusted key.
-        """
+        """Creates a result."""
         self.identity_data = identity_data^
         self.public_key = public_key^
         self.authenticated = authenticated
@@ -682,19 +550,6 @@ def parse_legacy_chain(
     `identityPublicKey`, `nbf` and `exp` are checked with a one-minute
     leeway, links two and three must be issued by `Mojang`, and the chain is
     authenticated only if the first link hands over to `root_key`.
-
-    Args:
-        chain: The JWTs.
-        now_unix: The current time, Unix seconds.
-        root_key: The trusted root, base64 PKIX; Mojang's key by default.
-
-    Returns:
-        The identity, the client key and whether the chain is authenticated.
-
-    Raises:
-        Error: If a signature or claim check fails, the identity data is
-            invalid, the chain has another length, or an authenticated
-            chain lacks an XUID (or an unauthenticated one has one).
     """
     if len(chain) == 0:
         raise Error("decode chain: no elements")
@@ -828,14 +683,7 @@ def _format_uuid(b: Span[UInt8, _]) -> String:
 def identity_from_xuid(xuid: StringSpan) -> String:
     """Derives the player UUID from an XUID as the game does (gophertunnel
     `identityFromXUID`): an MD5 name-based (version 3) UUID of
-    `pocket-auth-1-xuid:` followed by the XUID.
-
-    Args:
-        xuid: The decimal XUID.
-
-    Returns:
-        The UUID in canonical form.
-    """
+    `pocket-auth-1-xuid:` followed by the XUID."""
     var name = String("pocket-auth-1-xuid:", xuid)
     var h = md5(name.as_bytes())
     h[6] = (h[6] & 0x0F) | 0x30
@@ -909,17 +757,6 @@ def parse(request: Span[UInt8, _], now_unix: Int) raises -> LoginResult:
 
     A multiplayer token is read without checking its signature and the
     result is never authenticated; a legacy chain is still verified.
-
-    Args:
-        request: The connection request bytes of a `Login` packet.
-        now_unix: The current time, Unix seconds.
-
-    Returns:
-        The identity, client data and authentication result.
-
-    Raises:
-        Error: If the request is malformed, a signature or claim check
-            fails, or the identity or client data is invalid.
     """
     var req: LoginRequest
     try:
@@ -969,22 +806,6 @@ def parse[
     client data must verify with, and the login is authenticated if it
     carries an XUID. A valid Mojang chain for the same XUID supplies the
     title ID. Requests without a token fall back to the legacy chain.
-
-    Parameters:
-        K: The verifier's key source.
-
-    Args:
-        request: The connection request bytes of a `Login` packet.
-        verifier: The verifier for multiplayer tokens.
-        now_unix: The current time, Unix seconds.
-
-    Returns:
-        The identity, client data and authentication result.
-
-    Raises:
-        Error: If the request is malformed, the token does not verify, a
-            signature or claim check fails, or the identity or client data
-            is invalid.
     """
     var req: LoginRequest
     try:

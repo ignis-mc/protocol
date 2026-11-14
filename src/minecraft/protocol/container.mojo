@@ -239,26 +239,11 @@ struct FullContainerName(Marshaler):
     def __init__(
         out self, container_id: UInt8, dynamic_container_id: Optional[UInt32]
     ):
-        """Creates a container name.
-
-        Args:
-            container_id: The container ID.
-            dynamic_container_id: The dynamic container ID, if any.
-        """
+        """Creates a container name."""
         self.container_id = container_id
         self.dynamic_container_id = dynamic_container_id
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the container name.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the container name."""
         io.uint8(self.container_id)
         optional_uint32(io, self.dynamic_container_id)

@@ -195,16 +195,6 @@ def x25519(
 
     The scalar is clamped as the RFC specifies. The result may be all zero
     for small-order inputs; `x25519_shared_secret()` rejects that.
-
-    Args:
-        scalar: The 32-byte scalar.
-        u: The 32-byte little-endian u-coordinate.
-
-    Returns:
-        The 32-byte u-coordinate of the product.
-
-    Raises:
-        Error: If either input is not 32 bytes.
     """
     if len(scalar) != X25519_LEN or len(u) != X25519_LEN:
         raise Error("x25519: inputs must be 32 bytes")
@@ -247,17 +237,7 @@ def x25519(
 
 
 def x25519_public_key(private_key: Span[UInt8, _]) raises -> Array[UInt8, 32]:
-    """Computes the public key `X25519(k, 9)`.
-
-    Args:
-        private_key: 32 random bytes.
-
-    Returns:
-        The 32-byte public key.
-
-    Raises:
-        Error: If the key is not 32 bytes.
-    """
+    """Computes the public key `X25519(k, 9)`."""
     var base = Array[UInt8, 32](fill=0)
     base[0] = 9
     return x25519(private_key, Span(base))
@@ -269,16 +249,6 @@ def x25519_shared_secret(
     """Computes an X25519 shared secret, rejecting the all-zero result.
 
     RFC 8446 7.4.2 requires the check, which catches small-order peer keys.
-
-    Args:
-        private_key: Our 32-byte private key.
-        peer_public_key: The peer's 32-byte public key.
-
-    Returns:
-        The 32-byte shared secret.
-
-    Raises:
-        Error: If an input has the wrong length or the result is zero.
     """
     var out = x25519(private_key, peer_public_key)
     var acc: UInt8 = 0

@@ -25,16 +25,6 @@ struct EditorNetwork(Packet):
         self.payload = NBT.empty_compound()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.bool(self.route_to_manager)
         nbt(io, self.payload, NETWORK_LITTLE_ENDIAN)

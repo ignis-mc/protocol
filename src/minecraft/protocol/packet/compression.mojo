@@ -17,14 +17,7 @@ comptime FLATE_LEVEL = 6
 
 
 def is_known_compression(algorithm: UInt16) -> Bool:
-    """Checks whether an algorithm ID is one this library implements.
-
-    Args:
-        algorithm: A `COMPRESSION_ALGORITHM_*` value.
-
-    Returns:
-        `True` for flate, snappy and none.
-    """
+    """Checks whether an algorithm ID is one this library implements."""
     return (
         algorithm == COMPRESSION_ALGORITHM_FLATE
         or algorithm == COMPRESSION_ALGORITHM_SNAPPY
@@ -33,18 +26,7 @@ def is_known_compression(algorithm: UInt16) -> Bool:
 
 
 def compress(algorithm: UInt16, data: Span[UInt8, _]) raises -> List[UInt8]:
-    """Compresses a batch body.
-
-    Args:
-        algorithm: A `COMPRESSION_ALGORITHM_*` value.
-        data: The uncompressed batch body.
-
-    Returns:
-        The compressed bytes.
-
-    Raises:
-        Error: If the algorithm is unknown.
-    """
+    """Compresses a batch body."""
     if algorithm == COMPRESSION_ALGORITHM_NONE:
         return List[UInt8](data)
     if algorithm == COMPRESSION_ALGORITHM_FLATE:
@@ -58,18 +40,6 @@ def decompress(
     algorithm: UInt16, data: Span[UInt8, _], limit: Int
 ) raises -> List[UInt8]:
     """Decompresses a batch body, refusing to produce more than `limit` bytes.
-
-    Args:
-        algorithm: A `COMPRESSION_ALGORITHM_*` value.
-        data: The compressed batch body.
-        limit: The largest acceptable output size.
-
-    Returns:
-        The decompressed bytes.
-
-    Raises:
-        Error: If the algorithm is unknown, the data is malformed, or the
-            output would exceed `limit`.
     """
     if algorithm == COMPRESSION_ALGORITHM_NONE:
         if len(data) > limit:

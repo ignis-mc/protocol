@@ -39,17 +39,7 @@ struct AttributeValue(Marshaler):
         self.min = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value; the wire order is min, value, max.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value; the wire order is min, value, max."""
         io.string(self.name)
         io.float32(self.min)
         io.float32(self.value)
@@ -82,17 +72,7 @@ struct AttributeModifier(Marshaler):
         self.serializable = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the modifier.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the modifier."""
         io.string(self.id)
         io.string(self.name)
         io.float32(self.amount)
@@ -136,17 +116,7 @@ struct Attribute(Marshaler):
         self.modifiers = List[AttributeModifier]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the attribute.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the attribute."""
         io.float32(self.min)
         io.float32(self.max)
         io.float32(self.value)

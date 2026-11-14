@@ -61,14 +61,7 @@ struct LastShape(ShapeDataKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -85,17 +78,7 @@ struct LineShape(ShapeDataKind):
         self.line_end_location = Vec3()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         vec3(io, self.line_end_location)
 
 
@@ -130,17 +113,7 @@ struct TextShape(ShapeDataKind):
         self.show_backface_text = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         io.string(self.text)
         io.bool(self.use_rotation)
         optional_func[be_argb[I]](io, self.background_colour)
@@ -163,17 +136,7 @@ struct BoxShape(ShapeDataKind):
         self.box_bound = Vec3()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         vec3(io, self.box_bound)
 
 
@@ -190,17 +153,7 @@ struct SphereShape(ShapeDataKind):
         self.segments = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         io.uint8(self.segments)
 
 
@@ -226,17 +179,7 @@ struct ArrowShape(ShapeDataKind):
         self.segments = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         optional_func[vec3[I]](io, self.arrow_end_location)
         optional_func[I.float32](io, self.arrow_head_length)
         optional_func[I.float32](io, self.arrow_head_radius)
@@ -265,17 +208,7 @@ struct CylinderShape(ShapeDataKind):
         self.num_segments = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         vec2(io, self.radius_x)
         vec2(io, self.radius_z)
         io.float32(self.height)
@@ -301,17 +234,7 @@ struct PyramidShape(ShapeDataKind):
         self.height = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         io.float32(self.width)
         optional_func[I.float32](io, self.depth)
         io.float32(self.height)
@@ -333,17 +256,7 @@ struct EllipsoidShape(ShapeDataKind):
         self.segments_per_axis = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         vec3(io, self.radii)
         io.uint8(self.segments_per_axis)
 
@@ -367,17 +280,7 @@ struct ConeShape(ShapeDataKind):
         self.num_segments = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         vec2(io, self.radii)
         io.float32(self.height)
         io.uint8(self.num_segments)
@@ -427,33 +330,15 @@ struct ShapeData(Marshaler):
 
     @implicit
     def __init__(out self, var value: ShapeDataVariant):
-        """Wraps a concrete shape.
-
-        Args:
-            value: The shape.
-        """
+        """Wraps a concrete shape."""
         self.value = value^
 
     def shape_data_type(self) -> UInt32:
-        """Gets the wire type ID of the held shape.
-
-        Returns:
-            One of the `SHAPE_DATA_*` values.
-        """
+        """Gets the wire type ID of the held shape."""
         return _shape_data_type(self.value)
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the type ID and the shape (see `shape_data`).
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the type is unknown.
-        """
+        """Reads or writes the type ID and the shape (see `shape_data`)."""
         shape_data(io, self)
 
 
@@ -461,16 +346,6 @@ def shape_data[I: IO](mut io: I, mut x: ShapeData) raises:
     """Marshals a varuint32 shape type, then the shape of that type.
 
     This is gophertunnel `IO.ShapeData`.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The shape data.
-
-    Raises:
-        If the input is malformed or the type is unknown.
     """
     var t = x.shape_data_type()
     io.varuint32(t)
@@ -542,17 +417,7 @@ struct PrimitiveShape(Marshaler):
         self.extra_shape_data = ShapeData()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape; the wire order differs from the fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape; the wire order differs from the fields."""
         io.varuint64(self.network_id)
         optional_func[I.uint8](io, self.type)
         optional_func[vec3[I]](io, self.location)

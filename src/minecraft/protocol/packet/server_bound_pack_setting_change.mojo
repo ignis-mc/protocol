@@ -24,16 +24,6 @@ struct ServerBoundPackSettingChange(Packet):
         self.pack_setting = PackSetting()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         uuid(io, self.pack_id)
         pack_setting(io, self.pack_setting)

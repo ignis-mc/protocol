@@ -16,20 +16,7 @@ def pbkdf2_hmac_sha256(
     iterations: Int,
     key_len: Int,
 ) raises -> List[UInt8]:
-    """Derives a key with PBKDF2 using HMAC-SHA-256 as the PRF.
-
-    Args:
-        password: The secret password.
-        salt: The salt.
-        iterations: The iteration count, at least 1.
-        key_len: The number of key bytes to produce.
-
-    Returns:
-        `key_len` derived bytes.
-
-    Raises:
-        Error: If `iterations` is below 1 or `key_len` is negative.
-    """
+    """Derives a key with PBKDF2 using HMAC-SHA-256 as the PRF."""
     if iterations < 1:
         raise Error("pbkdf2: iteration count must be at least 1")
     if key_len < 0:
@@ -174,21 +161,6 @@ def scrypt(
 
     Memory use is `128 * r * n` bytes; Lunar's store uses `n = 32768`,
     `r = 8`, `p = 1` (32 MiB).
-
-    Args:
-        password: The secret password.
-        salt: The salt.
-        n: The CPU/memory cost, a power of two greater than 1.
-        r: The block size factor, at least 1.
-        p: The parallelization factor, at least 1.
-        key_len: The number of key bytes to produce.
-
-    Returns:
-        `key_len` derived bytes.
-
-    Raises:
-        Error: If the parameters are out of range (the same limits as
-            `golang.org/x/crypto/scrypt.Key`).
     """
     if n <= 1 or (n & (n - 1)) != 0:
         raise Error("scrypt: N must be > 1 and a power of 2")

@@ -91,14 +91,7 @@ struct Credentials(Copyable):
         var token: String,
         var domain: String,
     ):
-        """Bundles credentials.
-
-        Args:
-            private_key: The 48-byte private scalar.
-            chain: The certificate JSON.
-            token: The multiplayer token.
-            domain: The issuer URL.
-        """
+        """Bundles credentials."""
         self.private_key = private_key^
         self.chain = chain^
         self.token = token^
@@ -169,15 +162,6 @@ def default_client_data(
     mut d: ClientData, address: StringSpan, addr: SocketAddr, username: String
 ) raises:
     """Fills unset client data fields like gophertunnel's `defaultClientData`.
-
-    Args:
-        d: The client data to complete.
-        address: The address dialed.
-        addr: The resolved signaling address.
-        username: The player's display name.
-
-    Raises:
-        Error: If the kernel cannot supply randomness.
     """
     d.server_address = _server_address(address, addr)
     d.third_party_name = username
@@ -262,18 +246,7 @@ struct Dialer(Copyable):
         self.resource_pack_roots = None
 
     def dial(self, address: StringSpan) raises -> Conn:
-        """Connects, logs in and waits until the player has spawned.
-
-        Args:
-            address: The server's signaling URL, `http://host:port`.
-
-        Returns:
-            The connection, with the player spawned.
-
-        Raises:
-            Error: If the connection, the login or the join fails, the
-                server disconnects the client, or the timeout passes.
-        """
+        """Connects, logs in and waits until the player has spawned."""
         var deadline = monotonic_ms() + self.timeout_ms
         var addr = _parse_http_address(address)
         var key: List[UInt8]

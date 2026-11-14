@@ -38,15 +38,6 @@ def pem_decode_certificates(pem: Span[UInt8, _]) raises -> List[List[UInt8]]:
     """Extracts every `CERTIFICATE` block from PEM text.
 
     Text outside the blocks (comments, other block types) is ignored.
-
-    Args:
-        pem: The PEM text.
-
-    Returns:
-        The DER certificates, in file order.
-
-    Raises:
-        Error: If a block is not terminated or its body is not base64.
     """
     var out = List[List[UInt8]]()
     var pos = 0
@@ -90,18 +81,7 @@ struct RootStore(Copyable, Sized):
 
     @staticmethod
     def load(path: String = SYSTEM_BUNDLE) raises -> RootStore:
-        """Loads a PEM bundle from a file.
-
-        Args:
-            path: The bundle path; the system bundle by default.
-
-        Returns:
-            The store.
-
-        Raises:
-            Error: If the file cannot be read, is not valid PEM, or holds no
-                usable certificate.
-        """
+        """Loads a PEM bundle from a file."""
         var data: List[UInt8]
         with open(path, "r") as f:
             data = f.read_bytes()
@@ -109,18 +89,7 @@ struct RootStore(Copyable, Sized):
 
     @staticmethod
     def from_pem(pem: Span[UInt8, _]) raises -> RootStore:
-        """Builds a store from PEM text.
-
-        Args:
-            pem: One or more `CERTIFICATE` blocks.
-
-        Returns:
-            The store.
-
-        Raises:
-            Error: If the PEM framing or base64 is broken, or no certificate
-                parses.
-        """
+        """Builds a store from PEM text."""
         var store = RootStore()
         for der in pem_decode_certificates(pem):
             try:
@@ -132,34 +101,18 @@ struct RootStore(Copyable, Sized):
         return store^
 
     def add(mut self, var cert: Certificate):
-        """Adds a trust anchor, ignoring exact duplicates.
-
-        Args:
-            cert: The anchor.
-        """
+        """Adds a trust anchor, ignoring exact duplicates."""
         for c in self.certs:
             if bytes_equal(Span(c.der), Span(cert.der)):
                 return
         self.certs.append(cert^)
 
     def __len__(self) -> Int:
-        """Counts the anchors.
-
-        Returns:
-            The number of trust anchors.
-        """
+        """Counts the anchors."""
         return len(self.certs)
 
     def find(self, cert: Certificate) -> Optional[Int]:
-        """Looks for an anchor with the same subject and key as `cert`.
-
-        Args:
-            cert: The certificate to look up.
-
-        Returns:
-            The anchor's index in `certs`, if any. Certificates with an
-            unsupported key never match.
-        """
+        """Looks for an anchor with the same subject and key as `cert`."""
         if cert.key.kind == KEY_UNKNOWN:
             return None
         for i in range(len(self.certs)):

@@ -18,12 +18,6 @@ def go_quote(text: StringSpan) -> String:
     Besides the mandatory escapes Go writes `\\b`, `\\f`, `\\n`, `\\r`,
     `\\t`, escapes `<`, `>` and `&` as `\\u003c`, `\\u003e`, `\\u0026`, and
     U+2028 and U+2029 as `\\u2028` and `\\u2029`.
-
-    Args:
-        text: The string to quote.
-
-    Returns:
-        The JSON string literal.
     """
     var hex = "0123456789abcdef".as_bytes()
     var src = text.as_bytes()
@@ -73,30 +67,13 @@ def go_quote(text: StringSpan) -> String:
 
 
 def parse_object(data: Span[UInt8, _]) raises -> Dict[String, String]:
-    """Splits a JSON object received from the network into its members.
-
-    Args:
-        data: The raw bytes of one JSON object.
-
-    Returns:
-        A map from member name to the raw JSON text of its value.
-
-    Raises:
-        Error: If the bytes are not valid UTF-8 or not a JSON object.
-    """
+    """Splits a JSON object received from the network into its members."""
     var text = String(from_utf8=data)
     return json_parse_object(text)
 
 
 def is_null(raw: StringSpan) -> Bool:
-    """Reports whether a raw JSON value is the literal `null`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        True for `null`.
-    """
+    """Reports whether a raw JSON value is the literal `null`."""
     return raw.strip() == "null"
 
 
@@ -106,13 +83,6 @@ def lookup(obj: Dict[String, String], name: String) -> Optional[String]:
     An exact name match wins; otherwise the first member whose name is equal
     ignoring ASCII case is used (Go also folds a few non-ASCII letters,
     which never occur in these field names). `null` counts as absent.
-
-    Args:
-        obj: The object members.
-        name: The Go field name or tag.
-
-    Returns:
-        The raw JSON text of the value, or `None`.
     """
     var found = Optional[String](None)
     if name in obj:
@@ -130,36 +100,14 @@ def lookup(obj: Dict[String, String], name: String) -> Optional[String]:
 
 
 def get_raw(obj: Dict[String, String], name: String) raises -> String:
-    """Returns the raw text of a member that must be present and non-null.
-
-    Args:
-        obj: The object members.
-        name: The member name.
-
-    Returns:
-        The raw JSON text of the value.
-
-    Raises:
-        Error: If the member is missing or null.
-    """
+    """Returns the raw text of a member that must be present and non-null."""
     if case .Some(raw) = lookup(obj, name):
         return raw
     raise Error(t"JSON: missing {name}")
 
 
 def get_string(obj: Dict[String, String], name: String) raises -> String:
-    """Returns a string member that must be present and non-null.
-
-    Args:
-        obj: The object members.
-        name: The member name.
-
-    Returns:
-        The decoded string.
-
-    Raises:
-        Error: If the member is missing, null or not a string.
-    """
+    """Returns a string member that must be present and non-null."""
     return json_parse_string(get_raw(obj, name))
 
 
@@ -167,16 +115,6 @@ def opt_string(obj: Dict[String, String], name: String) raises -> String:
     """Returns a string member, or an empty string when absent or null.
 
     Like Go, a missing field decodes to the zero value.
-
-    Args:
-        obj: The object members.
-        name: The member name.
-
-    Returns:
-        The decoded string, or "".
-
-    Raises:
-        Error: If the member is present but not a string.
     """
     if case .Some(raw) = lookup(obj, name):
         return json_parse_string(raw)
@@ -184,18 +122,7 @@ def opt_string(obj: Dict[String, String], name: String) raises -> String:
 
 
 def opt_int(obj: Dict[String, String], name: String) raises -> Int:
-    """Returns an integer member, or 0 when absent or null.
-
-    Args:
-        obj: The object members.
-        name: The member name.
-
-    Returns:
-        The integer, or 0.
-
-    Raises:
-        Error: If the member is present but not a number.
-    """
+    """Returns an integer member, or 0 when absent or null."""
     if case .Some(raw) = lookup(obj, name):
         return json_parse_int(raw)
     return 0
@@ -272,15 +199,6 @@ def parse_array(raw: StringSpan) raises -> List[String]:
     """Splits a JSON array into the raw text of its elements.
 
     `null` gives an empty list, as Go decodes it into a nil slice.
-
-    Args:
-        raw: The raw JSON text of an array.
-
-    Returns:
-        The raw text of each element, in order.
-
-    Raises:
-        Error: If the text is not a well-formed array.
     """
     var out = List[String]()
     if is_null(raw):
@@ -303,17 +221,7 @@ def parse_array(raw: StringSpan) raises -> List[String]:
 
 
 def parse_string_array(raw: StringSpan) raises -> List[String]:
-    """Decodes a JSON array of strings; `null` gives an empty list.
-
-    Args:
-        raw: The raw JSON text of the array.
-
-    Returns:
-        The decoded strings.
-
-    Raises:
-        Error: If the text is not an array of strings.
-    """
+    """Decodes a JSON array of strings; `null` gives an empty list."""
     var out = List[String]()
     for item in parse_array(raw):
         out.append(json_parse_string(item))

@@ -49,11 +49,7 @@ struct ServerStatus(Copyable, Defaultable):
         self.game_type = 0
 
     def endpoint_status(self) -> EndpointStatus:
-        """Converts the status to the body of the HTTP `GET /v1/join` probe.
-
-        Returns:
-            The status as go-nethernet's endpoint derives it from the pong.
-        """
+        """Converts the status to the body of the HTTP `GET /v1/join` probe."""
         var s = EndpointStatus()
         s.name = self.server_name.copy()
         s.protocol = Int(CURRENT_PROTOCOL)
@@ -69,9 +65,6 @@ struct ServerStatus(Copyable, Defaultable):
 
         go-nethernet leaves the protocol and version empty; they are filled
         here so that clients can tell whether they can join.
-
-        Returns:
-            The server data.
         """
         var d = ServerData()
         d.server_name = self.server_name.copy()
@@ -93,14 +86,7 @@ def _nethernet_game_type(game_type: Int) -> Int:
 
 
 def game_type_name(game_type: Int) -> String:
-    """Names a game type as the pong string does (`gameTypeName`).
-
-    Args:
-        game_type: One of the `GAME_TYPE_*` constants.
-
-    Returns:
-        `Creative`, `Adventure`, `Spectator` or `Survival`.
-    """
+    """Names a game type as the pong string does (`gameTypeName`)."""
     if game_type == Int(GAME_TYPE_CREATIVE):
         return "Creative"
     if game_type == Int(GAME_TYPE_ADVENTURE):
@@ -127,27 +113,14 @@ struct ListenerStatusProvider(Copyable, Defaultable):
     def __init__(
         out self, var server_name: String, var server_sub_name: String
     ):
-        """Creates a provider (`NewStatusProvider`).
-
-        Args:
-            server_name: The name shown in the server list.
-            server_sub_name: The sub-name.
-        """
+        """Creates a provider (`NewStatusProvider`)."""
         self.name = server_name^
         self.sub_name = server_sub_name^
 
     def server_status(
         self, player_count: Int, max_players: Int
     ) -> ServerStatus:
-        """Builds the status for the current player counts.
-
-        Args:
-            player_count: The players online.
-            max_players: The player limit, 0 for none.
-
-        Returns:
-            The status.
-        """
+        """Builds the status for the current player counts."""
         var s = ServerStatus()
         s.server_name = self.name.copy()
         s.server_sub_name = self.sub_name.copy()

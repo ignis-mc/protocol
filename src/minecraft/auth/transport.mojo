@@ -23,12 +23,6 @@ struct Request(Copyable, Movable, Writable):
 
     def header(self, name: StringSpan) -> Optional[String]:
         """Returns the first header with this name, compared case-insensitively.
-
-        Args:
-            name: The header name.
-
-        Returns:
-            The value, or `None`.
         """
         var want = String(name).lower()
         for h in self.headers:
@@ -37,19 +31,11 @@ struct Request(Copyable, Movable, Writable):
         return None
 
     def body_text(self) -> String:
-        """Returns the body as text, for tests and comparisons.
-
-        Returns:
-            The body bytes as a string (bodies the flow builds are UTF-8).
-        """
+        """Returns the body as text, for tests and comparisons."""
         return String(from_utf8_lossy=Span(self.body))
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the method and URL only; headers and body hold secrets.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the method and URL only; headers and body hold secrets."""
         writer.write(self.method, " ", self.url)
 
 
@@ -66,12 +52,6 @@ struct Response(Copyable, Movable):
 
     def header(self, name: StringSpan) -> Optional[String]:
         """Returns the first header with this name, compared case-insensitively.
-
-        Args:
-            name: The header name.
-
-        Returns:
-            The value, or `None`.
         """
         var want = String(name).lower()
         for h in self.headers:
@@ -87,15 +67,6 @@ trait Transport(Deinitable, Movable):
         """Sends a request and returns the response.
 
         Non-2xx statuses are returned, not raised; callers check `status`.
-
-        Args:
-            request: The request.
-
-        Returns:
-            The response.
-
-        Raises:
-            Error: On connection, TLS or framing failures.
         """
         ...
 
@@ -117,17 +88,7 @@ struct URL(Copyable, Movable):
 
 
 def parse_url(url: StringSpan) raises -> URL:
-    """Splits an absolute URL into scheme, host, port, path and query.
-
-    Args:
-        url: A URL such as `https://host:443/path?q=1`.
-
-    Returns:
-        The parts.
-
-    Raises:
-        Error: If there is no `scheme://` prefix or no host.
-    """
+    """Splits an absolute URL into scheme, host, port, path and query."""
     var s = String(url)
     var sep = s.find("://")
     if sep <= 0:
@@ -170,13 +131,6 @@ def join_path(base: StringSpan, *elems: String) -> String:
 
     Slashes between elements are collapsed to one; a trailing slash on the
     last element is kept.
-
-    Args:
-        base: The base URL.
-        elems: Path elements to append.
-
-    Returns:
-        The joined URL.
     """
     var out = String(base)
     for e in elems:
@@ -205,14 +159,7 @@ def _unreserved(c: UInt8) -> Bool:
 
 
 def query_escape(text: StringSpan) -> String:
-    """Escapes a form value like Go's `url.QueryEscape`.
-
-    Args:
-        text: The value.
-
-    Returns:
-        The value with spaces as `+` and other reserved bytes as `%XX`.
-    """
+    """Escapes a form value like Go's `url.QueryEscape`."""
     var hex = "0123456789ABCDEF".as_bytes()
     var out = List[UInt8]()
     for c in text.as_bytes():
@@ -228,14 +175,7 @@ def query_escape(text: StringSpan) -> String:
 
 
 def form_encode(var values: List[Tuple[String, String]]) -> String:
-    """Encodes form values sorted by key, like Go's `url.Values.Encode`.
-
-    Args:
-        values: Key/value pairs (one value per key).
-
-    Returns:
-        The `application/x-www-form-urlencoded` body.
-    """
+    """Encodes form values sorted by key, like Go's `url.Values.Encode`."""
     # Insertion sort keeps this dependency-free; forms have four entries.
     for i in range(1, len(values)):
         var j = i
@@ -259,13 +199,6 @@ def status_error(request: Request, response: Response) -> Error:
 
     Includes up to 256 bytes of the response body: error bodies from these
     services carry codes and messages, never tokens.
-
-    Args:
-        request: The request that failed.
-        response: Its response.
-
-    Returns:
-        An error naming the method, URL and status.
     """
     var n = min(len(response.body), 256)
     var snippet = String(from_utf8_lossy=Span(response.body)[0:n])

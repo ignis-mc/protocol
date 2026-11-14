@@ -142,14 +142,7 @@ def _rotl(x: UInt32, n: UInt32) -> UInt32:
 
 
 def md5(data: Span[UInt8, _]) -> Array[UInt8, 16]:
-    """Computes the MD5 digest of a message.
-
-    Args:
-        data: The message.
-
-    Returns:
-        The 16-byte digest.
-    """
+    """Computes the MD5 digest of a message."""
     var msg = List[UInt8](data)
     var bit_len = UInt64(len(data)) * 8
     msg.append(0x80)

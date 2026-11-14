@@ -53,17 +53,7 @@ struct TexturePackInfo(Marshaler):
         self.download_url = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the description.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the description."""
         uuid(io, self.uuid)
         io.string(self.version)
         io.uint64(self.size)
@@ -93,17 +83,7 @@ struct StackResourcePack(Marshaler):
         self.sub_pack_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.uuid)
         io.string(self.version)
         io.string(self.sub_pack_name)
@@ -123,17 +103,7 @@ struct PackURL(Marshaler):
         self.url = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.uuid_version)
         io.string(self.url)
 
@@ -160,33 +130,12 @@ struct PackSetting(Marshaler):
         self.value = PackSettingValue(Float32(0))
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the setting.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the type ID is unknown.
-        """
+        """Reads or writes the setting."""
         pack_setting(io, self)
 
 
 def pack_setting[I: IO](mut io: I, mut x: PackSetting) raises:
-    """Marshals a pack setting (gophertunnel `IO.PackSetting`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The setting.
-
-    Raises:
-        If the input is malformed or the type ID is unknown.
-    """
+    """Marshals a pack setting (gophertunnel `IO.PackSetting`)."""
     io.string(x.name)
     var id = UInt32(0)
     if not io.reads():

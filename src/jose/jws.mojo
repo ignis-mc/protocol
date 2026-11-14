@@ -38,15 +38,7 @@ comptime CURVE_P384 = KEY_ALGORITHM_EC_P384
 
 def ec_point_valid(curve: Int, point: Span[UInt8, _]) -> Bool:
     """Checks that bytes are an uncompressed point on the curve, as
-    `x509.ParsePKIXPublicKey` and go-jose's JWK parser do.
-
-    Args:
-        curve: `CURVE_P256` or `CURVE_P384`.
-        point: `0x04 || X || Y`.
-
-    Returns:
-        True if the point is valid.
-    """
+    `x509.ParsePKIXPublicKey` and go-jose's JWK parser do."""
     if curve == CURVE_P256:
         var zero = Array[UInt64, 4](fill=0)
         var p = AffinePoint[4](zero.copy(), zero^)
@@ -84,31 +76,13 @@ struct JSONWebSignature(Copyable, Movable):
         self.signature = List[UInt8]()
 
     def header_string(self, name: StringSpan) raises -> Optional[String]:
-        """Reads a string header member.
-
-        Args:
-            name: The member name.
-
-        Returns:
-            The string, or `None` when absent or `null`.
-
-        Raises:
-            Error: If the member is not a string.
-        """
+        """Reads a string header member."""
         if case .Some(raw) = lookup(self.header, name):
             return string_value(raw)
         return None
 
     def verify_ecdsa(self, curve: Int, point: Span[UInt8, _]) -> Bool:
-        """Verifies the signature with an elliptic-curve key.
-
-        Args:
-            curve: The key's curve, `CURVE_P256` or `CURVE_P384`.
-            point: The key as an uncompressed point.
-
-        Returns:
-            True if `alg` matches the curve and the signature is valid.
-        """
+        """Verifies the signature with an elliptic-curve key."""
         if self.algorithm == ES256 and curve == CURVE_P256:
             return p256_verify(
                 point,
@@ -124,14 +98,7 @@ struct JSONWebSignature(Copyable, Movable):
         return False
 
     def verify_rsa(self, key: RsaPublicKey) -> Bool:
-        """Verifies the signature with an RSA key.
-
-        Args:
-            key: The key.
-
-        Returns:
-            True if `alg` is RS256 and the signature is valid.
-        """
+        """Verifies the signature with an RSA key."""
         if self.algorithm != RS256:
             return False
         try:
@@ -145,20 +112,7 @@ struct JSONWebSignature(Copyable, Movable):
 def parse_signed(
     token: StringSpan, algorithms: List[String]
 ) raises -> JSONWebSignature:
-    """Parses a compact JWS (go-jose `ParseSigned`).
-
-    Args:
-        token: `header.payload.signature`.
-        algorithms: The accepted `alg` values.
-
-    Returns:
-        The parsed signature object; nothing is verified yet.
-
-    Raises:
-        Error: If the token does not have three parts, a part is not valid
-            base64url, the header is not a JSON object, `alg` is missing or
-            not accepted, `kid` is not a string, or `crit` is present.
-    """
+    """Parses a compact JWS (go-jose `ParseSigned`)."""
     if len(algorithms) == 0:
         raise Error("go-jose/go-jose: no signature algorithms specified")
     var b = token.as_bytes()

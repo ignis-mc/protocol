@@ -43,16 +43,6 @@ struct ServerBoundDataDrivenScreenClosed(Packet):
         self.close_reason = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.uint32(self.form_id)
         io.string(self.close_reason)

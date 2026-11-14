@@ -89,30 +89,14 @@ struct ItemStack(Marshaler):
         count: UInt16,
         block_runtime_id: Int32 = 0,
     ):
-        """Creates a stack with no user data.
-
-        Args:
-            item_type: The network ID and metadata value.
-            count: The number of items.
-            block_runtime_id: The block runtime ID, if the item is a block.
-        """
+        """Creates a stack with no user data."""
         self = Self()
         self.item_type = item_type.copy()
         self.count = count
         self.block_runtime_id = block_runtime_id
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the stack in the `IO.Item` encoding.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the stack in the `IO.Item` encoding."""
         item(io, self)
 
 
@@ -133,27 +117,12 @@ struct ItemInstance(Marshaler):
         self.stack = ItemStack()
 
     def __init__(out self, stack_network_id: Int32, var stack: ItemStack):
-        """Creates an instance.
-
-        Args:
-            stack_network_id: The stack network ID.
-            stack: The item stack.
-        """
+        """Creates an instance."""
         self.stack_network_id = stack_network_id
         self.stack = stack^
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the instance in the `IO.ItemInstance` encoding.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the instance in the `IO.ItemInstance` encoding."""
         item_instance(io, self)
 
 
@@ -192,17 +161,7 @@ struct StackRequestItem(Marshaler):
         self.blocking_tick = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the item in the `IO.StackRequestItem` encoding.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the item in the `IO.StackRequestItem` encoding."""
         stack_request_item(io, self)
 
 
@@ -229,17 +188,7 @@ struct ItemEntry(Marshaler):
         self.data = NBT()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.name)
         io.int16(self.runtime_id)
         io.bool(self.component_based)
@@ -262,17 +211,7 @@ struct MaterialReducerOutput(Marshaler):
         self.count = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the output.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the output."""
         io.varint32(self.network_id)
         io.varint32(self.count)
 
@@ -294,17 +233,7 @@ struct MaterialReducer(Marshaler):
         self.outputs = List[MaterialReducerOutput]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the reducer.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the reducer."""
         material_reducer(io, self)
 
 
@@ -317,16 +246,6 @@ def item_instance[I: IO](mut io: I, mut x: ItemInstance) raises:
     """Marshals an item instance (gophertunnel `IO.ItemInstance`).
 
     The network ID is sent as an `int16`, so IDs outside its range wrap.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     ref s = x.stack
     var id = Int16(s.item_type.network_id)
@@ -356,18 +275,7 @@ def item_instance[I: IO](mut io: I, mut x: ItemInstance) raises:
 
 
 def item[I: IO](mut io: I, mut x: ItemStack) raises:
-    """Marshals an item stack (gophertunnel `IO.Item`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals an item stack (gophertunnel `IO.Item`)."""
     io.varint32(x.item_type.network_id)
     io.uint16(x.count)
     io.varuint32(x.item_type.metadata_value)
@@ -385,18 +293,7 @@ def item[I: IO](mut io: I, mut x: ItemStack) raises:
 
 
 def stack_request_item[I: IO](mut io: I, mut x: StackRequestItem) raises:
-    """Marshals a named item (gophertunnel `IO.StackRequestItem`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the descriptor variant is unknown or the input is malformed.
-    """
+    """Marshals a named item (gophertunnel `IO.StackRequestItem`)."""
     var has_item = x.identifier.byte_length() != 0
     var variant = UInt32(1) if has_item else UInt32(0)
     io.varuint32(variant)
@@ -438,16 +335,6 @@ def material_reducer[I: IO](mut io: I, mut x: MaterialReducer) raises:
     The input is sent as `network_id << 16 | metadata_value`. gophertunnel's
     reader shifts the network ID left instead of right; this port decodes
     `mix >> 16` so that a written value reads back unchanged.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     var mix = (x.input_item.network_id << 16) | Int32(
         x.input_item.metadata_value

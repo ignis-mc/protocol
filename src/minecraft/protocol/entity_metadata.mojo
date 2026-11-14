@@ -654,11 +654,7 @@ struct EntityMetadata(Marshaler, Sized):
         self.entries = List[EntityMetadataEntry]()
 
     def __len__(self) -> Int:
-        """Counts the entries.
-
-        Returns:
-            The number of entries.
-        """
+        """Counts the entries."""
         return len(self.entries)
 
     def _find(self, key: UInt32) -> Int:
@@ -670,37 +666,18 @@ struct EntityMetadata(Marshaler, Sized):
         return -1
 
     def __contains__(self, key: UInt32) -> Bool:
-        """Checks whether a key is present.
-
-        Args:
-            key: The key.
-
-        Returns:
-            `True` if an entry has the key.
-        """
+        """Checks whether a key is present."""
         return self._find(key) >= 0
 
     def get(self, key: UInt32) -> Optional[EntityDataValue]:
-        """Looks up the value of a key.
-
-        Args:
-            key: The key.
-
-        Returns:
-            A copy of the value of the last entry with the key, if any.
-        """
+        """Looks up the value of a key."""
         var i = self._find(key)
         if i < 0:
             return None
         return self.entries[i].value.copy()
 
     def set(mut self, key: UInt32, var value: EntityDataValue):
-        """Sets the value of a key, replacing an existing entry.
-
-        Args:
-            key: The key.
-            value: The new value.
-        """
+        """Sets the value of a key, replacing an existing entry."""
         var i = self._find(key)
         if i < 0:
             self.entries.append(EntityMetadataEntry(key, value^))
@@ -708,11 +685,7 @@ struct EntityMetadata(Marshaler, Sized):
             self.entries[i].value = value^
 
     def remove(mut self, key: UInt32):
-        """Removes every entry with a key (Go `delete`).
-
-        Args:
-            key: The key.
-        """
+        """Removes every entry with a key (Go `delete`)."""
         var kept = List[EntityMetadataEntry](capacity=len(self.entries))
         for e in self.entries:
             if e.key != key:
@@ -736,14 +709,6 @@ struct EntityMetadata(Marshaler, Sized):
 
         Flags at or above 64 belong in `ENTITY_DATA_KEY_FLAGS_TWO` at
         `index - 64`; as in Go, an index past the field width does nothing.
-
-        Args:
-            key: `ENTITY_DATA_KEY_FLAGS`, `ENTITY_DATA_KEY_FLAGS_TWO` or
-                `ENTITY_DATA_KEY_PLAYER_FLAGS`.
-            index: An `ENTITY_DATA_FLAG_*` value (or a player flag).
-
-        Raises:
-            If the key is missing or holds the wrong type.
         """
         var i = self._flag_entry(key)
         ref v = self.entries[i].value
@@ -754,15 +719,7 @@ struct EntityMetadata(Marshaler, Sized):
             v[Int64] |= Int64(1) << Int64(index)
 
     def unset_flag(mut self, key: UInt32, index: UInt8) raises:
-        """Clears flag `index` in the flag field `key`.
-
-        Args:
-            key: The flag field, as for `set_flag`.
-            index: The flag index.
-
-        Raises:
-            If the key is missing or holds the wrong type.
-        """
+        """Clears flag `index` in the flag field `key`."""
         var i = self._flag_entry(key)
         ref v = self.entries[i].value
         if key == ENTITY_DATA_KEY_PLAYER_FLAGS:
@@ -772,18 +729,7 @@ struct EntityMetadata(Marshaler, Sized):
             v[Int64] &= ~(Int64(1) << Int64(index))
 
     def flag(mut self, key: UInt32, index: UInt8) raises -> Bool:
-        """Reports whether flag `index` is set in the flag field `key`.
-
-        Args:
-            key: The flag field, as for `set_flag`.
-            index: The flag index.
-
-        Returns:
-            `True` if the flag is set.
-
-        Raises:
-            If the key is missing or holds the wrong type.
-        """
+        """Reports whether flag `index` is set in the flag field `key`."""
         var i = self._flag_entry(key)
         ref v = self.entries[i].value
         if key == ENTITY_DATA_KEY_PLAYER_FLAGS:
@@ -791,26 +737,12 @@ struct EntityMetadata(Marshaler, Sized):
         return index < 64 and (v[Int64] >> Int64(index)) & 1 == 1
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the metadata (see `entity_metadata`).
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the metadata (see `entity_metadata`)."""
         entity_metadata(io, self)
 
 
 def new_entity_metadata() -> EntityMetadata:
     """Creates metadata holding the zeroed flag fields (Go `NewEntityMetadata`).
-
-    Returns:
-        Metadata with `FLAGS` and `FLAGS_TWO` as `Int64(0)` and
-        `PLAYER_FLAGS` as `UInt8(0)`.
     """
     var m = EntityMetadata()
     m.set(ENTITY_DATA_KEY_FLAGS, Int64(0))
@@ -903,16 +835,6 @@ def entity_metadata[I: IO](mut io: I, mut x: EntityMetadata) raises:
 
     This is gophertunnel `IO.EntityMetadata`. Writing sorts by key and keeps
     only the last entry of a repeated key; reading keeps the wire order.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The metadata; replaced when reading.
-
-    Raises:
-        If the input is malformed or a value type is unknown or mismatched.
     """
     if io.reads():
         var count = UInt32(0)

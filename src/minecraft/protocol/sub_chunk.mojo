@@ -62,17 +62,7 @@ struct SubChunkEntry(Marshaler):
         self.blob_hash = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a height map row is not 16 long.
-        """
+        """Reads or writes the entry."""
         self.offset.marshal(io)
         io.uint8(self.result)
         optional_byte_slice(io, self.raw_payload)
@@ -101,17 +91,7 @@ struct SubChunkOffset(Equatable, ImplicitlyCopyable, Marshaler):
         self.z = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the offset as three bytes.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the offset as three bytes."""
         io.int8(self.x)
         io.int8(self.y)
         io.int8(self.z)
@@ -132,39 +112,15 @@ struct HeightMap(Marshaler):
         self.heights = List[Int8](length=256, fill=0)
 
     def __getitem__(self, z: Int, x: Int) -> Int8:
-        """Gets the height of a column.
-
-        Args:
-            z: The Z coordinate, 0 to 15.
-            x: The X coordinate, 0 to 15.
-
-        Returns:
-            The height.
-        """
+        """Gets the height of a column."""
         return self.heights[z * 16 + x]
 
     def __setitem__(mut self, z: Int, x: Int, value: Int8):
-        """Sets the height of a column.
-
-        Args:
-            z: The Z coordinate, 0 to 15.
-            x: The X coordinate, 0 to 15.
-            value: The height.
-        """
+        """Sets the height of a column."""
         self.heights[z * 16 + x] = value
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes 16 rows, each a varuint32 16 and 16 heights.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a row does not hold 16 heights.
-        """
+        """Reads or writes 16 rows, each a varuint32 16 and 16 heights."""
         if io.reads():
             self.heights = List[Int8](length=256, fill=0)
         elif len(self.heights) != 256:

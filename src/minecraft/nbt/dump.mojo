@@ -28,18 +28,7 @@ from .tree import Tree
 
 
 def dump(data: Span[UInt8, _], encoding: Int) raises -> String:
-    """Decodes NBT and formats it for reading (gophertunnel `Dump`).
-
-    Args:
-        data: One encoded tag.
-        encoding: Its encoding.
-
-    Returns:
-        The dump.
-
-    Raises:
-        If the data cannot be decoded.
-    """
+    """Decodes NBT and formats it for reading (gophertunnel `Dump`)."""
     var tree: Tree
     try:
         tree = decode(data, encoding)
@@ -49,14 +38,7 @@ def dump(data: Span[UInt8, _], encoding: Int) raises -> String:
 
 
 def dump_tree(tree: Tree) -> String:
-    """Formats a tree the way `dump` does.
-
-    Args:
-        tree: The value.
-
-    Returns:
-        The dump; `nil` for an empty tree.
-    """
+    """Formats a tree the way `dump` does."""
     if tree.is_empty():
         return "nil"
     var out = String()

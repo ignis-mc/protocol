@@ -41,26 +41,13 @@ struct Version(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         self.patch = 0
 
     def __init__(out self, major: Int, minor: Int, patch: Int):
-        """Creates a version from its components.
-
-        Args:
-            major: The first component.
-            minor: The second component.
-            patch: The third component.
-        """
+        """Creates a version from its components."""
         self.major = major
         self.minor = minor
         self.patch = patch
 
     def __eq__(self, other: Self) -> Bool:
-        """Compares two versions.
-
-        Args:
-            other: The version to compare with.
-
-        Returns:
-            `True` if all three components are equal.
-        """
+        """Compares two versions."""
         return (
             self.major == other.major
             and self.minor == other.minor
@@ -68,11 +55,7 @@ struct Version(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         )
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes `major.minor.patch`, as gophertunnel's `Pack.Version`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes `major.minor.patch`, as gophertunnel's `Pack.Version`."""
         writer.write(self.major, ".", self.minor, ".", self.patch)
 
 
@@ -107,8 +90,7 @@ struct Module(Copyable, Defaultable):
     var description: String
     """A description, not shown to players."""
     var type: String
-    """`resources`, `data`, `client_data`, `interface` or `world_template`.
-    """
+    """`resources`, `data`, `client_data`, `interface` or `world_template`."""
     var version: Version
     """The module version."""
 
@@ -225,15 +207,6 @@ def strip_jsonc(src: Span[UInt8, _]) raises -> List[UInt8]:
 
     Comments (`//`, `/* */`, `#`) become spaces and commas before a closing
     bracket are dropped; string literals are left alone.
-
-    Args:
-        src: The JSONC text.
-
-    Returns:
-        The equivalent strict JSON text.
-
-    Raises:
-        Error: If a string or block comment is unterminated.
     """
     var out = List[UInt8](capacity=len(src))
     var p = 0
@@ -378,15 +351,6 @@ def parse_version(raw: StringSpan) raises -> Version:
 
     Missing array elements stay 0 and extra ones are ignored, as when Go
     decodes into a `[3]int`.
-
-    Args:
-        raw: The raw JSON value.
-
-    Returns:
-        The version.
-
-    Raises:
-        Error: If the value is neither form.
     """
     var text = raw.strip()
     if text.startswith("["):
@@ -422,15 +386,6 @@ def parse_uuid(text: StringSpan) raises -> UUID:
 
     These are `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, the same in braces or
     after `urn:uuid:`, and 32 hex digits without dashes.
-
-    Args:
-        text: The UUID text.
-
-    Returns:
-        The UUID.
-
-    Raises:
-        Error: If the text is in none of these forms.
     """
     var s = String(text)
     var n = s.byte_length()
@@ -492,17 +447,6 @@ def _array(obj: Dict[String, String], name: String) raises -> List[String]:
 
 def parse_manifest(data: Span[UInt8, _]) raises -> Manifest:
     """Decodes a `manifest.json`, as `jsonc.UnmarshalLenient` into `Manifest`.
-
-    Args:
-        data: The file content.
-
-    Returns:
-        The manifest. `world_template` is left `False`; the pack reader
-        sets it.
-
-    Raises:
-        Error: If the content is not valid UTF-8 or lenient JSON, or a
-            field has the wrong type.
     """
     var text = String(from_utf8=Span(strip_jsonc(data)))
     var obj = json_parse_object(text)

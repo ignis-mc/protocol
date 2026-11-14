@@ -44,17 +44,7 @@ struct SoundDataUpdate(Marshaler):
         self.seconds = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the update.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the type is unknown.
-        """
+        """Reads or writes the update."""
         io.uint8(self.type)
         if (
             self.type == SOUND_DATA_UPDATE_STOP

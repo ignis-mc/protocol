@@ -28,17 +28,7 @@ struct Transfer(Packet):
         self.gathering_join_info = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.string(self.address)
         io.uint16(self.port)
         io.bool(self.reload_world)

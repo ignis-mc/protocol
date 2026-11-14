@@ -79,17 +79,7 @@ trait PackFetcher:
     """Downloads a pack archive from the URL in `ResourcePacksInfo`."""
 
     def fetch(mut self, url: String) raises -> List[UInt8]:
-        """Downloads the archive at `url`.
-
-        Args:
-            url: The pack's download URL.
-
-        Returns:
-            The response body.
-
-        Raises:
-            Error: If the download fails or the status is not 200.
-        """
+        """Downloads the archive at `url`."""
         ...
 
 
@@ -101,17 +91,7 @@ struct NoFetcher(Defaultable, PackFetcher):
         pass
 
     def fetch(mut self, url: String) raises -> List[UInt8]:
-        """Always fails.
-
-        Args:
-            url: Ignored.
-
-        Returns:
-            Never returns.
-
-        Raises:
-            Error: Always.
-        """
+        """Always fails."""
         raise Error("pack downloads over HTTP are disabled")
 
 
@@ -127,11 +107,7 @@ struct ExemptedResourcePack(Copyable):
 
 def exempted_packs() -> List[ExemptedResourcePack]:
     """Returns the packs every client has built in (gophertunnel
-    `exemptedPacks`).
-
-    Returns:
-        The UUID and version of each built-in pack.
-    """
+    `exemptedPacks`)."""
     return [
         ExemptedResourcePack("d34cfa4b-2ad1-453d-a0db-668b429a3ea0", "1.26.40"),
         ExemptedResourcePack("b41c2785-c512-4a49-af56-3a87afd47c57", "1.21.30"),
@@ -182,13 +158,7 @@ struct DownloadingPack(Movable):
     """The content key from `ResourcePacksInfo`."""
 
     def __init__(out self, var id: String, var version: String, size: UInt64):
-        """Starts tracking a pack announced in `ResourcePacksInfo`.
-
-        Args:
-            id: The pack UUID.
-            version: The pack version.
-            size: The announced size.
-        """
+        """Starts tracking a pack announced in `ResourcePacksInfo`."""
         self.id = id^
         self.version = version^
         self.request_id = String()
@@ -203,27 +173,13 @@ struct DownloadingPack(Movable):
         self.content_key = String()
 
     def chunk_len(self, index: Int) -> Int:
-        """Returns the length chunk `index` must have.
-
-        Args:
-            index: A chunk index below `chunk_count`.
-
-        Returns:
-            `chunk_size`, or the remainder for the last chunk.
-        """
+        """Returns the length chunk `index` must have."""
         if index == self.chunk_count - 1:
             return Int(self.size) - index * Int(self.chunk_size)
         return Int(self.chunk_size)
 
     def has_early(self, index: Int) -> Bool:
-        """Checks whether chunk `index` arrived ahead of its turn.
-
-        Args:
-            index: The chunk index.
-
-        Returns:
-            `True` if it is buffered.
-        """
+        """Checks whether chunk `index` arrived ahead of its turn."""
         for i in range(len(self.early)):
             if self.early[i].index == index:
                 return True
@@ -297,11 +253,7 @@ struct ResourcePackQueue(Movable):
         return True
 
     def take_resource_packs(mut self) -> List[Pack]:
-        """Moves the downloaded packs out of the queue.
-
-        Returns:
-            The packs, in the order they finished.
-        """
+        """Moves the downloaded packs out of the queue."""
         var packs = self.resource_packs^
         self.resource_packs = List[Pack]()
         return packs^
@@ -314,19 +266,7 @@ struct ResourcePackQueue(Movable):
         mut fetcher: F,
         mut out: List[List[UInt8]],
     ) raises:
-        """Answers `ResourcePacksInfo` with the packs to send.
-
-        Parameters:
-            F: The fetcher type.
-
-        Args:
-            pk: The packet.
-            fetcher: Downloads packs that have a `download_url`.
-            out: Receives the encoded `ResourcePackClientResponse`.
-
-        Raises:
-            Error: If the response cannot be encoded.
-        """
+        """Answers `ResourcePacksInfo` with the packs to send."""
         var total = len(pk.texture_packs)
         self.pack_amount = total
         self.downloading = List[DownloadingPack]()
@@ -401,16 +341,7 @@ struct ResourcePackQueue(Movable):
     def handle_resource_pack_data_info(
         mut self, pk: ResourcePackDataInfo, mut out: List[List[UInt8]]
     ) raises:
-        """Starts downloading the pack `ResourcePackDataInfo` describes.
-
-        Args:
-            pk: The packet.
-            out: Receives the request for the first chunk.
-
-        Raises:
-            Error: If the pack was not requested, its size is 0 or above
-                `MAX_RESOURCE_PACK_SIZE`, or the chunk size is 0.
-        """
+        """Starts downloading the pack `ResourcePackDataInfo` describes."""
         var id = _base_id(pk.uuid)
         var found = -1
         for i in range(len(self.downloading)):
@@ -447,18 +378,7 @@ struct ResourcePackQueue(Movable):
     def handle_resource_pack_chunk_data(
         mut self, pk: ResourcePackChunkData, mut out: List[List[UInt8]]
     ) raises:
-        """Adds a chunk; finishes the pack after its last chunk.
-
-        Args:
-            pk: The packet.
-            out: Receives the next chunk request, or
-                `PACK_RESPONSE_ALL_PACKS_DOWNLOADED` after the last pack.
-
-        Raises:
-            Error: If the pack is not being downloaded, the index is out of
-                range, the chunk has the wrong length, or the finished
-                archive has the wrong size or hash or is not a valid pack.
-        """
+        """Adds a chunk; finishes the pack after its last chunk."""
         var id = _base_id(pk.uuid)
         var found = -1
         for i in range(len(self.awaiting)):
@@ -557,15 +477,7 @@ struct ResourcePackQueue(Movable):
             out.append(encode_packet(response))
 
     def has_pack(self, uuid: StringSpan, version: StringSpan) -> Bool:
-        """Checks whether the client has a pack (gophertunnel `hasPack`).
-
-        Args:
-            uuid: The pack UUID.
-            version: The pack version.
-
-        Returns:
-            `True` for built-in, skipped and downloaded packs.
-        """
+        """Checks whether the client has a pack (gophertunnel `hasPack`)."""
         var id = String(uuid).lower()
         for e in exempted_packs():
             if e.uuid == id and e.version == version:
@@ -581,15 +493,7 @@ struct ResourcePackQueue(Movable):
     def handle_resource_pack_stack(
         mut self, pk: ResourcePackStack, mut out: List[List[UInt8]]
     ) raises:
-        """Checks the stack and completes the pack exchange.
-
-        Args:
-            pk: The packet.
-            out: Receives `PACK_RESPONSE_COMPLETED`.
-
-        Raises:
-            Error: If a pack on the stack was not downloaded.
-        """
+        """Checks the stack and completes the pack exchange."""
         for p in pk.texture_packs:
             if not self.has_pack(p.uuid, p.version):
                 raise Error(
@@ -608,14 +512,7 @@ struct ResourcePackQueue(Movable):
 
 def pack_type(pack: Pack) -> UInt8:
     """Classifies a pack for `ResourcePackDataInfo` as gophertunnel's
-    `NextPack` does.
-
-    Args:
-        pack: The pack.
-
-    Returns:
-        One of the `RESOURCE_PACK_TYPE_*` values.
-    """
+    `NextPack` does."""
     var behaviours = pack.has_behaviours() or pack.has_scripts()
     if pack.has_world_template():
         return RESOURCE_PACK_TYPE_WORLD_TEMPLATE
@@ -648,12 +545,7 @@ struct ServerResourcePackQueue(Movable):
     def __init__(
         out self, var packs: List[ArcPointer[Pack]], chunk_size: UInt32
     ):
-        """Creates a queue over the offered packs.
-
-        Args:
-            packs: The packs offered in `ResourcePacksInfo`.
-            chunk_size: The bytes per chunk; must be positive.
-        """
+        """Creates a queue over the offered packs."""
         self.packs = packs^
         self.chunk_size = chunk_size
         self.current_offset = 0
@@ -661,14 +553,7 @@ struct ServerResourcePackQueue(Movable):
         self._current = None
 
     def request(mut self, packs: List[String]) raises:
-        """Queues the packs a client asked for (`Request`).
-
-        Args:
-            packs: `UUID` or `UUID_Version` strings.
-
-        Raises:
-            Error: If a requested pack was not offered.
-        """
+        """Queues the packs a client asked for (`Request`)."""
         self._to_download.clear()
         for requested in packs:
             var uuid: String
@@ -697,12 +582,7 @@ struct ServerResourcePackQueue(Movable):
                 raise Error(t"resource pack (UUID={requested}) not found")
 
     def next_pack(mut self) -> Optional[ResourcePackDataInfo]:
-        """Moves to the next requested pack (`NextPack`).
-
-        Returns:
-            The `ResourcePackDataInfo` announcing it, or `None` if every
-            requested pack was sent.
-        """
+        """Moves to the next requested pack (`NextPack`)."""
         if len(self._to_download) == 0:
             return None
         var p = self._to_download.pop(0)
@@ -720,29 +600,14 @@ struct ServerResourcePackQueue(Movable):
         return pk^
 
     def all_downloaded(self) -> Bool:
-        """Checks whether every requested pack was announced.
-
-        Returns:
-            `True` once `next_pack()` has nothing left.
-        """
+        """Checks whether every requested pack was announced."""
         return len(self._to_download) == 0
 
     def chunk(
         mut self, pk: ResourcePackChunkRequest
     ) raises -> Tuple[ResourcePackChunkData, Bool]:
         """Answers a chunk request (gophertunnel
-        `handleResourcePackChunkRequest`).
-
-        Args:
-            pk: The request.
-
-        Returns:
-            The chunk, and whether it is the last of the current pack.
-
-        Raises:
-            Error: If no pack is being sent, the UUID is not the current
-                pack's, or the index is not the next one.
-        """
+        `handleResourcePackChunkRequest`)."""
         if not self._current:
             raise Error("no resource pack is being downloaded")
         ref current = self._current.value()[]

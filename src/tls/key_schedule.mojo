@@ -22,56 +22,30 @@ struct CipherSuite(Equatable, ImplicitlyCopyable, Writable):
     """The IANA cipher suite code."""
 
     def __init__(out self, id: UInt16) raises:
-        """Looks up a supported suite.
-
-        Args:
-            id: The IANA code.
-
-        Raises:
-            Error: If the suite is not supported.
-        """
+        """Looks up a supported suite."""
         if id != TLS_AES_128_GCM_SHA256 and id != TLS_AES_256_GCM_SHA384:
             raise Error(t"tls: unsupported cipher suite {id}")
         self.id = id
 
     def __eq__(self, other: Self) -> Bool:
-        """Compares two suites.
-
-        Args:
-            other: The other suite.
-
-        Returns:
-            `True` if both have the same code.
-        """
+        """Compares two suites."""
         return self.id == other.id
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the IANA name.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the IANA name."""
         if self.id == TLS_AES_128_GCM_SHA256:
             writer.write("TLS_AES_128_GCM_SHA256")
         else:
             writer.write("TLS_AES_256_GCM_SHA384")
 
     def hash(self) -> HashKind:
-        """Gets the suite's hash.
-
-        Returns:
-            SHA-256 or SHA-384.
-        """
+        """Gets the suite's hash."""
         if self.id == TLS_AES_256_GCM_SHA384:
             return HashKind.SHA384
         return HashKind.SHA256
 
     def key_len(self) -> Int:
-        """Gets the AES key length.
-
-        Returns:
-            16 or 32.
-        """
+        """Gets the AES key length."""
         return 32 if self.id == TLS_AES_256_GCM_SHA384 else 16
 
 
@@ -93,18 +67,7 @@ struct TrafficKeys(Movable):
 def traffic_keys(
     suite: CipherSuite, secret: Span[UInt8, _]
 ) raises -> TrafficKeys:
-    """Derives the record protection key and IV from a traffic secret.
-
-    Args:
-        suite: The negotiated suite.
-        secret: A `*_traffic_secret`.
-
-    Returns:
-        The key and IV.
-
-    Raises:
-        Error: If the derivation fails.
-    """
+    """Derives the record protection key and IV from a traffic secret."""
     var h = suite.hash()
     var empty = List[UInt8]()
     var key = h.expand_label(secret, "key", Span(empty), suite.key_len())
@@ -115,19 +78,7 @@ def traffic_keys(
 def finished_verify_data(
     h: HashKind, base_key: Span[UInt8, _], transcript_hash: Span[UInt8, _]
 ) raises -> List[UInt8]:
-    """Computes a Finished message's `verify_data` (RFC 8446 4.4.4).
-
-    Args:
-        h: The suite hash.
-        base_key: The sender's handshake traffic secret.
-        transcript_hash: The transcript hash up to, not including, Finished.
-
-    Returns:
-        `HMAC(finished_key, transcript_hash)`.
-
-    Raises:
-        Error: If the derivation fails.
-    """
+    """Computes a Finished message's `verify_data` (RFC 8446 4.4.4)."""
     var empty = List[UInt8]()
     var finished_key = h.expand_label(
         base_key, "finished", Span(empty), h.size()
@@ -140,18 +91,7 @@ def finished_verify_data(
 def next_traffic_secret(
     h: HashKind, secret: Span[UInt8, _]
 ) raises -> List[UInt8]:
-    """Derives the next application traffic secret for KeyUpdate (7.2).
-
-    Args:
-        h: The suite hash.
-        secret: The current application traffic secret.
-
-    Returns:
-        The updated secret.
-
-    Raises:
-        Error: If the derivation fails.
-    """
+    """Derives the next application traffic secret for KeyUpdate (7.2)."""
     var empty = List[UInt8]()
     return h.expand_label(secret, "traffic upd", Span(empty), h.size())
 
@@ -164,11 +104,7 @@ struct KeySchedule(Movable):
     var _secret: List[UInt8]
 
     def __init__(out self, hash: HashKind):
-        """Starts at the early secret with no pre-shared key.
-
-        Args:
-            hash: The suite hash.
-        """
+        """Starts at the early secret with no pre-shared key."""
         self.hash = hash
         var zeros = List[UInt8](length=hash.size(), fill=0)
         var empty = List[UInt8]()
@@ -179,11 +115,7 @@ struct KeySchedule(Movable):
         zeroize(self._secret)
 
     def secret(self) -> Span[UInt8, origin_of(self._secret)]:
-        """Gets the current stage secret (early, handshake or master).
-
-        Returns:
-            The secret.
-        """
+        """Gets the current stage secret (early, handshake or master)."""
         return Span(self._secret)
 
     def _advance(mut self, ikm: Span[UInt8, _]) raises:
@@ -200,19 +132,7 @@ struct KeySchedule(Movable):
     def enter_handshake(
         mut self, shared_secret: Span[UInt8, _], hello_hash: Span[UInt8, _]
     ) raises -> Tuple[List[UInt8], List[UInt8]]:
-        """Mixes in the (EC)DHE secret and derives the handshake secrets.
-
-        Args:
-            shared_secret: The ECDHE output.
-            hello_hash: `Transcript-Hash(ClientHello..ServerHello)`.
-
-        Returns:
-            `(client_handshake_traffic_secret,
-            server_handshake_traffic_secret)`.
-
-        Raises:
-            Error: If the derivation fails.
-        """
+        """Mixes in the (EC)DHE secret and derives the handshake secrets."""
         self._advance(shared_secret)
         var c = self.hash.derive_secret(
             Span(self._secret), "c hs traffic", hello_hash
@@ -225,18 +145,7 @@ struct KeySchedule(Movable):
     def enter_master(
         mut self, finished_hash: Span[UInt8, _]
     ) raises -> Tuple[List[UInt8], List[UInt8]]:
-        """Derives the master secret and the application traffic secrets.
-
-        Args:
-            finished_hash: `Transcript-Hash(ClientHello..server Finished)`.
-
-        Returns:
-            `(client_application_traffic_secret_0,
-            server_application_traffic_secret_0)`.
-
-        Raises:
-            Error: If the derivation fails.
-        """
+        """Derives the master secret and the application traffic secrets."""
         var zeros = List[UInt8](length=self.hash.size(), fill=0)
         self._advance(Span(zeros))
         var c = self.hash.derive_secret(

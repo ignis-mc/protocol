@@ -44,17 +44,7 @@ struct ClientboundMatchmakingState(Packet):
         self.options = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.uint8(self.state)
         io.string(self.destination_name)
         optional_marshaler(io, self.options)

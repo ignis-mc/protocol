@@ -33,14 +33,7 @@ comptime _AEAD_TAG_LEN = 16
 
 
 def is_known_content_type(content_type: UInt8) -> Bool:
-    """Checks whether a record content type is one TLS 1.3 defines.
-
-    Args:
-        content_type: The type byte.
-
-    Returns:
-        `True` for change_cipher_spec, alert, handshake and application_data.
-    """
+    """Checks whether a record content type is one TLS 1.3 defines."""
     return (
         content_type >= CONTENT_CHANGE_CIPHER_SPEC
         and content_type <= CONTENT_APPLICATION_DATA
@@ -54,14 +47,6 @@ def put_plaintext_record(
 
     The legacy record version is 0x0303, which every TLS 1.3 server accepts
     for the first flight (RFC 8446 5.1 allows 0x0301 too).
-
-    Args:
-        out: The buffer to append to.
-        content_type: The content type.
-        fragment: The content, at most `MAX_PLAINTEXT_LEN` bytes.
-
-    Raises:
-        Error: If the fragment is too long.
     """
     if len(fragment) > MAX_PLAINTEXT_LEN:
         raise Error("tls: plaintext record too long")
@@ -83,34 +68,18 @@ struct RecordBuffer(Movable):
         self._start = 0
 
     def feed(mut self, data: Span[UInt8, _]):
-        """Appends bytes received from the transport.
-
-        Args:
-            data: The bytes.
-        """
+        """Appends bytes received from the transport."""
         if self._start > 0 and self._start == len(self._buf):
             self._buf.clear()
             self._start = 0
         put_bytes(self._buf, data)
 
     def buffered(self) -> Int:
-        """Counts the bytes not yet returned as records.
-
-        Returns:
-            The number of buffered bytes.
-        """
+        """Counts the bytes not yet returned as records."""
         return len(self._buf) - self._start
 
     def next(mut self) raises -> Optional[List[UInt8]]:
-        """Removes the next complete record, header included.
-
-        Returns:
-            The record, or `None` if more bytes are needed.
-
-        Raises:
-            Error: "record_overflow" if the declared length exceeds 2^14 +
-                256, or "unexpected_message" for an unknown content type.
-        """
+        """Removes the next complete record, header included."""
         var avail = len(self._buf) - self._start
         if avail < RECORD_HEADER_LEN:
             return None
@@ -155,14 +124,7 @@ struct RecordProtection(Movable):
     var _seq: UInt64
 
     def __init__(out self, keys: TrafficKeys) raises:
-        """Keys a direction.
-
-        Args:
-            keys: The traffic key and IV.
-
-        Raises:
-            Error: If the key or IV has the wrong length.
-        """
+        """Keys a direction."""
         if len(keys.iv) != 12:
             raise Error("tls: record IV must be 12 bytes")
         var aead = AesGcm(Span(keys.key))
@@ -175,11 +137,7 @@ struct RecordProtection(Movable):
         zeroize(self._iv)
 
     def sequence(self) -> UInt64:
-        """Gets the sequence number of the next record.
-
-        Returns:
-            The number of records processed so far.
-        """
+        """Gets the sequence number of the next record."""
         return self._seq
 
     def _nonce(self) -> Array[UInt8, 12]:
@@ -205,14 +163,6 @@ struct RecordProtection(Movable):
         """Appends one protected record carrying `content`.
 
         No padding is added.
-
-        Args:
-            content_type: The real content type.
-            content: At most `MAX_PLAINTEXT_LEN` bytes.
-            out: The buffer to append the record to.
-
-        Raises:
-            Error: If the content is too long or the sequence is exhausted.
         """
         if len(content) > MAX_PLAINTEXT_LEN:
             raise Error("tls: record content too long")
@@ -231,21 +181,7 @@ struct RecordProtection(Movable):
         self._next_seq()
 
     def open(mut self, record: Span[UInt8, _]) raises -> OpenedRecord:
-        """Decrypts one protected record.
-
-        Args:
-            record: The whole record, header included, as returned by
-                `RecordBuffer.next()`.
-
-        Returns:
-            The real content type and the unpadded content.
-
-        Raises:
-            Error: Prefixed with the alert to send: "bad_record_mac" if
-                authentication fails, "record_overflow" if the plaintext is
-                too long, "unexpected_message" if the outer type is not
-                application_data or the plaintext is all padding.
-        """
+        """Decrypts one protected record."""
         if len(record) < RECORD_HEADER_LEN:
             raise Error("decode_error: short record")
         if record[0] != CONTENT_APPLICATION_DATA:

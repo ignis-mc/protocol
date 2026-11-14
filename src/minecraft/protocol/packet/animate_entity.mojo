@@ -36,17 +36,7 @@ struct AnimateEntity(Packet):
         self.entity_runtime_ids = List[UInt64]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.string(self.animation)
         io.string(self.next_state)
         io.string(self.stop_condition)

@@ -70,11 +70,7 @@ struct Url(Copyable, Writable):
     """The request target: path and query, at least "/"."""
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the URL back out (without a fragment).
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the URL back out (without a fragment)."""
         writer.write("https://", self.host)
         if self.port != 443:
             writer.write(":", self.port)
@@ -82,18 +78,7 @@ struct Url(Copyable, Writable):
 
 
 def parse_url(url: StringSpan) raises -> Url:
-    """Parses an absolute https URL.
-
-    Args:
-        url: The URL, for example `https://host:8443/path?q=1`.
-
-    Returns:
-        The host, port and request target. Any fragment is dropped.
-
-    Raises:
-        Error: If the scheme is not https, the host is missing or an IPv6
-            literal, the URL has user info, or the port is invalid.
-    """
+    """Parses an absolute https URL."""
     var text = String(url.strip())
     var lower = _ascii_lower(text)
     if not lower.startswith("https://"):
@@ -160,17 +145,6 @@ def encode_request(
     Host, Content-Length, Connection and Accept-Encoding are always set by
     this function (caller values for them are dropped); User-Agent defaults
     to `DEFAULT_USER_AGENT`.
-
-    Args:
-        method: The method token, for example "GET" or "POST".
-        url: The parsed URL.
-        headers: Extra header fields.
-        body: The request body, possibly empty.
-        out: The buffer to append to.
-
-    Raises:
-        Error: If the method or a header name is not a token, or a value
-            contains CR, LF or NUL.
     """
     if not _is_token(method):
         raise Error("http: invalid method")
@@ -228,14 +202,7 @@ struct HttpResponse(Copyable):
         self.body = List[UInt8]()
 
     def header(self, name: StringSpan) -> Optional[String]:
-        """Looks up a header field.
-
-        Args:
-            name: The field name, in any case.
-
-        Returns:
-            The first value, or `None`. Repeated fields are not combined.
-        """
+        """Looks up a header field."""
         var key = _ascii_lower(name)
         for h in self.headers:
             if h[0] == key:
@@ -243,11 +210,7 @@ struct HttpResponse(Copyable):
         return None
 
     def text(self) -> String:
-        """Decodes the body as UTF-8, replacing invalid sequences.
-
-        Returns:
-            The body text.
-        """
+        """Decodes the body as UTF-8, replacing invalid sequences."""
         return String(from_utf8_lossy=Span(self.body))
 
 
@@ -282,11 +245,7 @@ struct ResponseParser(Movable):
     var _response: HttpResponse
 
     def __init__(out self, method: StringSpan):
-        """Creates a parser for the response to a request.
-
-        Args:
-            method: The request method; responses to HEAD have no body.
-        """
+        """Creates a parser for the response to a request."""
         self._state = _HEAD
         self._buf = List[UInt8]()
         self._remaining = 0
@@ -294,34 +253,18 @@ struct ResponseParser(Movable):
         self._response = HttpResponse()
 
     def is_complete(self) -> Bool:
-        """Checks whether the whole response has been parsed.
-
-        Returns:
-            `True` once `take_response()` may be called.
-        """
+        """Checks whether the whole response has been parsed."""
         return self._state == _DONE
 
     def feed(mut self, data: Span[UInt8, _]) raises:
-        """Consumes more bytes from the connection.
-
-        Args:
-            data: The bytes; anything after the response is ignored.
-
-        Raises:
-            Error: If the response is malformed or exceeds the limits.
-        """
+        """Consumes more bytes from the connection."""
         if self._state == _DONE:
             return
         put_bytes(self._buf, data)
         self._advance()
 
     def finish(mut self) raises:
-        """Signals that the connection ended.
-
-        Raises:
-            Error: If the response is incomplete and was not delimited by
-                the end of the connection.
-        """
+        """Signals that the connection ended."""
         if self._state == _UNTIL_EOF:
             self._state = _DONE
             return
@@ -329,14 +272,7 @@ struct ResponseParser(Movable):
             raise Error("http: connection closed before the response ended")
 
     def take_response(mut self) raises -> HttpResponse:
-        """Removes the parsed response.
-
-        Returns:
-            The response.
-
-        Raises:
-            Error: If the response is not complete.
-        """
+        """Removes the parsed response."""
         if self._state != _DONE:
             raise Error("http: response not complete")
         var r = self._response^
@@ -527,23 +463,12 @@ struct HttpClient(Movable):
     """The trusted root certificates."""
 
     def __init__(out self, var roots: RootStore):
-        """Creates a client.
-
-        Args:
-            roots: The trusted roots, usually `RootStore.load()`.
-        """
+        """Creates a client."""
         self.roots = roots^
 
     @staticmethod
     def system() raises -> HttpClient:
-        """Creates a client that trusts the system CA bundle.
-
-        Returns:
-            The client.
-
-        Raises:
-            Error: If the bundle cannot be read.
-        """
+        """Creates a client that trusts the system CA bundle."""
         return HttpClient(RootStore.load())
 
     def request(
@@ -554,22 +479,7 @@ struct HttpClient(Movable):
         body: Span[UInt8, _],
         timeout_ms: Int = 30000,
     ) raises -> HttpResponse:
-        """Sends one request on a new connection and reads the response.
-
-        Args:
-            method: The method, for example "GET" or "POST".
-            url: An absolute https URL.
-            headers: Extra header fields.
-            body: The request body, possibly empty.
-            timeout_ms: The longest time for the whole exchange.
-
-        Returns:
-            The response, whatever its status. Redirects are not followed.
-
-        Raises:
-            Error: On an invalid URL, a connection, TLS or verification
-                failure, a malformed response, or timeout.
-        """
+        """Sends one request on a new connection and reads the response."""
         var deadline = monotonic_ms() + timeout_ms
         var u = parse_url(url)
         var request = List[UInt8]()
@@ -595,18 +505,6 @@ struct HttpClient(Movable):
         headers: List[Tuple[String, String]] = [],
         timeout_ms: Int = 30000,
     ) raises -> HttpResponse:
-        """Sends a GET request.
-
-        Args:
-            url: An absolute https URL.
-            headers: Extra header fields.
-            timeout_ms: The longest time for the whole exchange.
-
-        Returns:
-            The response.
-
-        Raises:
-            Error: As `request()`.
-        """
+        """Sends a GET request."""
         var empty = List[UInt8]()
         return self.request("GET", url, headers, Span(empty), timeout_ms)

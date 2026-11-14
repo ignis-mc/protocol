@@ -145,9 +145,6 @@ struct GameData(Copyable, Defaultable):
     def set_from_start_game(mut self, pk: StartGame):
         """Fills the fields a client learns from `StartGame` (gophertunnel
         `handleStartGame`); `items`, `chunk_radius` and `dimensions` are kept.
-
-        Args:
-            pk: The packet the server sent.
         """
         self.difficulty = pk.difficulty
         self.world_name = pk.world_name.copy()

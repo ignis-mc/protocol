@@ -215,9 +215,6 @@ struct Conn(Movable):
         """Wraps an open NetherNet connection as the client side.
 
         Every write is sent at once (`flush_rate_ms` is 0).
-
-        Args:
-            transport: The connection; it must be open.
         """
         self._transport = transport^
         self._encoder = Encoder()
@@ -255,16 +252,7 @@ struct Conn(Movable):
     ) -> Conn:
         """Wraps an accepted NetherNet connection as the server side, which
         then expects `RequestNetworkSettings` (gophertunnel `newConn` and
-        `Listener.createConn`).
-
-        Args:
-            transport: The accepted connection; it must be open.
-            config: The listener settings.
-            packs: The resource packs to offer.
-
-        Returns:
-            The connection, before login.
-        """
+        `Listener.createConn`)."""
         var conn = Conn(transport^)
         conn._server = True
         conn._config = config.copy()
@@ -286,103 +274,55 @@ struct Conn(Movable):
         `Conn.ResourcePacks`, contents are not decrypted; encrypted packs
         carry their `content_key()`. A server connection's offered packs are
         not listed here.
-
-        Returns:
-            The packs, in the order their downloads finished.
         """
         return self._resource_packs
 
     def authenticated(self) -> Bool:
         """Checks whether the client was authenticated through Xbox Live
-        (gophertunnel `Authenticated`: the identity has an XUID).
-
-        Returns:
-            `True` if the identity carries an XUID.
-        """
+        (gophertunnel `Authenticated`: the identity has an XUID)."""
         return self.identity_data.xuid.byte_length() != 0
 
     def login_verified(self) -> Bool:
-        """Checks whether a server connection verified the client's login.
-
-        Returns:
-            `True` once the `Login` packet passed every check.
-        """
+        """Checks whether a server connection verified the client's login."""
         return self._authenticated
 
     def logged_in(self) -> Bool:
-        """Checks whether the login sequence, packs included, is complete.
-
-        Returns:
-            `True` once a server connection may be accepted.
-        """
+        """Checks whether the login sequence, packs included, is complete."""
         return self._logged_in
 
     def spawned(self) -> Bool:
-        """Checks whether the client finished spawning after `start_game`.
-
-        Returns:
-            `True` once `SetLocalPlayerAsInitialised` arrived.
-        """
+        """Checks whether the client finished spawning after `start_game`."""
         return self._spawned
 
     def client_cache_enabled(self) -> Bool:
-        """Checks whether the client supports the blob cache.
-
-        Returns:
-            The value of the client's `ClientCacheStatus`.
-        """
+        """Checks whether the client supports the blob cache."""
         return self._cache_enabled
 
     def chunk_radius(self) -> Int:
         """Returns the chunk radius: the radius the client requested on a
-        server connection, the radius granted on a client connection.
-
-        Returns:
-            The radius in chunks.
-        """
+        server connection, the radius granted on a client connection."""
         return Int(self.game_data.chunk_radius)
 
     def remote_addr(self) -> Optional[SocketAddr]:
-        """Gets the peer's address on the selected ICE path.
-
-        Returns:
-            The address, or `None` if it is not known.
-        """
+        """Gets the peer's address on the selected ICE path."""
         return self._transport.remote_addr()
 
     def latency_ms(self) -> Int:
-        """Returns half the round trip time.
-
-        Returns:
-            The latency in milliseconds.
-        """
+        """Returns half the round trip time."""
         return self._transport.latency_ms()
 
     def is_closed(self) -> Bool:
-        """Checks whether the transport has closed.
-
-        Returns:
-            `True` once the connection is closed.
-        """
+        """Checks whether the transport has closed."""
         return self._transport.is_closed()
 
     def close_reason(self) -> String:
-        """Explains why the connection closed.
-
-        Returns:
-            The error that closed it, or the transport's reason.
-        """
+        """Explains why the connection closed."""
         if self._close_reason.byte_length() != 0:
             return self._close_reason.copy()
         return self._transport.close_reason()
 
     def enable_compression(mut self, algorithm: UInt16, threshold: Int):
-        """Switches both directions to compressed batches.
-
-        Args:
-            algorithm: The algorithm from `NetworkSettings`.
-            threshold: The threshold from `NetworkSettings`.
-        """
+        """Switches both directions to compressed batches."""
         self._encoder.enable_compression(algorithm, threshold)
         self._decoder.enable_compression(algorithm)
 
@@ -394,27 +334,11 @@ struct Conn(Movable):
         """Queues one packet for the next batch (gophertunnel `WritePacket`).
 
         With `flush_rate_ms` 0 the batch is sent at once.
-
-        Parameters:
-            P: The packet type.
-
-        Args:
-            pk: The packet.
-
-        Raises:
-            Error: If encoding fails or the connection is closed.
         """
         self.write(encode_packet(pk, self.shield_id))
 
     def write(mut self, var packet: List[UInt8]) raises:
-        """Queues one encoded packet, header included (gophertunnel `Write`).
-
-        Args:
-            packet: The header and payload.
-
-        Raises:
-            Error: If the connection is closed.
-        """
+        """Queues one encoded packet, header included (gophertunnel `Write`)."""
         if self._transport.is_closed() or self._closing_until != _NEVER:
             raise Error(t"write packet: {self.close_reason()}")
         self._send.append(packet^)
@@ -424,24 +348,13 @@ struct Conn(Movable):
             self._flush_at = monotonic_ms() + self.flush_rate_ms
 
     def write_batch(mut self, packets: List[List[UInt8]]) raises:
-        """Sends already encoded packets together with anything queued.
-
-        Args:
-            packets: Encoded packets (header plus payload each).
-
-        Raises:
-            Error: If compression fails or the connection is closed.
-        """
+        """Sends already encoded packets together with anything queued."""
         for p in packets:
             self._send.append(p.copy())
         self.flush()
 
     def flush(mut self) raises:
-        """Sends every queued packet as one batch (gophertunnel `Flush`).
-
-        Raises:
-            Error: If compression fails or the connection is closed.
-        """
+        """Sends every queued packet as one batch (gophertunnel `Flush`)."""
         self._flush_at = _NEVER
         if len(self._send) == 0:
             return
@@ -455,20 +368,12 @@ struct Conn(Movable):
     # ===------------------------------------------------------------------=== #
 
     def add_poll_fds(self, mut set: PollSet):
-        """Adds the connection's socket to a `PollSet`.
-
-        Args:
-            set: The set to add the descriptor to.
-        """
+        """Adds the connection's socket to a `PollSet`."""
         if not self._transport.is_closed():
             _ = set.add(self._transport.fd())
 
     def next_timeout(self) -> Int:
-        """Computes when `poll()` next has timer work to do.
-
-        Returns:
-            An absolute monotonic time in milliseconds.
-        """
+        """Computes when `poll()` next has timer work to do."""
         var t = min(self._transport.next_timeout(), self._flush_at)
         t = min(t, self._closing_until)
         if self._hold_until > 0 and len(self._received) > 0:
@@ -478,15 +383,7 @@ struct Conn(Movable):
     def poll(mut self, now_ms: Int) raises:
         """Does all work possible without blocking: drives the transport,
         decodes batches, runs the login and spawn sequences, and sends
-        queued packets that are due.
-
-        Args:
-            now_ms: The current monotonic time in milliseconds.
-
-        Raises:
-            Error: If a batch is malformed or a login step fails; the
-                connection is closed first.
-        """
+        queued packets that are due."""
         var none = Optional[IDTokenVerifier[StaticKeySet]](None)
         self._poll(now_ms, none)
 
@@ -534,27 +431,13 @@ struct Conn(Movable):
         self._closing_until = monotonic_ms() + 1000
 
     def try_read_packet(mut self) -> Optional[PacketData]:
-        """Takes the next packet that arrived, without blocking.
-
-        Returns:
-            The next packet, or `None`.
-        """
+        """Takes the next packet that arrived, without blocking."""
         if len(self._deferred) == 0:
             return None
         return self._deferred.pop(0)
 
     def read_packet(mut self, timeout_ms: Int) raises -> Optional[PacketData]:
-        """Waits for the next packet.
-
-        Args:
-            timeout_ms: How long to wait; 0 only drains what has arrived.
-
-        Returns:
-            The next packet, or `None` if none arrived in time.
-
-        Raises:
-            Error: If the connection closed or a batch is malformed.
-        """
+        """Waits for the next packet."""
         var deadline = monotonic_ms() + timeout_ms
         while True:
             if len(self._deferred) > 0:
@@ -573,12 +456,6 @@ struct Conn(Movable):
         """Keeps the connection running for a while without reading packets.
 
         Packets that arrive are queued for `read_packet()`.
-
-        Args:
-            ms: How long to run.
-
-        Raises:
-            Error: If a batch is malformed.
         """
         var deadline = monotonic_ms() + ms
         while monotonic_ms() < deadline:
@@ -600,11 +477,7 @@ struct Conn(Movable):
     def start_close(mut self, linger_ms: Int = 3000):
         """Closes without blocking: queued packets are sent, and `poll()`
         shuts the transport down once the peer acknowledged them or
-        `linger_ms` passed.
-
-        Args:
-            linger_ms: The longest time to wait for acknowledgements.
-        """
+        `linger_ms` passed."""
         if self._transport.is_closed() or self._closing_until != _NEVER:
             return
         try:
@@ -618,9 +491,6 @@ struct Conn(Movable):
         (gophertunnel `Listener.Disconnect`).
 
         An empty message sends the client straight to the server list.
-
-        Args:
-            message: The message on the client's disconnect screen.
         """
         var pk = Disconnect()
         pk.hide_disconnection_screen = message.byte_length() == 0
@@ -635,11 +505,7 @@ struct Conn(Movable):
 
     def close(mut self, linger_ms: Int = 3000):
         """Sends queued packets and closes, blocking until the peer
-        acknowledged them or `linger_ms` passed (gophertunnel `Close`).
-
-        Args:
-            linger_ms: The longest time to wait.
-        """
+        acknowledged them or `linger_ms` passed (gophertunnel `Close`)."""
         try:
             self.flush()
         except:
@@ -662,14 +528,6 @@ struct Conn(Movable):
         `CreativeContent` while `poll()` runs. `spawned()` turns true when
         the client sends `SetLocalPlayerAsInitialised`. Other packets that
         arrive meanwhile are kept for `try_read_packet()`.
-
-        Args:
-            data: The world and player to spawn into. An empty
-                `world_name` uses the listener's server name.
-
-        Raises:
-            Error: If the connection is not a logged-in server connection
-                or writing fails.
         """
         if not self._server:
             raise Error("start game: only for connections from a Listener")
@@ -691,16 +549,7 @@ struct Conn(Movable):
         mut self, var data: GameData, timeout_ms: Int
     ) raises:
         """Starts the game and waits until the client spawned (gophertunnel
-        `StartGameTimeout`).
-
-        Args:
-            data: The world and player to spawn into.
-            timeout_ms: The longest time to wait.
-
-        Raises:
-            Error: If the connection closes, a step fails, or the timeout
-                passes first.
-        """
+        `StartGameTimeout`)."""
         self.start_game(data^)
         var deadline = monotonic_ms() + timeout_ms
         while not self._spawned:

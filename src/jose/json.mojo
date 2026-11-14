@@ -157,30 +157,13 @@ def _value_end(src: Span[UInt8, _], pos: Int, depth: Int) -> Int:
 
 def valid(data: Span[UInt8, _]) -> Bool:
     """Reports whether the bytes are one valid JSON value (Go's
-    `json.Valid`), surrounded by optional white space.
-
-    Args:
-        data: The input.
-
-    Returns:
-        True if `json.Unmarshal` would accept the syntax.
-    """
+    `json.Valid`), surrounded by optional white space."""
     var p = _value_end(data, _skip_space(data, 0), 1)
     return p >= 0 and _skip_space(data, p) == len(data)
 
 
 def decode_object(data: Span[UInt8, _]) raises -> Dict[String, String]:
-    """Checks the input like `json.Unmarshal` and splits the object.
-
-    Args:
-        data: The JSON text of one object.
-
-    Returns:
-        The members, name to raw value text; a repeated name keeps the last.
-
-    Raises:
-        Error: If the input is not valid JSON or not an object.
-    """
+    """Checks the input like `json.Unmarshal` and splits the object."""
     if not valid(data):
         raise Error("invalid JSON")
     var text = String(from_utf8_lossy=data)
@@ -188,14 +171,7 @@ def decode_object(data: Span[UInt8, _]) raises -> Dict[String, String]:
 
 
 def is_null(raw: StringSpan) -> Bool:
-    """Reports whether a raw value is the literal `null`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        True for `null`.
-    """
+    """Reports whether a raw value is the literal `null`."""
     return raw.strip() == "null"
 
 
@@ -204,13 +180,6 @@ def lookup(obj: Dict[String, String], name: StringSpan) -> Optional[String]:
 
     An exact match wins, else the first member equal ignoring ASCII case.
     `null` counts as absent.
-
-    Args:
-        obj: The object members.
-        name: The field's JSON name.
-
-    Returns:
-        The raw value text, or `None`.
     """
     var key = String(name)
     var found = Optional[String](None)
@@ -229,17 +198,7 @@ def lookup(obj: Dict[String, String], name: StringSpan) -> Optional[String]:
 
 
 def string_value(raw: StringSpan) raises -> String:
-    """Decodes a raw value into a Go `string`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        The string.
-
-    Raises:
-        Error: If the value is not a string.
-    """
+    """Decodes a raw value into a Go `string`."""
     var s = raw.strip()
     if s.byte_length() == 0 or s.as_bytes()[0] != 0x22:
         raise Error(t"json: cannot unmarshal {s} into a string")
@@ -247,18 +206,7 @@ def string_value(raw: StringSpan) raises -> String:
 
 
 def int_value(raw: StringSpan) raises -> Int:
-    """Decodes a raw value into a Go `int` or `int64`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        The integer.
-
-    Raises:
-        Error: If the value is not an integer literal (a fraction or
-            exponent is an error, as in Go) or does not fit.
-    """
+    """Decodes a raw value into a Go `int` or `int64`."""
     var s = raw.strip()
     var b = s.as_bytes()
     if len(b) == 0 or not (_is_digit(b[0]) or b[0] == 0x2D):
@@ -270,17 +218,7 @@ def int_value(raw: StringSpan) raises -> Int:
 
 
 def float_value(raw: StringSpan) raises -> Float64:
-    """Decodes a raw value into a Go `float64`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        The number.
-
-    Raises:
-        Error: If the value is not a number.
-    """
+    """Decodes a raw value into a Go `float64`."""
     var s = raw.strip()
     var b = s.as_bytes()
     if _number_end(b, 0) != len(b):
@@ -289,17 +227,7 @@ def float_value(raw: StringSpan) raises -> Float64:
 
 
 def bool_value(raw: StringSpan) raises -> Bool:
-    """Decodes a raw value into a Go `bool`.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        The boolean.
-
-    Raises:
-        Error: If the value is not `true` or `false`.
-    """
+    """Decodes a raw value into a Go `bool`."""
     var s = raw.strip()
     if s == "true":
         return True
@@ -310,17 +238,7 @@ def bool_value(raw: StringSpan) raises -> Bool:
 
 def array_values(raw: StringSpan) raises -> List[String]:
     """Splits a raw array into the raw text of its elements; `null` gives an
-    empty list, as Go decodes it into a nil slice.
-
-    Args:
-        raw: The raw value text.
-
-    Returns:
-        The elements in order.
-
-    Raises:
-        Error: If the value is not an array.
-    """
+    empty list, as Go decodes it into a nil slice."""
     var out = List[String]()
     var src = raw.as_bytes()
     var p = _skip_space(src, 0)
@@ -342,72 +260,28 @@ def array_values(raw: StringSpan) raises -> List[String]:
 
 
 def opt_string(obj: Dict[String, String], name: StringSpan) raises -> String:
-    """Decodes a `string` field: "" when absent or `null`.
-
-    Args:
-        obj: The object members.
-        name: The field's JSON name.
-
-    Returns:
-        The string.
-
-    Raises:
-        Error: If the member is present but not a string.
-    """
+    """Decodes a `string` field: "" when absent or `null`."""
     if case .Some(raw) = lookup(obj, name):
         return string_value(raw)
     return String()
 
 
 def opt_int(obj: Dict[String, String], name: StringSpan) raises -> Int:
-    """Decodes an `int` field: 0 when absent or `null`.
-
-    Args:
-        obj: The object members.
-        name: The field's JSON name.
-
-    Returns:
-        The integer.
-
-    Raises:
-        Error: If the member is present but not an integer.
-    """
+    """Decodes an `int` field: 0 when absent or `null`."""
     if case .Some(raw) = lookup(obj, name):
         return int_value(raw)
     return 0
 
 
 def opt_bool(obj: Dict[String, String], name: StringSpan) raises -> Bool:
-    """Decodes a `bool` field: false when absent or `null`.
-
-    Args:
-        obj: The object members.
-        name: The field's JSON name.
-
-    Returns:
-        The boolean.
-
-    Raises:
-        Error: If the member is present but not a boolean.
-    """
+    """Decodes a `bool` field: false when absent or `null`."""
     if case .Some(raw) = lookup(obj, name):
         return bool_value(raw)
     return False
 
 
 def opt_float(obj: Dict[String, String], name: StringSpan) raises -> Float64:
-    """Decodes a `float64` field: 0 when absent or `null`.
-
-    Args:
-        obj: The object members.
-        name: The field's JSON name.
-
-    Returns:
-        The number.
-
-    Raises:
-        Error: If the member is present but not a number.
-    """
+    """Decodes a `float64` field: 0 when absent or `null`."""
     if case .Some(raw) = lookup(obj, name):
         return float_value(raw)
     return 0.0

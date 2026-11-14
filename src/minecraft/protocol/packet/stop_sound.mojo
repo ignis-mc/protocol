@@ -24,17 +24,7 @@ struct StopSound(Packet):
         self.stop_music_legacy = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.string(self.sound_name)
         io.bool(self.stop_all)
         io.bool(self.stop_music_legacy)

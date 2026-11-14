@@ -609,18 +609,6 @@ def inflate(data: Span[UInt8, _], max_size: Int) raises -> List[UInt8]:
 
     Decoding stops after the final block; trailing bytes are ignored, as
     with Go's `flate.NewReader`.
-
-    Args:
-        data: The compressed stream.
-        max_size: The largest decompressed size accepted, in bytes. Negative
-            values are treated as 0.
-
-    Returns:
-        The decompressed bytes.
-
-    Raises:
-        Error: If the stream is malformed or truncated, or if the output
-            would exceed `max_size`.
     """
     var inf = _Inflater(data, max(max_size, 0))
     var lit = List[UInt32]()
@@ -1163,11 +1151,7 @@ struct _Matcher[origin: ImmOrigin](Movable):
 
     @inline(.always)
     def insert(mut self, pos: Int) -> Int:
-        """Inserts `pos` (which needs 3 readable bytes) into its chain.
-
-        Returns:
-            The previous chain head, or -1.
-        """
+        """Inserts `pos` (which needs 3 readable bytes) into its chain."""
         var p = self.data.unsafe_ptr().unsafe_offset(pos)
         var v = (
             UInt32(p[unsafe_offset=0])
@@ -1186,11 +1170,7 @@ struct _Matcher[origin: ImmOrigin](Movable):
         self, pos: Int, candidate: Int, prev_len: Int, chain: Int, nice: Int
     ) -> Tuple[Int, Int]:
         """Searches the chain from `candidate` for a match longer than
-        `prev_len`.
-
-        Returns:
-            The best length (or `prev_len`) and its distance (or 0).
-        """
+        `prev_len`."""
         var n = len(self.data)
         var src = self.data.unsafe_ptr()
         var limit = min(_MAX_MATCH, n - pos)
@@ -1240,13 +1220,6 @@ def deflate(data: Span[UInt8, _], level: Int) -> List[UInt8]:
     Levels follow Go's `compress/flate`: 0 writes stored blocks only, 1 is
     the fastest and 9 the smallest, -1 means 6 and -2 Huffman-codes
     literals without matching. Other values are clamped into that range.
-
-    Args:
-        data: The bytes to compress.
-        level: The compression level.
-
-    Returns:
-        A complete stream ending with a final block.
     """
     var n = len(data)
     var w = _BitWriter(n // 2 + 64)

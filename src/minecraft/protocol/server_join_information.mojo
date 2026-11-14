@@ -37,17 +37,7 @@ struct GatheringJoinInfo(Marshaler):
         self.server_id = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the information.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the information."""
         uuid(io, self.experience_id)
         io.string(self.experience_name)
         optional_uuid(io, self.experience_world_id)
@@ -72,17 +62,7 @@ struct StoreEntryPointInfo(Marshaler):
         self.store_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the information.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the information."""
         io.string(self.store_id)
         io.string(self.store_name)
 
@@ -98,17 +78,7 @@ struct PresenceInfo(Marshaler):
         self.rich_presence_id = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the information.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the information."""
         optional_string(io, self.rich_presence_id)
 
 
@@ -129,17 +99,7 @@ struct ServerJoinInformation(Marshaler):
         self.presence_info = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the information.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the information."""
         optional_marshaler(io, self.gathering_join_info)
         optional_marshaler(io, self.store_entry_point_info)
         optional_marshaler(io, self.presence_info)

@@ -120,17 +120,7 @@ struct AchievementAwardedEvent(EventKind):
         self.achievement_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.uint8(self.achievement_id)
 
 
@@ -161,17 +151,7 @@ struct EntityInteractEvent(EventKind):
         self.entity_colour = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         actor_unique_id(io, self.interacted_entity_id)
         io.uint8(self.interaction_type)
         io.varint32(self.interaction_entity_type)
@@ -194,17 +174,7 @@ struct PortalBuiltEvent(EventKind):
         self.dimension_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.dimension_id)
 
 
@@ -226,17 +196,7 @@ struct PortalUsedEvent(EventKind):
         self.to_dimension_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.from_dimension_id)
         io.varint32(self.to_dimension_id)
 
@@ -271,17 +231,7 @@ struct MobKilledEvent(EventKind):
         self.villager_display_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         actor_unique_id(io, self.killer_entity_unique_id)
         actor_unique_id(io, self.victim_entity_unique_id)
         io.varint32(self.killer_entity_type)
@@ -311,17 +261,7 @@ struct CauldronUsedEvent(EventKind):
         self.fill_level = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varuint32(self.colour)
         io.int16(self.potion_id)
         io.int16(self.fill_level)
@@ -351,17 +291,7 @@ struct PlayerDiedEvent(EventKind):
         self.in_raid = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.attacker_entity_id)
         io.varint32(self.attacker_variant)
         io.varint32(self.entity_damage_cause)
@@ -389,17 +319,7 @@ struct BossKilledEvent(EventKind):
         self.interaction_entity_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         actor_unique_id(io, self.boss_entity_unique_id)
         io.varint32(self.player_party_size)
         io.varint32(self.interaction_entity_type)
@@ -432,17 +352,7 @@ struct AgentCommandEvent(EventKind):
         self.output = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.agent_result)
         io.varint32(self.data_value)
         io.string(self.command)
@@ -463,14 +373,7 @@ struct AgentCreatedEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -487,14 +390,7 @@ struct PatternRemovedEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -522,17 +418,7 @@ struct SlashCommandExecutedEvent(EventKind):
         self.output_messages = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.success_count)
         io.varint32(self.message_count)
         io.string(self.command_name)
@@ -552,14 +438,7 @@ struct FishBucketedEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -584,17 +463,7 @@ struct MobBornEvent(EventKind):
         self.colour = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.entity_type)
         io.varint32(self.variant)
         io.uint8(self.colour)
@@ -613,14 +482,7 @@ struct PetDiedEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -642,17 +504,7 @@ struct CauldronInteractEvent(EventKind):
         self.item_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.uint8(self.block_interaction_type)
         io.int16(self.item_id)
 
@@ -675,17 +527,7 @@ struct ComposterInteractEvent(EventKind):
         self.item_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.uint8(self.block_interaction_type)
         io.int16(self.item_id)
 
@@ -705,17 +547,7 @@ struct BellUsedEvent(EventKind):
         self.item_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.int16(self.item_id)
 
 
@@ -734,17 +566,7 @@ struct EntityDefinitionTriggerEvent(EventKind):
         self.event_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.string(self.event_name)
 
 
@@ -769,17 +591,7 @@ struct RaidUpdateEvent(EventKind):
         self.won_raid = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.current_raid_wave)
         io.varint32(self.total_raid_waves)
         io.bool(self.won_raid)
@@ -798,14 +610,7 @@ struct MovementAnomalyEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -822,14 +627,7 @@ struct MovementCorrectedEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -846,14 +644,7 @@ struct ExtractHoneyEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -872,17 +663,7 @@ struct TargetBlockHitEvent(EventKind):
         self.redstone_level = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.redstone_level)
 
 
@@ -906,17 +687,7 @@ struct PiglinBarterEvent(EventKind):
         self.was_targeting_bartering_player = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.item_id)
         io.bool(self.was_targeting_bartering_player)
 
@@ -936,17 +707,7 @@ struct WaxedOrUnwaxedCopperEvent(EventKind):
         self.copper_block_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.varint32(self.copper_block_id)
 
 
@@ -967,17 +728,7 @@ struct CodeBuilderRuntimeActionEvent(EventKind):
         self.action = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.string(self.action)
 
 
@@ -999,17 +750,7 @@ struct CodeBuilderScoreboardEvent(EventKind):
         self.score = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.string(self.objective_name)
         io.varint32(self.score)
 
@@ -1029,14 +770,7 @@ struct StriderRiddenInLavaInOverworldEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -1054,14 +788,7 @@ struct SneakCloseToSculkSensorEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -1079,14 +806,7 @@ struct CarefulRestorationEvent(EventKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I):
-        """Marshals nothing.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-        """
+        """Marshals nothing."""
         pass
 
 
@@ -1114,17 +834,7 @@ struct ItemUsedEvent(EventKind):
         self.use_count = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the event body.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the event body."""
         io.int16(self.item_id)
         io.int32(self.item_aux)
         io.int32(self.use_method)
@@ -1202,41 +912,19 @@ struct Event(Marshaler):
 
     @implicit
     def __init__(out self, var value: EventVariant):
-        """Wraps a concrete event.
-
-        Args:
-            value: The event.
-        """
+        """Wraps a concrete event."""
         self.value = value^
 
     def event_type(self) -> Int32:
-        """Gets the wire type of the held event.
-
-        Returns:
-            One of the `EVENT_TYPE_*` values.
-        """
+        """Gets the wire type of the held event."""
         return _event_type(self.value)
 
     def event_ordinal(self) -> Optional[UInt32]:
-        """Gets the wire ordinal of the held event.
-
-        Returns:
-            The ordinal, or `None` for events that have none.
-        """
+        """Gets the wire ordinal of the held event."""
         return _event_ordinal(self.value)
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the body of the held event.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the body of the held event."""
         marshal_variant(io, self.value)
 
 
@@ -1244,16 +932,6 @@ def event_type[I: IO](mut io: I, mut x: Event) raises:
     """Marshals the varint32 event type (gophertunnel `IO.EventType`).
 
     Reading replaces `x` with a zero event of that type.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The event.
-
-    Raises:
-        If the input is malformed or the type is unknown.
     """
     var t = x.event_type()
     io.varint32(t)
@@ -1266,16 +944,6 @@ def event_ordinal[I: IO](mut io: I, mut x: Event) raises:
 
     The ordinal follows from the event already set by `event_type`; a read
     ordinal is not checked, as in Go.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The event.
-
-    Raises:
-        If the event has no ordinal, or the input is malformed.
     """
     var ordinal = x.event_ordinal()
     if ordinal is None:

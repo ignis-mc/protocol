@@ -52,17 +52,7 @@ struct DimensionDefinition(Marshaler):
         self.render_clouds = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the definition.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the definition."""
         io.string(self.name)
         io.varint32(self.minimum_y)
         io.varint32(self.height_range)
@@ -88,16 +78,6 @@ struct GenerationFeature(Marshaler):
         self.json = List[UInt8]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the feature.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the feature."""
         io.string(self.name)
         io.byte_slice(self.json)

@@ -17,30 +17,13 @@ trait CertificateVerifier(Deinitable, Movable):
     def verify_certificate(
         mut self, chain: List[List[UInt8]], host: String
     ) raises:
-        """Checks the chain and remembers the leaf key.
-
-        Args:
-            chain: The DER certificates, leaf first.
-            host: The host name the client connected to.
-
-        Raises:
-            Error: If the chain is not trusted for `host`.
-        """
+        """Checks the chain and remembers the leaf key."""
         ...
 
     def verify_signature(
         self, scheme: UInt16, message: List[UInt8], signature: List[UInt8]
     ) raises:
-        """Checks the CertificateVerify signature with the leaf key.
-
-        Args:
-            scheme: The TLS signature scheme.
-            message: The signed content.
-            signature: The signature.
-
-        Raises:
-            Error: If the signature does not verify.
-        """
+        """Checks the CertificateVerify signature with the leaf key."""
         ...
 
 
@@ -52,12 +35,7 @@ struct PkiVerifier(CertificateVerifier):
     var _key: Optional[PeerKey]
 
     def __init__(out self, var roots: RootStore, now_unix: Int):
-        """Creates a verifier.
-
-        Args:
-            roots: The trusted roots.
-            now_unix: The time to check validity periods against.
-        """
+        """Creates a verifier."""
         self._roots = roots^
         self._now_unix = now_unix
         self._key = None
@@ -65,30 +43,13 @@ struct PkiVerifier(CertificateVerifier):
     def verify_certificate(
         mut self, chain: List[List[UInt8]], host: String
     ) raises:
-        """Checks the chain and remembers the leaf key.
-
-        Args:
-            chain: The DER certificates, leaf first.
-            host: The host name the client connected to.
-
-        Raises:
-            Error: If the chain is not trusted for `host`.
-        """
+        """Checks the chain and remembers the leaf key."""
         self._key = verify_chain(chain, host, self._now_unix, self._roots)
 
     def verify_signature(
         self, scheme: UInt16, message: List[UInt8], signature: List[UInt8]
     ) raises:
-        """Checks the CertificateVerify signature with the leaf key.
-
-        Args:
-            scheme: The TLS signature scheme.
-            message: The signed content.
-            signature: The signature.
-
-        Raises:
-            Error: If no chain was verified or the signature is bad.
-        """
+        """Checks the CertificateVerify signature with the leaf key."""
         if case .Some(key) = self._key:
             verify_handshake_signature(
                 key, scheme, Span(message), Span(signature)

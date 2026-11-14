@@ -30,30 +30,14 @@ struct Decoder(Copyable, Defaultable):
         self.check_packet_limit = True
 
     def enable_compression(mut self, algorithm: UInt16, max_len: Int = 0):
-        """Starts expecting an algorithm byte before every batch body.
-
-        Args:
-            algorithm: A `COMPRESSION_ALGORITHM_*` value.
-            max_len: The decompressed size limit; 0 keeps the default.
-        """
+        """Starts expecting an algorithm byte before every batch body."""
         self.compression_enabled = True
         self.compression = algorithm
         if max_len > 0:
             self.max_decompressed_len = max_len
 
     def decode(self, batch: Span[UInt8, _]) raises -> List[List[UInt8]]:
-        """Splits one batch into its packets.
-
-        Args:
-            batch: One received NetherNet message.
-
-        Returns:
-            The encoded packets (header plus payload each), in order.
-
-        Raises:
-            Error: If the batch is malformed, uses an unexpected algorithm,
-                or exceeds a limit.
-        """
+        """Splits one batch into its packets."""
         var packets = List[List[UInt8]]()
         if len(batch) == 0:
             return packets^

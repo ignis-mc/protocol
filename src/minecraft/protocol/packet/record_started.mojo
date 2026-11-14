@@ -15,8 +15,7 @@ struct RecordStarted(Packet):
     var position: BlockPos
     """The position of the block playing the record."""
     var handle: UInt64
-    """The server-side sound handle, usable in `ClientboundUpdateSoundData`.
-    """
+    """The server-side sound handle, usable in `ClientboundUpdateSoundData`."""
 
     def __init__(out self):
         """Creates the packet with every field zero."""
@@ -24,16 +23,6 @@ struct RecordStarted(Packet):
         self.handle = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         block_pos(io, self.position)
         io.uint64(self.handle)

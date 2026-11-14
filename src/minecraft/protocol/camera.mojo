@@ -178,17 +178,7 @@ struct CameraEase(Marshaler):
         self.duration = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.uint8(self.type)
         io.float32(self.duration)
 
@@ -228,17 +218,7 @@ struct CameraInstructionSet(Marshaler):
         self.ignore_starting_values_component = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.uint32(self.preset)
         optional_marshaler(io, self.ease)
         optional_func[vec3[I]](io, self.position)
@@ -267,17 +247,7 @@ struct CameraFadeTimeData(Marshaler):
         self.fade_out_duration = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.fade_in_duration)
         io.float32(self.wait_duration)
         io.float32(self.fade_out_duration)
@@ -297,17 +267,7 @@ struct CameraInstructionFade(Marshaler):
         self.colour = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         optional_marshaler(io, self.time_data)
         optional_func[rgb[I]](io, self.colour)
 
@@ -326,17 +286,7 @@ struct CameraInstructionTarget(Marshaler):
         self.entity_unique_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         optional_func[vec3[I]](io, self.center_offset)
         # gophertunnel `ActorUniqueIDInt64`: a little-endian int64.
         io.int64(self.entity_unique_id)
@@ -362,17 +312,7 @@ struct CameraInstructionFieldOfView(Marshaler):
         self.clear = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.field_of_view)
         io.float32(self.ease_time)
         _easing_type(io, self.ease_type)
@@ -459,17 +399,7 @@ struct CameraPreset(Marshaler):
         self.starting_rotation = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.name)
         io.string(self.parent)
         optional_func[I.float32](io, self.pos_x)
@@ -516,17 +446,7 @@ struct CameraPresetAimAssist(Marshaler):
         self.distance = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         optional_func[I.string](io, self.preset)
         optional_func[I.int32](io, self.target_mode)
         optional_func[vec2[I]](io, self.angle)
@@ -547,17 +467,7 @@ struct CameraAimAssistCategory(Marshaler):
         self.priorities = CameraAimAssistPriorities()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.name)
         self.priorities.marshal(io)
 
@@ -588,17 +498,7 @@ struct CameraAimAssistPriorities(Marshaler):
         self.block_default = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         slice(io, self.entities)
         slice(io, self.blocks)
         slice(io, self.block_tags)
@@ -621,17 +521,7 @@ struct CameraAimAssistPriority(Marshaler):
         self.priority = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.identifier)
         io.int32(self.priority)
 
@@ -671,17 +561,7 @@ struct CameraAimAssistPreset(Marshaler):
         self.hand_settings = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.identifier)
         string_slice(io, self.block_exclusions)
         string_slice(io, self.entity_exclusions)
@@ -707,17 +587,7 @@ struct CameraAimAssistItemSettings(Marshaler):
         self.category = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.item)
         io.string(self.category)
 
@@ -739,17 +609,7 @@ struct CameraRotationOption(Marshaler):
         self.ease_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         vec3(io, self.value)
         io.float32(self.time)
         _easing_type(io, self.ease_type)
@@ -772,17 +632,7 @@ struct CameraProgressOption(Marshaler):
         self.ease_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.value)
         io.float32(self.time)
         _easing_type(io, self.ease_type)
@@ -817,17 +667,7 @@ struct CameraSplineInstruction(Marshaler):
         self.load_from_json = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.total_time)
         optional_func[I.uint8](io, self.spline_type)
         func_slice[vec3[I]](io, self.curve)
@@ -863,17 +703,7 @@ struct CameraSplineDefinition(Marshaler):
         self.rotation_key_frames = List[CameraRotationOption]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.name)
         io.float32(self.total_time)
         optional_func[I.string](io, self.spline_type)
@@ -902,17 +732,7 @@ struct CameraAimAssistActorPriorityData(Marshaler):
         self.priority = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int32(self.preset_index)
         io.int32(self.category_index)
         io.int32(self.actor_index)

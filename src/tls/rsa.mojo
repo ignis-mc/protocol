@@ -42,17 +42,7 @@ def _hash_with[H: Hash](data: Span[UInt8, _]) -> List[UInt8]:
 
 
 def hash_size(hash: Int) raises -> Int:
-    """Looks up a digest size.
-
-    Args:
-        hash: `HASH_SHA256`, `HASH_SHA384` or `HASH_SHA512`.
-
-    Returns:
-        The digest size in bytes.
-
-    Raises:
-        Error: If the hash identifier is unknown.
-    """
+    """Looks up a digest size."""
     if hash == HASH_SHA256:
         return 32
     if hash == HASH_SHA384:
@@ -63,18 +53,7 @@ def hash_size(hash: Int) raises -> Int:
 
 
 def digest(hash: Int, data: Span[UInt8, _]) raises -> List[UInt8]:
-    """Hashes a message with a hash chosen at run time.
-
-    Args:
-        hash: `HASH_SHA256`, `HASH_SHA384` or `HASH_SHA512`.
-        data: The message.
-
-    Returns:
-        The digest.
-
-    Raises:
-        Error: If the hash identifier is unknown.
-    """
+    """Hashes a message with a hash chosen at run time."""
     if hash == HASH_SHA256:
         return _hash_with[Sha256](data)
     if hash == HASH_SHA384:
@@ -114,16 +93,7 @@ struct RsaPublicKey(Copyable, Equatable):
     def __init__(
         out self, modulus: Span[UInt8, _], exponent: Span[UInt8, _]
     ) raises:
-        """Creates a key from big-endian magnitudes.
-
-        Args:
-            modulus: The modulus `n`, big-endian; leading zeros allowed.
-            exponent: The public exponent `e`, big-endian.
-
-        Raises:
-            Error: If `n` is even or not 1024 to 8192 bits long, or `e` is
-                even or outside `[3, 2^32 - 1]`.
-        """
+        """Creates a key from big-endian magnitudes."""
         var n = BigUInt.from_bytes_be(modulus)
         var e = BigUInt.from_bytes_be(exponent)
         var bits = n.bit_length()
@@ -139,18 +109,7 @@ struct RsaPublicKey(Copyable, Equatable):
     @staticmethod
     def from_der(der: Span[UInt8, _]) raises -> RsaPublicKey:
         """Parses a PKCS #1 `RSAPublicKey` (the payload of an X.509
-        rsaEncryption SubjectPublicKeyInfo).
-
-        Args:
-            der: `SEQUENCE { modulus INTEGER, publicExponent INTEGER }`.
-
-        Returns:
-            The key.
-
-        Raises:
-            Error: If the encoding is malformed, an integer is negative or
-                not minimal, or the key is unsupported.
-        """
+        rsaEncryption SubjectPublicKeyInfo)."""
         var outer = Reader(der)
         var r = Reader(der_expect(outer, DER_SEQUENCE))
         if not outer.at_end():
@@ -164,31 +123,15 @@ struct RsaPublicKey(Copyable, Equatable):
         return RsaPublicKey(n, e)
 
     def size(self) -> Int:
-        """Measures the modulus.
-
-        Returns:
-            The modulus length `k` in bytes, which is also the signature
-            length.
-        """
+        """Measures the modulus."""
         return (self.n.bit_length() + 7) // 8
 
     def bit_length(self) -> Int:
-        """Measures the modulus.
-
-        Returns:
-            The modulus length in bits.
-        """
+        """Measures the modulus."""
         return self.n.bit_length()
 
     def __eq__(self, other: RsaPublicKey) -> Bool:
-        """Checks equality.
-
-        Args:
-            other: The key to compare against.
-
-        Returns:
-            `True` if both keys have the same modulus and exponent.
-        """
+        """Checks equality."""
         return self.n == other.n and self.e == other.e
 
 
@@ -227,18 +170,6 @@ def rsa_pkcs1v15_verify_digest(
     """Verifies an RSASSA-PKCS1-v1_5 signature over a digest.
 
     Variable-time: every input is public.
-
-    Args:
-        key: The signer's public key.
-        hash: The hash that produced `hashed` (`HASH_SHA256`, ...).
-        hashed: The message digest.
-        signature: The signature, exactly `key.size()` bytes.
-
-    Returns:
-        `True` if the signature is valid.
-
-    Raises:
-        Error: If the hash identifier is unknown.
     """
     var prefix = _digest_info_prefix(hash)
     if len(hashed) != hash_size(hash):
@@ -270,38 +201,13 @@ def rsa_pkcs1v15_verify(
     message: Span[UInt8, _],
     signature: Span[UInt8, _],
 ) raises -> Bool:
-    """Verifies an RSASSA-PKCS1-v1_5 signature over a message.
-
-    Args:
-        key: The signer's public key.
-        hash: `HASH_SHA256`, `HASH_SHA384` or `HASH_SHA512`.
-        message: The signed message.
-        signature: The signature.
-
-    Returns:
-        `True` if the signature is valid.
-
-    Raises:
-        Error: If the hash identifier is unknown.
-    """
+    """Verifies an RSASSA-PKCS1-v1_5 signature over a message."""
     var hashed = digest(hash, message)
     return rsa_pkcs1v15_verify_digest(key, hash, Span(hashed), signature)
 
 
 def mgf1(hash: Int, seed: Span[UInt8, _], length: Int) raises -> List[UInt8]:
-    """Expands a seed with MGF1 (RFC 8017 appendix B.2.1).
-
-    Args:
-        hash: The hash to build the mask from.
-        seed: The seed.
-        length: The mask length in bytes.
-
-    Returns:
-        `length` mask bytes.
-
-    Raises:
-        Error: If the hash identifier is unknown.
-    """
+    """Expands a seed with MGF1 (RFC 8017 appendix B.2.1)."""
     var out = List[UInt8](capacity=length)
     var counter = UInt32(0)
     var block = List[UInt8](capacity=len(seed) + 4)
@@ -333,20 +239,6 @@ def rsa_pss_verify_digest(
 
     MGF1 uses the same hash as the message digest. Variable-time: every
     input is public.
-
-    Args:
-        key: The signer's public key.
-        hash: The hash that produced `hashed`; also MGF1's hash.
-        hashed: The message digest `mHash`.
-        signature: The signature, exactly `key.size()` bytes.
-        salt_length: The salt length in bytes. TLS 1.3 requires the digest
-            length; certificates state it in their PSS parameters.
-
-    Returns:
-        `True` if the signature is valid.
-
-    Raises:
-        Error: If the hash identifier is unknown.
     """
     var h_len = hash_size(hash)
     if len(hashed) != h_len or salt_length < 0:
@@ -394,21 +286,7 @@ def rsa_pss_verify(
     salt_length: Int,
 ) raises -> Bool:
     """Verifies an RSASSA-PSS signature over a message, MGF1 with the same
-    hash.
-
-    Args:
-        key: The signer's public key.
-        hash: `HASH_SHA256`, `HASH_SHA384` or `HASH_SHA512`.
-        message: The signed message.
-        signature: The signature.
-        salt_length: The salt length in bytes.
-
-    Returns:
-        `True` if the signature is valid.
-
-    Raises:
-        Error: If the hash identifier is unknown.
-    """
+    hash."""
     var hashed = digest(hash, message)
     return rsa_pss_verify_digest(
         key, hash, Span(hashed), signature, salt_length

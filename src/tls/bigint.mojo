@@ -29,34 +29,19 @@ struct BigUInt(Copyable, Equatable, Writable):
         self.limbs = List[UInt64]()
 
     def __init__(out self, value: UInt64):
-        """Creates a one-limb value.
-
-        Args:
-            value: The value.
-        """
+        """Creates a one-limb value."""
         self.limbs = List[UInt64]()
         if value != 0:
             self.limbs.append(value)
 
     def __init__(out self, *, var limbs: List[UInt64]):
-        """Creates a value from little-endian limbs, normalizing them.
-
-        Args:
-            limbs: Little-endian limbs, possibly with leading zero limbs.
-        """
+        """Creates a value from little-endian limbs, normalizing them."""
         self.limbs = limbs^
         self._normalize()
 
     @staticmethod
     def from_bytes_be(data: Span[UInt8, _]) -> BigUInt:
-        """Imports a big-endian magnitude.
-
-        Args:
-            data: Big-endian bytes; leading zero bytes are allowed.
-
-        Returns:
-            The integer.
-        """
+        """Imports a big-endian magnitude."""
         var count = (len(data) + 7) // 8
         var limbs = List[UInt64](length=count, fill=0)
         for i in range(len(data)):
@@ -66,17 +51,7 @@ struct BigUInt(Copyable, Equatable, Writable):
         return BigUInt(limbs=limbs^)
 
     def to_bytes_be(self, length: Int) raises -> List[UInt8]:
-        """Exports the value as a fixed-width big-endian magnitude.
-
-        Args:
-            length: The output width in bytes.
-
-        Returns:
-            Exactly `length` bytes, left-padded with zeros.
-
-        Raises:
-            Error: If the value needs more than `length` bytes.
-        """
+        """Exports the value as a fixed-width big-endian magnitude."""
         if (self.bit_length() + 7) // 8 > length:
             raise Error(t"BigUInt: value does not fit in {length} bytes")
         var out = List[UInt8](length=length, fill=0)
@@ -90,27 +65,15 @@ struct BigUInt(Copyable, Equatable, Writable):
             _ = self.limbs.pop()
 
     def is_zero(self) -> Bool:
-        """Checks for zero.
-
-        Returns:
-            `True` if the value is zero.
-        """
+        """Checks for zero."""
         return len(self.limbs) == 0
 
     def is_odd(self) -> Bool:
-        """Checks the lowest bit.
-
-        Returns:
-            `True` if the value is odd.
-        """
+        """Checks the lowest bit."""
         return len(self.limbs) > 0 and (self.limbs[0] & 1) == 1
 
     def bit_length(self) -> Int:
-        """Counts the significant bits.
-
-        Returns:
-            The position of the highest set bit plus one; zero for zero.
-        """
+        """Counts the significant bits."""
         if len(self.limbs) == 0:
             return 0
         var top = self.limbs[len(self.limbs) - 1]
@@ -121,29 +84,14 @@ struct BigUInt(Copyable, Equatable, Writable):
         return 64 * (len(self.limbs) - 1) + bits
 
     def bit(self, index: Int) -> Bool:
-        """Reads one bit.
-
-        Args:
-            index: The bit position, 0 for the least significant bit.
-
-        Returns:
-            `True` if the bit is set; `False` past the top.
-        """
+        """Reads one bit."""
         var limb = index // 64
         if index < 0 or limb >= len(self.limbs):
             return False
         return ((self.limbs[limb] >> UInt64(index % 64)) & 1) == 1
 
     def compare(self, other: BigUInt) -> Int:
-        """Compares two values.
-
-        Args:
-            other: The value to compare against.
-
-        Returns:
-            -1, 0 or 1 as `self` is less than, equal to or greater than
-            `other`.
-        """
+        """Compares two values."""
         if len(self.limbs) != len(other.limbs):
             return -1 if len(self.limbs) < len(other.limbs) else 1
         var i = len(self.limbs) - 1
@@ -154,33 +102,15 @@ struct BigUInt(Copyable, Equatable, Writable):
         return 0
 
     def __eq__(self, other: BigUInt) -> Bool:
-        """Checks equality.
-
-        Args:
-            other: The value to compare against.
-
-        Returns:
-            `True` if both values are equal.
-        """
+        """Checks equality."""
         return self.compare(other) == 0
 
     def __lt__(self, other: BigUInt) -> Bool:
-        """Checks ordering.
-
-        Args:
-            other: The value to compare against.
-
-        Returns:
-            `True` if `self` is less than `other`.
-        """
+        """Checks ordering."""
         return self.compare(other) < 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the value as lower-case hex, `0x0` for zero.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the value as lower-case hex, `0x0` for zero."""
         writer.write("0x")
         if len(self.limbs) == 0:
             writer.write("0")
@@ -235,14 +165,7 @@ struct MontgomeryModulus(Copyable):
     """`R^2 mod n`."""
 
     def __init__(out self, modulus: BigUInt) raises:
-        """Precomputes the constants for an odd modulus.
-
-        Args:
-            modulus: The modulus; odd and greater than one.
-
-        Raises:
-            Error: If the modulus is even or below three.
-        """
+        """Precomputes the constants for an odd modulus."""
         if not modulus.is_odd() or modulus.bit_length() < 2:
             raise Error("Montgomery: modulus must be odd and at least 3")
         var n = modulus.limbs.copy()
@@ -270,21 +193,11 @@ struct MontgomeryModulus(Copyable):
         self.r2 = x^
 
     def limb_count(self) -> Int:
-        """Counts the limbs of a residue.
-
-        Returns:
-            `k`.
-        """
+        """Counts the limbs of a residue."""
         return len(self.n)
 
     def mul(self, a: List[UInt64], b: List[UInt64], mut out: List[UInt64]):
-        """Computes the Montgomery product `a * b * R^-1 mod n`.
-
-        Args:
-            a: A residue of `k` limbs, below `n`.
-            b: A residue of `k` limbs, below `n`.
-            out: Receives the `k`-limb product; may not alias `a` or `b`.
-        """
+        """Computes the Montgomery product `a * b * R^-1 mod n`."""
         var k = len(self.n)
         var t = List[UInt64](length=k + 2, fill=0)
         for i in range(k):
@@ -325,16 +238,6 @@ struct MontgomeryModulus(Copyable):
         """Computes `base^exponent mod n` by left-to-right square-and-multiply.
 
         Variable-time in the exponent: use it with public exponents only.
-
-        Args:
-            base: The base, below the modulus.
-            exponent: The exponent.
-
-        Returns:
-            The power, below the modulus.
-
-        Raises:
-            Error: If the base is not below the modulus.
         """
         var k = len(self.n)
         var x = self._residue(base)
@@ -366,17 +269,5 @@ def mod_exp(
     """Computes `base^exponent mod modulus` for an odd modulus.
 
     Variable-time; for public values only (RSA verification).
-
-    Args:
-        base: The base, below the modulus.
-        exponent: The exponent.
-        modulus: The modulus; odd and at least 3.
-
-    Returns:
-        The power.
-
-    Raises:
-        Error: If the modulus is even or too small, or the base is not
-            below it.
     """
     return MontgomeryModulus(modulus).exp(base, exponent)

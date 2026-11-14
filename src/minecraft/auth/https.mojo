@@ -21,39 +21,17 @@ struct HttpsTransport(Movable, Transport):
     """The limit for each exchange."""
 
     def __init__(out self, var client: HttpClient, timeout_ms: Int = 30000):
-        """Wraps an HTTPS client.
-
-        Args:
-            client: The client.
-            timeout_ms: The limit for each exchange.
-        """
+        """Wraps an HTTPS client."""
         self.client = client^
         self.timeout_ms = timeout_ms
 
     @staticmethod
     def system() raises -> HttpsTransport:
-        """Creates a transport that trusts the system CA bundle.
-
-        Returns:
-            The transport.
-
-        Raises:
-            Error: If the CA bundle cannot be read.
-        """
+        """Creates a transport that trusts the system CA bundle."""
         return HttpsTransport(HttpClient.system())
 
     def round_trip(mut self, request: Request) raises -> Response:
-        """Sends a request and returns the response.
-
-        Args:
-            request: The request.
-
-        Returns:
-            The response, whatever its status.
-
-        Raises:
-            Error: On connection, TLS, verification or framing failures.
-        """
+        """Sends a request and returns the response."""
         var r = self.client.request(
             request.method,
             request.url,

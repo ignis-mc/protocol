@@ -46,14 +46,7 @@ struct SignaturePolicy(Copyable, Defaultable, Movable):
         max_body_bytes: Int,
         var extra_headers: List[String],
     ):
-        """Creates a policy.
-
-        Args:
-            version: The policy version.
-            supported_algorithms: Accepted algorithms.
-            max_body_bytes: Signed body prefix length, 0 for all.
-            extra_headers: Extra signed headers.
-        """
+        """Creates a policy."""
         self.version = version
         self.supported_algorithms = supported_algorithms^
         self.max_body_bytes = max_body_bytes
@@ -67,16 +60,6 @@ struct SignaturePolicy(Copyable, Defaultable, Movable):
         The layout is: version (u32 BE), 0, FILETIME (u64 BE), 0, method, 0,
         path and `?query`, 0, `Authorization` then each extra header value
         followed by 0, the (possibly truncated) body, 0.
-
-        Args:
-            request: The request; its body is the signed body.
-            timestamp_ns: The (server-adjusted) Unix time in nanoseconds.
-
-        Returns:
-            The digest.
-
-        Raises:
-            Error: If the request URL cannot be parsed.
         """
         var h = Sha256()
         var head = List[UInt8]()
@@ -113,19 +96,7 @@ struct SignaturePolicy(Copyable, Defaultable, Movable):
     def generate(
         self, request: Request, proof_key: Span[UInt8, _], timestamp_ns: Int
     ) raises -> List[UInt8]:
-        """Signs a request and returns the raw signature value.
-
-        Args:
-            request: The request to sign.
-            proof_key: The 32-byte P-256 private scalar of the proof key.
-            timestamp_ns: The (server-adjusted) Unix time in nanoseconds.
-
-        Returns:
-            76 bytes: version (u32 BE), FILETIME (u64 BE), then `r || s`.
-
-        Raises:
-            Error: If the key is invalid or the URL cannot be parsed.
-        """
+        """Signs a request and returns the raw signature value."""
         var digest = self.digest(request, timestamp_ns)
         var sig = p256_sign(proof_key, Span(digest))
         var out = List[UInt8](capacity=76)
@@ -141,16 +112,7 @@ struct SignaturePolicy(Copyable, Defaultable, Movable):
         proof_key: Span[UInt8, _],
         timestamp_ns: Int,
     ) raises:
-        """Signs a request and sets its `Signature` header.
-
-        Args:
-            request: The request; it gains a `Signature` header.
-            proof_key: The 32-byte P-256 private scalar of the proof key.
-            timestamp_ns: The (server-adjusted) Unix time in nanoseconds.
-
-        Raises:
-            Error: If the key is invalid or the URL cannot be parsed.
-        """
+        """Signs a request and sets its `Signature` header."""
         var value = base64_encode(
             Span(self.generate(request, proof_key, timestamp_ns))
         )
@@ -158,27 +120,12 @@ struct SignaturePolicy(Copyable, Defaultable, Movable):
 
 
 def auth_policy() -> SignaturePolicy:
-    """Returns the policy for XASD, XAST, XASU and XSTS requests.
-
-    Returns:
-        Version 1, whole body, no extra headers (Go's `AuthPolicy`).
-    """
+    """Returns the policy for XASD, XAST, XASU and XSTS requests."""
     return SignaturePolicy(1, List[String](), 0, List[String]())
 
 
 def proof_key_jwk(proof_key: Span[UInt8, _]) raises -> String:
-    """Encodes the public half of the proof key as Go's `ProofKey` JWK.
-
-    Args:
-        proof_key: The 32-byte P-256 private scalar.
-
-    Returns:
-        `{"use":"sig","kty":"EC","crv":"P-256","alg":"ES256","x":…,"y":…}`
-        in go-jose's field order.
-
-    Raises:
-        Error: If the scalar is invalid.
-    """
+    """Encodes the public half of the proof key as Go's `ProofKey` JWK."""
     var point = p256_public_key(proof_key)
     var x = base64url_encode(Span(point)[1:33])
     var y = base64url_encode(Span(point)[33:65])

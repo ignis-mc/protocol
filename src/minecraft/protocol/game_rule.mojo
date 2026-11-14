@@ -41,29 +41,13 @@ struct GameRule(Marshaler):
         can_be_modified_by_player: Bool,
         var value: Optional[GameRuleValue],
     ):
-        """Creates a game rule.
-
-        Args:
-            name: The name of the game rule.
-            can_be_modified_by_player: Whether the player can change it.
-            value: The value, or `None` for the null variant.
-        """
+        """Creates a game rule."""
         self.name = name
         self.can_be_modified_by_player = can_be_modified_by_player
         self.value = value^
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the rule (see `game_rule`).
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the rule (see `game_rule`)."""
         game_rule(io, self)
 
 
@@ -71,16 +55,6 @@ def game_rule[I: IO](mut io: I, mut x: GameRule) raises:
     """Marshals a name, a flag, a varuint32 type and the value of that type.
 
     This is gophertunnel `IO.GameRule`.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The game rule.
-
-    Raises:
-        If the input is malformed or the type is unknown.
     """
     io.string(x.name)
     io.bool(x.can_be_modified_by_player)

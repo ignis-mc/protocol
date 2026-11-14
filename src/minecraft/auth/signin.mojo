@@ -89,11 +89,7 @@ struct SignInResult(Copyable, Movable):
 
 
 struct SignIn[T: Transport](Movable):
-    """Signs in to Xbox Live, PlayFab and Minecraft services.
-
-    Parameters:
-        T: The transport that performs the HTTP exchanges.
-    """
+    """Signs in to Xbox Live, PlayFab and Minecraft services."""
 
     var transport: Self.T
     """The transport."""
@@ -114,11 +110,7 @@ struct SignIn[T: Transport](Movable):
     var _default_title: Optional[TitleData]
 
     def __init__(out self, var transport: Self.T):
-        """Creates a sign-in over a transport with the Android configuration.
-
-        Args:
-            transport: The transport.
-        """
+        """Creates a sign-in over a transport with the Android configuration."""
         self.transport = transport^
         self.config = android_config()
         self.verbose = False
@@ -164,14 +156,7 @@ struct SignIn[T: Transport](Movable):
         return response^
 
     def set_proof_key(mut self, key: Span[UInt8, _]) raises:
-        """Uses a given P-256 proof key instead of a fresh one (for tests).
-
-        Args:
-            key: The 32-byte private scalar.
-
-        Raises:
-            Error: If the key is not 32 bytes.
-        """
+        """Uses a given P-256 proof key instead of a fresh one (for tests)."""
         if len(key) != 32:
             raise Error("signin: proof key must be 32 bytes")
         self._proof_key = List[UInt8](key)
@@ -182,14 +167,7 @@ struct SignIn[T: Transport](Movable):
             self._proof_key = List[UInt8](Span(key))
 
     def device_token(mut self) raises -> XASToken:
-        """Returns the XASD device token, requesting it when needed.
-
-        Returns:
-            The device token.
-
-        Raises:
-            Error: If the request fails.
-        """
+        """Returns the XASD device token, requesting it when needed."""
         if self._device.valid(self._local_now()):
             return self._device.copy()
         self._ensure_proof_key()
@@ -214,18 +192,7 @@ struct SignIn[T: Transport](Movable):
         return title^
 
     def authorize(mut self, mut msa: OAuthToken) raises -> SisuAuthorization:
-        """Runs SISU authorization, refreshing the Microsoft token if needed.
-
-        Args:
-            msa: The Microsoft token; replaced in place when refreshed (the
-                caller must not write it anywhere).
-
-        Returns:
-            The title, user and `http://xboxlive.com` tokens.
-
-        Raises:
-            Error: If any request fails.
-        """
+        """Runs SISU authorization, refreshing the Microsoft token if needed."""
         if case .Some(s) = self._sisu:
             var now = self._local_now()
             if (
@@ -270,18 +237,7 @@ struct SignIn[T: Transport](Movable):
     def xsts_token(
         mut self, mut msa: OAuthToken, relying_party: String
     ) raises -> XASToken:
-        """Returns an XSTS token for a relying party (`Session.XSTSToken`).
-
-        Args:
-            msa: The Microsoft token.
-            relying_party: The relying party.
-
-        Returns:
-            The token, cached per relying party.
-
-        Raises:
-            Error: If a request fails or the token is invalid.
-        """
+        """Returns an XSTS token for a relying party (`Session.XSTSToken`)."""
         var now = self._local_now()
         for entry in self._xsts:
             if entry[0] == relying_party and entry[1].valid_xsts(now):
@@ -317,16 +273,6 @@ struct SignIn[T: Transport](Movable):
         """Resolves a URL's relying party and policy (`nsal.Resolver`).
 
         The current title's data is consulted first, then the default.
-
-        Args:
-            msa: The Microsoft token.
-            url: The request URL.
-
-        Returns:
-            The relying party and signature policy.
-
-        Raises:
-            Error: If no title data matches the URL.
         """
         if len(self._titles) == 0:
             var xbl = self.xsts_token(msa, XBL_RELYING_PARTY)
@@ -350,19 +296,7 @@ struct SignIn[T: Transport](Movable):
     def run(
         mut self, var msa: OAuthToken, private_key: Span[UInt8, _]
     ) raises -> SignInResult:
-        """Runs the whole flow for a client key.
-
-        Args:
-            msa: The Microsoft token from the account store.
-            private_key: The client's 48-byte P-384 private scalar, used
-                for the multiplayer token and the login chain.
-
-        Returns:
-            The chain, multiplayer token, issuer domain and user names.
-
-        Raises:
-            Error: If any step fails; the message names the step.
-        """
+        """Runs the whole flow for a client key."""
         var xbl: XASToken
         try:
             xbl = self.xsts_token(msa, XBL_RELYING_PARTY)
@@ -433,19 +367,7 @@ def credentials_json(
     xuid: String,
     expires_at: Int,
 ) -> String:
-    """Formats the credentials file `interop/auth` writes.
-
-    Args:
-        private_key: The 48-byte P-384 private scalar.
-        result: The sign-in result.
-        gamertag: The gamertag to record.
-        xuid: The XUID to record.
-        expires_at: Unix seconds after which the file should be renewed.
-
-    Returns:
-        `{"private_key":…,"chain":…,"token":…,"domain":…,"gamertag":…,
-        "xuid":…,"expires_at":…}`, as Go's `json.Marshal` of `output`.
-    """
+    """Formats the credentials file `interop/auth` writes."""
     return String(
         '{"private_key":',
         go_quote(hex_encode(private_key)),

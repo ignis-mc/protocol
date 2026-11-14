@@ -90,11 +90,7 @@ comptime _MAX_CERTIFICATES = 16
 
 
 def signature_schemes() -> List[UInt16]:
-    """Lists the signature schemes offered, in preference order.
-
-    Returns:
-        The schemes sent in `signature_algorithms`.
-    """
+    """Lists the signature schemes offered, in preference order."""
     return [
         SIG_RSA_PSS_RSAE_SHA256,
         SIG_ECDSA_SECP256R1_SHA256,
@@ -112,12 +108,6 @@ def is_certificate_verify_scheme(scheme: UInt16) -> Bool:
 
     RFC 8446 4.4.3 forbids RSASSA-PKCS1-v1_5 there; it remains valid for
     certificate signatures.
-
-    Args:
-        scheme: The signature scheme.
-
-    Returns:
-        `True` for the offered PSS and ECDSA schemes.
     """
     return (
         scheme == SIG_RSA_PSS_RSAE_SHA256
@@ -129,11 +119,7 @@ def is_certificate_verify_scheme(scheme: UInt16) -> Bool:
 
 
 def hello_retry_request_random() -> Array[UInt8, 32]:
-    """Gets the ServerHello.random value that marks a HelloRetryRequest.
-
-    Returns:
-        SHA-256 of "HelloRetryRequest" (RFC 8446 4.1.3).
-    """
+    """Gets the ServerHello.random value that marks a HelloRetryRequest."""
     var out = Array[UInt8, 32](fill=0)
     var hex: List[UInt8] = [
         0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
@@ -147,14 +133,7 @@ def hello_retry_request_random() -> Array[UInt8, 32]:
 
 
 def has_downgrade_sentinel(random: Span[UInt8, _]) -> Bool:
-    """Checks a ServerHello.random for the TLS 1.2/1.1 downgrade markers.
-
-    Args:
-        random: The 32-byte server random.
-
-    Returns:
-        `True` if the last eight bytes are `DOWNGRD` followed by 0x01 or 0x00.
-    """
+    """Checks a ServerHello.random for the TLS 1.2/1.1 downgrade markers."""
     if len(random) != 32:
         return False
     var marker: List[UInt8] = [0x44, 0x4F, 0x57, 0x4E, 0x47, 0x52, 0x44]
@@ -168,12 +147,6 @@ def is_ip_literal(host: StringSpan) -> Bool:
     """Checks whether a host is an IPv4 or IPv6 literal.
 
     RFC 6066 3 forbids literal addresses in `server_name`.
-
-    Args:
-        host: The host part of a URL.
-
-    Returns:
-        `True` for dotted decimal or any string containing a colon.
     """
     var bytes = host.as_bytes()
     if len(bytes) == 0:
@@ -191,13 +164,7 @@ def is_ip_literal(host: StringSpan) -> Bool:
 
 
 def put_handshake_header(mut out: List[UInt8], msg_type: UInt8, length: Int):
-    """Appends a handshake message header.
-
-    Args:
-        out: The buffer to append to.
-        msg_type: The handshake type.
-        length: The body length.
-    """
+    """Appends a handshake message header."""
     put_u8(out, msg_type)
     put_u24(out, UInt32(length))
 
@@ -232,18 +199,6 @@ def encode_client_hello(
     Offers TLS 1.3 only, TLS_AES_128_GCM_SHA256 then TLS_AES_256_GCM_SHA384,
     the schemes of `signature_schemes()` and ALPN "http/1.1". `server_name`
     is omitted for IP literals.
-
-    Args:
-        out: The buffer to append to.
-        random: The 32-byte client random.
-        session_id: The legacy session id, at most 32 bytes.
-        server_name: The host name for SNI.
-        supported_groups: The groups for `supported_groups`.
-        key_shares: The key shares to send.
-        cookie: The HelloRetryRequest cookie, or empty for none.
-
-    Raises:
-        Error: If an input does not fit its field.
     """
     if len(random) != 32 or len(session_id) > 32:
         raise Error("tls: bad client random or session id")
@@ -326,18 +281,7 @@ struct Extension(Copyable):
 
 
 def parse_extensions(data: Span[UInt8, _]) raises -> List[Extension]:
-    """Parses an extension block body (the bytes after its u16 length).
-
-    Args:
-        data: The extensions.
-
-    Returns:
-        The extensions in wire order.
-
-    Raises:
-        Error: "decode_error" if malformed, "illegal_parameter" if a type
-            repeats (RFC 8446 4.2).
-    """
+    """Parses an extension block body (the bytes after its u16 length)."""
     var out = List[Extension]()
     var r = Reader(data)
     while not r.at_end():
@@ -359,15 +303,7 @@ def _read_extensions[o: ImmOrigin](mut r: Reader[o]) raises -> List[Extension]:
 def find_extension(
     exts: List[Extension], ext_type: UInt16
 ) -> Optional[List[UInt8]]:
-    """Finds an extension by type.
-
-    Args:
-        exts: The parsed extensions.
-        ext_type: The type to look for.
-
-    Returns:
-        A copy of its body, or `None`.
-    """
+    """Finds an extension by type."""
     for e in exts:
         if e.ext_type == ext_type:
             return e.data.copy()
@@ -377,17 +313,7 @@ def find_extension(
 def client_hello_extension_types(
     message: Span[UInt8, _]
 ) raises -> List[UInt16]:
-    """Lists the extension types of an encoded ClientHello message.
-
-    Args:
-        message: The handshake message, header included.
-
-    Returns:
-        The extension types in wire order.
-
-    Raises:
-        Error: If the message is not a well-formed ClientHello.
-    """
+    """Lists the extension types of an encoded ClientHello message."""
     var r = Reader(message)
     if r.u8() != HS_CLIENT_HELLO:
         raise Error("decode_error: not a ClientHello")
@@ -420,14 +346,7 @@ struct ServerHello(Movable):
     """The extensions."""
 
     def __init__(out self, body: Span[UInt8, _]) raises:
-        """Parses a ServerHello body (after the handshake header).
-
-        Args:
-            body: The message body.
-
-        Raises:
-            Error: "decode_error" if malformed.
-        """
+        """Parses a ServerHello body (after the handshake header)."""
         var r = Reader(body)
         var version = r.u16()
         var random = List[UInt8](r.bytes(32))
@@ -450,11 +369,7 @@ struct ServerHello(Movable):
         self.extensions = exts^
 
     def is_hello_retry_request(self) -> Bool:
-        """Checks for the HelloRetryRequest random.
-
-        Returns:
-            `True` if this is a HelloRetryRequest.
-        """
+        """Checks for the HelloRetryRequest random."""
         var magic = hello_retry_request_random()
         for i in range(32):
             if self.random[i] != magic[i]:
@@ -462,14 +377,7 @@ struct ServerHello(Movable):
         return True
 
     def selected_version(self) raises -> Optional[UInt16]:
-        """Reads `supported_versions`.
-
-        Returns:
-            The selected version, or `None` if the extension is absent.
-
-        Raises:
-            Error: "decode_error" if the extension is malformed.
-        """
+        """Reads `supported_versions`."""
         if case .Some(data) = find_extension(
             self.extensions, EXT_SUPPORTED_VERSIONS
         ):
@@ -479,14 +387,7 @@ struct ServerHello(Movable):
         return None
 
     def key_share(self) raises -> Optional[KeyShareEntry]:
-        """Reads a ServerHello `key_share`.
-
-        Returns:
-            The server's share, or `None` if absent.
-
-        Raises:
-            Error: "decode_error" if malformed.
-        """
+        """Reads a ServerHello `key_share`."""
         if case .Some(data) = find_extension(self.extensions, EXT_KEY_SHARE):
             var r = Reader(Span(data))
             var group = r.u16()
@@ -500,14 +401,7 @@ struct ServerHello(Movable):
         return None
 
     def retry_group(self) raises -> Optional[UInt16]:
-        """Reads a HelloRetryRequest `key_share` (`selected_group`).
-
-        Returns:
-            The requested group, or `None` if absent.
-
-        Raises:
-            Error: "decode_error" if malformed.
-        """
+        """Reads a HelloRetryRequest `key_share` (`selected_group`)."""
         if case .Some(data) = find_extension(self.extensions, EXT_KEY_SHARE):
             if len(data) != 2:
                 raise Error("decode_error: bad HelloRetryRequest key_share")
@@ -515,14 +409,7 @@ struct ServerHello(Movable):
         return None
 
     def cookie(self) raises -> Optional[List[UInt8]]:
-        """Reads a HelloRetryRequest `cookie`.
-
-        Returns:
-            The cookie, or `None` if absent.
-
-        Raises:
-            Error: "decode_error" if malformed.
-        """
+        """Reads a HelloRetryRequest `cookie`."""
         if case .Some(data) = find_extension(self.extensions, EXT_COOKIE):
             var r = Reader(Span(data))
             var n = Int(r.u16())
@@ -536,17 +423,7 @@ struct ServerHello(Movable):
 
 
 def parse_encrypted_extensions(body: Span[UInt8, _]) raises -> List[Extension]:
-    """Parses an EncryptedExtensions body.
-
-    Args:
-        body: The message body.
-
-    Returns:
-        The extensions.
-
-    Raises:
-        Error: "decode_error" if malformed.
-    """
+    """Parses an EncryptedExtensions body."""
     var r = Reader(body)
     var exts = _read_extensions(r)
     if not r.at_end():
@@ -555,17 +432,7 @@ def parse_encrypted_extensions(body: Span[UInt8, _]) raises -> List[Extension]:
 
 
 def parse_alpn(data: Span[UInt8, _]) raises -> String:
-    """Parses a server's ALPN extension, which names exactly one protocol.
-
-    Args:
-        data: The extension body.
-
-    Returns:
-        The selected protocol.
-
-    Raises:
-        Error: "decode_error" if malformed.
-    """
+    """Parses a server's ALPN extension, which names exactly one protocol."""
     var r = Reader(data)
     var list_len = Int(r.u16())
     var n = Int(r.u8())
@@ -578,18 +445,7 @@ def parse_alpn(data: Span[UInt8, _]) raises -> String:
 
 
 def parse_certificate(body: Span[UInt8, _]) raises -> List[List[UInt8]]:
-    """Parses a server Certificate body into DER certificates.
-
-    Args:
-        body: The message body.
-
-    Returns:
-        The certificates, leaf first.
-
-    Raises:
-        Error: "decode_error" if malformed or empty, "illegal_parameter" if
-            the request context is not empty.
-    """
+    """Parses a server Certificate body into DER certificates."""
     var r = Reader(body)
     var ctx_len = Int(r.u8())
     if ctx_len != 0:
@@ -624,17 +480,7 @@ struct CertificateVerify(Movable):
 
 
 def parse_certificate_verify(body: Span[UInt8, _]) raises -> CertificateVerify:
-    """Parses a CertificateVerify body.
-
-    Args:
-        body: The message body.
-
-    Returns:
-        The scheme and signature.
-
-    Raises:
-        Error: "decode_error" if malformed.
-    """
+    """Parses a CertificateVerify body."""
     var r = Reader(body)
     var scheme = r.u16()
     var n = Int(r.u16())
@@ -647,14 +493,7 @@ def parse_certificate_verify(body: Span[UInt8, _]) raises -> CertificateVerify:
 
 
 def certificate_verify_content(transcript_hash: Span[UInt8, _]) -> List[UInt8]:
-    """Builds the bytes a server's CertificateVerify signs (4.4.3).
-
-    Args:
-        transcript_hash: The transcript hash through Certificate.
-
-    Returns:
-        64 spaces, the server context string, a zero byte and the hash.
-    """
+    """Builds the bytes a server's CertificateVerify signs (4.4.3)."""
     var out = List[UInt8](length=64, fill=0x20)
     put_bytes(out, StringSpan("TLS 1.3, server CertificateVerify").as_bytes())
     put_u8(out, 0)
@@ -664,15 +503,6 @@ def certificate_verify_content(transcript_hash: Span[UInt8, _]) -> List[UInt8]:
 
 def check_certificate_request(body: Span[UInt8, _]) raises -> List[UInt8]:
     """Parses a CertificateRequest far enough to answer it with no certificate.
-
-    Args:
-        body: The message body.
-
-    Returns:
-        The `certificate_request_context`, which must be echoed.
-
-    Raises:
-        Error: "decode_error" if malformed.
     """
     var r = Reader(body)
     var ctx = List[UInt8](r.bytes(Int(r.u8())))
@@ -687,12 +517,7 @@ def check_certificate_request(body: Span[UInt8, _]) raises -> List[UInt8]:
 
 
 def encode_empty_certificate(mut out: List[UInt8], context: Span[UInt8, _]):
-    """Appends a client Certificate message with no certificates.
-
-    Args:
-        out: The buffer to append to.
-        context: The request context to echo.
-    """
+    """Appends a client Certificate message with no certificates."""
     put_handshake_header(out, HS_CERTIFICATE, 1 + len(context) + 3)
     put_u8(out, UInt8(len(context)))
     put_bytes(out, context)
@@ -700,14 +525,7 @@ def encode_empty_certificate(mut out: List[UInt8], context: Span[UInt8, _]):
 
 
 def check_new_session_ticket(body: Span[UInt8, _]) raises:
-    """Checks that a NewSessionTicket is well formed; tickets are not used.
-
-    Args:
-        body: The message body.
-
-    Raises:
-        Error: "decode_error" if malformed.
-    """
+    """Checks that a NewSessionTicket is well formed; tickets are not used."""
     var r = Reader(body)
     r.skip(8)  # ticket_lifetime, ticket_age_add
     r.skip(Int(r.u8()))  # ticket_nonce

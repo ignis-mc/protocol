@@ -302,17 +302,7 @@ struct BiomeDefinition(Marshaler):
         self.chunk_generation = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int16(self.name_index)
         io.int16(self.biome_id)
         io.float32(self.temperature)
@@ -408,17 +398,7 @@ struct BiomeChunkGeneration(Marshaler):
         self.subsurface_builder = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         optional_marshaler(io, self.climate)
         optional_func[slice[BiomeConsolidatedFeature, I]](
             io, self.consolidated_features
@@ -468,17 +448,7 @@ struct BiomeClimate(Marshaler):
         self.snow_accumulation_max = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.temperature)
         io.float32(self.downfall)
         io.float32(self.snow_accumulation_min)
@@ -508,17 +478,7 @@ struct BiomeConsolidatedFeature(Marshaler):
         self.can_use_internal = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         self.scatter.marshal(io)
         io.int16(self.feature)
         io.int16(self.identifier)
@@ -565,17 +525,7 @@ struct BiomeScatterParameter(Marshaler):
         self.iterations = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         slice(io, self.coordinates)
         io.varint32(self.evaluation_order)
         io.varint32(self.chance_percent_type)
@@ -625,17 +575,7 @@ struct BiomeCoordinate(Marshaler):
         self.distribution = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.varint32(self.min_value_type)
         io.int16(self.min_value)
         io.varint32(self.max_value_type)
@@ -671,17 +611,7 @@ struct BiomeMountainParameters(Marshaler):
         self.top_slide_enabled = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int32(self.steep_block)
         io.bool(self.north_slopes)
         io.bool(self.south_slopes)
@@ -726,17 +656,7 @@ struct BiomeElementData(Marshaler):
         self.adjusted_materials = BiomeSurfaceMaterial()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.noise_frequency_scale)
         io.float32(self.noise_lower_bound)
         io.float32(self.noise_upper_bound)
@@ -773,17 +693,7 @@ struct BiomeSurfaceMaterial(Marshaler):
         self.sea_floor_depth = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int32(self.top_block)
         io.int32(self.mid_block)
         io.int32(self.sea_floor_block)
@@ -826,17 +736,7 @@ struct BiomeSurfaceBuilder(Marshaler):
         self.noise_gradient_surface = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         optional_marshaler(io, self.surface_materials)
         io.bool(self.has_default_overworld_surface)
         io.bool(self.has_swamp_surface)
@@ -864,17 +764,7 @@ struct BiomeNoiseGradientSurface(Marshaler):
         self.noise = NoiseDescriptor()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         func_slice[I.uint32](io, self.non_replaceable_blocks)
         slice(io, self.gradient_blocks)
         self.noise.marshal(io)
@@ -894,17 +784,7 @@ struct FloatRange(Marshaler):
         self.max = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.min)
         io.float32(self.max)
 
@@ -929,17 +809,7 @@ struct NoiseBlockSpecifier(Marshaler):
         self.block = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.noise)
         io.float32(self.threshold)
         self.range.marshal(io)
@@ -963,17 +833,7 @@ struct NoiseDescriptor(Marshaler):
         self.amplitudes = List[Float32]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.string(self.name)
         io.int32(self.first_octave)
         func_slice[I.float32](io, self.amplitudes)
@@ -1001,17 +861,7 @@ struct BiomeMesaSurface(Marshaler):
         self.has_forest = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.uint32(self.clay_material)
         io.uint32(self.hard_clay_material)
         io.bool(self.bryce_pillars)
@@ -1043,17 +893,7 @@ struct BiomeCappedSurface(Marshaler):
         self.beach_block = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         func_slice[I.int32](io, self.floor_blocks)
         func_slice[I.int32](io, self.ceiling_blocks)
         optional_func[I.uint32](io, self.sea_block)
@@ -1098,17 +938,7 @@ struct BiomeOverworldRules(Marshaler):
         self.climate_transformations = List[BiomeTemperatureWeight]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         slice(io, self.hills_transformations)
         slice(io, self.mutate_transformations)
         slice(io, self.river_transformations)
@@ -1145,17 +975,7 @@ struct BiomeMultiNoiseRules(Marshaler):
         self.weight = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.float32(self.temperature)
         io.float32(self.humidity)
         io.float32(self.altitude)
@@ -1182,17 +1002,7 @@ struct BiomeConditionalTransformation(Marshaler):
         self.min_passing_neighbours = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         slice(io, self.weighted_biomes)
         io.int16(self.condition_json)
         io.uint32(self.min_passing_neighbours)
@@ -1214,17 +1024,7 @@ struct BiomeWeight(Marshaler):
         self.weight = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int16(self.biome)
         io.uint32(self.weight)
 
@@ -1245,17 +1045,7 @@ struct BiomeTemperatureWeight(Marshaler):
         self.weight = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.varint32(self.temperature)
         io.uint32(self.weight)
 
@@ -1286,17 +1076,7 @@ struct BiomeReplacementData(Marshaler):
         self.replacement_index = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field."""
         io.int16(self.biome)
         io.int16(self.dimension)
         func_slice[I.int16](io, self.target_biomes)

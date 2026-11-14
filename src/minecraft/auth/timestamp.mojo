@@ -14,29 +14,12 @@ comptime _WINDOWS_EPOCH_OFFSET = 116444736000000000
 
 
 def windows_timestamp(unix_ns: Int) -> Int64:
-    """Converts Unix time to a Windows FILETIME value.
-
-    Args:
-        unix_ns: Unix time in nanoseconds.
-
-    Returns:
-        100-nanosecond intervals since 1601-01-01 UTC, as Go's
-        `windowsTimestamp` computes it.
-    """
+    """Converts Unix time to a Windows FILETIME value."""
     return Int64(unix_ns // 100 + _WINDOWS_EPOCH_OFFSET)
 
 
 def days_from_civil(year: Int, month: Int, day: Int) -> Int:
-    """Counts days from 1970-01-01 to a proleptic Gregorian date.
-
-    Args:
-        year: The year.
-        month: The month, 1 to 12.
-        day: The day of the month, 1 to 31.
-
-    Returns:
-        Days since the Unix epoch (negative before it).
-    """
+    """Counts days from 1970-01-01 to a proleptic Gregorian date."""
     var y = year - 1 if month <= 2 else year
     var era = (y if y >= 0 else y - 399) // 400
     var yoe = y - era * 400
@@ -69,15 +52,6 @@ def parse_rfc3339(text: StringSpan) raises -> Int:
     Accepts any number of fractional digits (nanoseconds beyond the ninth
     are dropped) and a `Z` or `+hh:mm` / `-hh:mm` offset, like Go's
     `time.RFC3339Nano` layout.
-
-    Args:
-        text: The timestamp.
-
-    Returns:
-        Unix time in nanoseconds.
-
-    Raises:
-        Error: If the text is not an RFC 3339 timestamp.
     """
     var src = text.as_bytes()
     var year = _digits(src, 0, 4)
@@ -143,15 +117,6 @@ comptime _MONTHS = "JanFebMarAprMayJunJulAugSepOctNovDec"
 
 def parse_http_date(text: StringSpan) raises -> Int:
     """Parses an IMF-fixdate HTTP date such as `Fri, 13 Nov 2026 10:00:00 GMT`.
-
-    Args:
-        text: The header value.
-
-    Returns:
-        Unix time in nanoseconds.
-
-    Raises:
-        Error: If the text is not an IMF-fixdate.
     """
     var src = text.strip().as_bytes()
     if len(src) != 29:
@@ -209,10 +174,6 @@ struct ServerClock(Copyable, Defaultable):
         """Learns the offset from a response's `Date` header.
 
         A missing or unparsable header leaves the offset unchanged.
-
-        Args:
-            date: The `Date` header value, if any.
-            local_now_ns: The local Unix time in nanoseconds.
         """
         if case .Some(value) = date:
             try:
@@ -221,12 +182,5 @@ struct ServerClock(Copyable, Defaultable):
                 pass
 
     def now(self, local_now_ns: Int) -> Int:
-        """Approximates the server's current time.
-
-        Args:
-            local_now_ns: The local Unix time in nanoseconds.
-
-        Returns:
-            Server time in Unix nanoseconds.
-        """
+        """Approximates the server's current time."""
         return local_now_ns + self.delta_ns

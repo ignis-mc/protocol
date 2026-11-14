@@ -51,14 +51,7 @@ struct OAuthToken(Copyable, Defaultable, Movable):
         var refresh_token: String,
         expiry_ns: Int,
     ):
-        """Creates a token.
-
-        Args:
-            access_token: The access token.
-            token_type: The token type.
-            refresh_token: The refresh token.
-            expiry_ns: Expiry as Unix nanoseconds, 0 for none.
-        """
+        """Creates a token."""
         self.access_token = access_token^
         self.token_type = token_type^
         self.refresh_token = refresh_token^
@@ -66,13 +59,6 @@ struct OAuthToken(Copyable, Defaultable, Movable):
 
     def valid(self, now_ns: Int) -> Bool:
         """Reports whether the access token can still be used (`Token.Valid`).
-
-        Args:
-            now_ns: The current Unix time in nanoseconds.
-
-        Returns:
-            True if there is an access token that does not expire within ten
-            seconds.
         """
         if self.access_token.byte_length() == 0:
             return False
@@ -85,16 +71,6 @@ def parse_oauth_token(raw: StringSpan, now_ns: Int) raises -> OAuthToken:
     Reads `access_token`, `token_type`, `refresh_token` and `expiry`
     (RFC 3339); without an `expiry`, `expires_in` seconds from `now_ns`
     is used as `tokenRefresher` does.
-
-    Args:
-        raw: The token JSON object.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The token.
-
-    Raises:
-        Error: If the JSON is malformed.
     """
     var obj = parse_object(raw.as_bytes())
     var expiry = 0
@@ -117,17 +93,7 @@ def parse_oauth_token(raw: StringSpan, now_ns: Int) raises -> OAuthToken:
 def refresh_request(
     client_id: String, user_agent: String, refresh_token: String
 ) -> Request:
-    """Builds the refresh-token grant request.
-
-    Args:
-        client_id: The title's OAuth2 client ID.
-        user_agent: The title's XAL user agent.
-        refresh_token: The current refresh token.
-
-    Returns:
-        The `POST login.live.com/oauth20_token.srf` request with the form
-        keys sorted as Go's `url.Values.Encode` writes them.
-    """
+    """Builds the refresh-token grant request."""
     var form = List[Tuple[String, String]]()
     form.append(("grant_type", "refresh_token"))
     form.append(("refresh_token", refresh_token))
@@ -147,19 +113,7 @@ def refresh_request(
 def parse_refresh_response(
     response: Response, now_ns: Int
 ) raises -> OAuthToken:
-    """Decodes a refresh response.
-
-    Args:
-        response: The token endpoint's response.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The new token, with `expiry_ns` set from `expires_in`.
-
-    Raises:
-        Error: On a non-200 status (with the OAuth2 `error` code and
-            description, which carry no secrets) or an invalid token.
-    """
+    """Decodes a refresh response."""
     if response.status != 200:
         var detail = String()
         try:

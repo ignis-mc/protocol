@@ -58,16 +58,7 @@ struct JSONWebKey(Copyable, Movable):
 
     @staticmethod
     def ec(curve: Int, point: Span[UInt8, _], key_id: String) -> JSONWebKey:
-        """Wraps an elliptic-curve public key.
-
-        Args:
-            curve: `CURVE_P256` or `CURVE_P384`.
-            point: The uncompressed point.
-            key_id: The `kid`.
-
-        Returns:
-            The key.
-        """
+        """Wraps an elliptic-curve public key."""
         var k = JSONWebKey()
         k.key_type = KEY_TYPE_EC
         k.curve = curve
@@ -76,14 +67,7 @@ struct JSONWebKey(Copyable, Movable):
         return k^
 
     def verify(self, jws: JSONWebSignature) -> Bool:
-        """Verifies a signature with this key (go-jose `Verify`).
-
-        Args:
-            jws: The parsed signature.
-
-        Returns:
-            True if the signature is valid under this key and its `alg`.
-        """
+        """Verifies a signature with this key (go-jose `Verify`)."""
         if self.key_type == KEY_TYPE_EC:
             return jws.verify_ecdsa(self.curve, Span(self.point))
         if self.key_type == KEY_TYPE_RSA:
@@ -93,19 +77,7 @@ struct JSONWebKey(Copyable, Movable):
 
 
 def parse_key(raw: StringSpan) raises -> JSONWebKey:
-    """Decodes one JWK object (go-jose `JSONWebKey.UnmarshalJSON`).
-
-    Args:
-        raw: The JSON text of the key.
-
-    Returns:
-        The key.
-
-    Raises:
-        Error: If the key is not an RSA or EC (P-256, P-384) public key, a
-            member is missing or malformed, or an EC point is not on its
-            curve.
-    """
+    """Decodes one JWK object (go-jose `JSONWebKey.UnmarshalJSON`)."""
     var obj = decode_object(raw.as_bytes())
     var k = JSONWebKey()
     k.key_id = opt_string(obj, "kid")

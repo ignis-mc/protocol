@@ -72,14 +72,7 @@ struct Endpoint(Copyable, Defaultable, Movable):
         self.signature_policy_index = -1
 
     def matches(self, u: URL) -> Bool:
-        """Reports whether a URL falls under this endpoint.
-
-        Args:
-            u: The parsed request URL.
-
-        Returns:
-            True on a match; never for an empty relying party.
-        """
+        """Reports whether a URL falls under this endpoint."""
         if self.relying_party.byte_length() == 0:
             return False
         if self.protocol != u.scheme:
@@ -165,16 +158,6 @@ struct TitleData(Copyable, Defaultable, Movable):
 
         The last matching endpoint wins, except that an `fqdn` match stops
         the search immediately.
-
-        Args:
-            url: The request URL.
-
-        Returns:
-            The relying party and policy, or `None` if nothing matches. An
-            out-of-range policy index selects `auth_policy()`.
-
-        Raises:
-            Error: If the URL cannot be parsed.
         """
         var u = parse_url(url)
         var found = Optional[EndpointMatch](None)
@@ -194,17 +177,7 @@ struct TitleData(Copyable, Defaultable, Movable):
 
 
 def parse_title_data(body: Span[UInt8, _]) raises -> TitleData:
-    """Decodes an NSAL title data document.
-
-    Args:
-        body: The response body.
-
-    Returns:
-        The title data.
-
-    Raises:
-        Error: If the body is not a title data object.
-    """
+    """Decodes an NSAL title data document."""
     var obj = parse_object(body)
     var out = TitleData()
     if case .Some(raw) = lookup(obj, "EndPoints"):
@@ -243,11 +216,7 @@ def parse_title_data(body: Span[UInt8, _]) raises -> TitleData:
 
 
 def default_title_request() -> Request:
-    """Builds the request for the public default title data (Go `Default`).
-
-    Returns:
-        `GET https://title.mgt.xboxlive.com/titles/default/endpoints?type=1`.
-    """
+    """Builds the request for the public default title data (Go `Default`)."""
     var headers = List[Tuple[String, String]]()
     headers.append(("X-Xbl-Contract-Version", "1"))
     return Request("GET", NSAL_DEFAULT_URL, headers^, List[UInt8]())
@@ -259,21 +228,7 @@ def title_request(
     proof_key: Span[UInt8, _],
     timestamp_ns: Int,
 ) raises -> Request:
-    """Builds the signed request for one title's data (Go `Title`).
-
-    Args:
-        title_id: A title ID, or `current` for the token's own title.
-        authorization: The `XBL3.0 x=…` header of the `http://xboxlive.com`
-            XSTS token.
-        proof_key: The 32-byte P-256 proof key.
-        timestamp_ns: Server-adjusted Unix time in nanoseconds.
-
-    Returns:
-        The signed `GET …/titles/<id>/endpoints` request.
-
-    Raises:
-        Error: If signing fails.
-    """
+    """Builds the signed request for one title's data (Go `Title`)."""
     var headers = List[Tuple[String, String]]()
     headers.append(("X-Xbl-Contract-Version", "1"))
     headers.append(("Authorization", authorization))
@@ -292,18 +247,7 @@ def title_request(
 def parse_title_response(
     request: Request, response: Response
 ) raises -> TitleData:
-    """Checks the status of a title data response and decodes it.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The title data.
-
-    Raises:
-        Error: On a non-200 status or a malformed body.
-    """
+    """Checks the status of a title data response and decodes it."""
     if response.status != 200:
         raise status_error(request, response)
     return parse_title_data(Span(response.body))

@@ -54,14 +54,7 @@ struct Account(Copyable, Movable):
         var gamertag: String,
         var xuid: String,
     ):
-        """Creates an account.
-
-        Args:
-            id: The account ID.
-            token: The Microsoft token.
-            gamertag: The gamertag.
-            xuid: The XUID.
-        """
+        """Creates an account."""
         self.id = id^
         self.token = token^
         self.gamertag = gamertag^
@@ -81,17 +74,7 @@ struct Envelope(Copyable, Movable):
 
 
 def parse_envelope(text: StringSpan) raises -> Envelope:
-    """Decodes the store envelope and checks its version.
-
-    Args:
-        text: The file contents.
-
-    Returns:
-        The salt, nonce and sealed data.
-
-    Raises:
-        Error: If the JSON is malformed or the version is not 1.
-    """
+    """Decodes the store envelope and checks its version."""
     var obj = parse_object(text.as_bytes())
     var version = opt_int(obj, "version")
     if version != 1:
@@ -106,34 +89,12 @@ def parse_envelope(text: StringSpan) raises -> Envelope:
 def derive_store_key(
     passphrase: String, salt: Span[UInt8, _]
 ) raises -> List[UInt8]:
-    """Derives the store key from a passphrase.
-
-    Args:
-        passphrase: The passphrase.
-        salt: The envelope's salt.
-
-    Returns:
-        The 32-byte AES-256 key.
-
-    Raises:
-        Error: Never for these fixed parameters.
-    """
+    """Derives the store key from a passphrase."""
     return scrypt(passphrase.as_bytes(), salt, 1 << 15, 8, 1, 32)
 
 
 def open_store(envelope: Envelope, key: Span[UInt8, _]) raises -> List[UInt8]:
-    """Decrypts the account JSON.
-
-    Args:
-        envelope: The envelope.
-        key: The 32-byte key.
-
-    Returns:
-        The plaintext JSON (a secret; zeroize it after use).
-
-    Raises:
-        Error: "wrong passphrase for the store" if authentication fails.
-    """
+    """Decrypts the account JSON."""
     var gcm = AesGcm(key)
     var plain = List[UInt8]()
     try:
@@ -148,19 +109,7 @@ def open_store(envelope: Envelope, key: Span[UInt8, _]) raises -> List[UInt8]:
 def find_account(
     plaintext: Span[UInt8, _], gamertag: String, now_ns: Int
 ) raises -> Account:
-    """Finds the account with a gamertag (case-insensitive) and a token.
-
-    Args:
-        plaintext: The decrypted store JSON.
-        gamertag: The gamertag to look for.
-        now_ns: The current Unix time in nanoseconds (for `expires_in`).
-
-    Returns:
-        The account.
-
-    Raises:
-        Error: If no account matches; the message lists the gamertags.
-    """
+    """Finds the account with a gamertag (case-insensitive) and a token."""
     var root = parse_object(plaintext)
     var names = String()
     if case .Some(raw) = lookup(root, "accounts"):
@@ -191,17 +140,7 @@ def find_account(
 def unlock_token_key(
     text: StringSpan, salt: Span[UInt8, _], now_ns: Int
 ) -> Optional[List[UInt8]]:
-    """Returns the key cached in Lunar's `unlock.json`, if still usable.
-
-    Args:
-        text: The `unlock.json` contents.
-        salt: The envelope's salt; the token is bound to it.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The 32-byte key, or `None` if the token is malformed, expired, for
-        another salt or of the wrong length (Lunar's `cachedKey`).
-    """
+    """Returns the key cached in Lunar's `unlock.json`, if still usable."""
     try:
         var obj = parse_object(text.as_bytes())
         var key = base64_decode(opt_string(obj, "key"))
@@ -228,30 +167,12 @@ def _read(path: String) raises -> String:
 
 
 def store_dir() -> String:
-    """Returns the default store directory, `~/.config/lunar-dev`.
-
-    Returns:
-        The path.
-    """
+    """Returns the default store directory, `~/.config/lunar-dev`."""
     return String(getenv("HOME"), "/.config/lunar-dev")
 
 
 def load_account(dir: String, gamertag: String, now_ns: Int) raises -> Account:
-    """Reads one account from the store (Go `loadAccount`).
-
-    Args:
-        dir: The store directory.
-        gamertag: The gamertag of the account to use.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The account.
-
-    Raises:
-        Error: If the store is missing or corrupt, no passphrase or usable
-            unlock token is available, the passphrase is wrong, or the
-            account is not in the store.
-    """
+    """Reads one account from the store (Go `loadAccount`)."""
     var envelope = parse_envelope(_read(String(dir, "/", STORE_FILE)))
     var key: List[UInt8]
     var passphrase = getenv(PASSPHRASE_ENV)

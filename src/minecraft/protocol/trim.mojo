@@ -18,17 +18,7 @@ struct TrimPattern(Marshaler):
         self.pattern_id = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the pattern.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the pattern."""
         io.string(self.item_name)
         io.string(self.pattern_id)
 
@@ -51,17 +41,7 @@ struct TrimMaterial(Marshaler):
         self.item_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the material.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the material."""
         io.string(self.material_id)
         io.string(self.colour)
         io.string(self.item_name)

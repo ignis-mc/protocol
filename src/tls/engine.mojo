@@ -137,14 +137,7 @@ comptime _FAILED = 8
 
 
 def alert_name(code: UInt8) -> String:
-    """Names an alert description.
-
-    Args:
-        code: The alert description byte.
-
-    Returns:
-        The RFC name, or `alert_<n>` for codes this client does not name.
-    """
+    """Names an alert description."""
     if code == ALERT_CLOSE_NOTIFY:
         return "close_notify"
     if code == ALERT_UNEXPECTED_MESSAGE:
@@ -219,11 +212,7 @@ def _contains(list: List[UInt16], v: UInt16) -> Bool:
 
 
 struct ClientEngine[V: CertificateVerifier](Movable):
-    """A TLS 1.3 client connection without I/O.
-
-    Parameters:
-        V: How the server certificate and signature are checked.
-    """
+    """A TLS 1.3 client connection without I/O."""
 
     var _verifier: Self.V
     var _host: String
@@ -260,20 +249,7 @@ struct ClientEngine[V: CertificateVerifier](Movable):
         entropy: Span[UInt8, _],
         key_share_groups: List[UInt16] = [GROUP_X25519, GROUP_SECP256R1],
     ) raises:
-        """Prepares a connection; call `start()` to queue the ClientHello.
-
-        Args:
-            host: The server name, sent as SNI and checked by the verifier.
-            verifier: Checks the server's certificate and signature.
-            entropy: `ENTROPY_LEN` uniformly random bytes.
-            key_share_groups: The groups to send key shares for in the first
-                ClientHello. Both supported groups are always advertised in
-                `supported_groups`; a server that wants another one asks with
-                a HelloRetryRequest.
-
-        Raises:
-            Error: If `entropy` is short or a group is unsupported.
-        """
+        """Prepares a connection; call `start()` to queue the ClientHello."""
         if len(entropy) < ENTROPY_LEN:
             raise Error("tls: not enough entropy")
         for g in key_share_groups:
@@ -318,11 +294,7 @@ struct ClientEngine[V: CertificateVerifier](Movable):
     # Public API -----------------------------------------------------------
 
     def start(mut self) raises:
-        """Queues the ClientHello.
-
-        Raises:
-            Error: If the engine was already started.
-        """
+        """Queues the ClientHello."""
         if self._state != _IDLE:
             raise Error("tls: already started")
         var hello = List[UInt8]()
@@ -356,13 +328,6 @@ struct ClientEngine[V: CertificateVerifier](Movable):
         Afterwards, drain `take_output()` and `take_application_data()`.
         On a protocol error the matching fatal alert is queued in the output
         before this raises; the engine is unusable afterwards.
-
-        Args:
-            data: The received bytes, in any fragmentation.
-
-        Raises:
-            Error: "tls: <alert>: <detail>" on a protocol error, or
-                "tls: peer sent alert <name>" when the server aborts.
         """
         self._check_usable()
         self._records.feed(data)
@@ -377,15 +342,7 @@ struct ClientEngine[V: CertificateVerifier](Movable):
             self._fail(String(e))
 
     def write(mut self, data: Span[UInt8, _]) raises:
-        """Queues application data, split into records of at most 2^14 bytes.
-
-        Args:
-            data: The bytes to send.
-
-        Raises:
-            Error: If the handshake has not completed or the connection is
-                closed for writing.
-        """
+        """Queues application data, split into records of at most 2^14 bytes."""
         self._check_usable()
         if self._state != _CONNECTED and self._state != _CLOSED:
             raise Error("tls: handshake not complete")
@@ -400,82 +357,46 @@ struct ClientEngine[V: CertificateVerifier](Movable):
             pos = end
 
     def close(mut self) raises:
-        """Queues a close_notify alert. Further writes are refused.
-
-        Raises:
-            Error: If the alert cannot be sealed.
-        """
+        """Queues a close_notify alert. Further writes are refused."""
         if self._sent_close or self._state == _FAILED:
             return
         self._sent_close = True
         self._send_alert(1, ALERT_CLOSE_NOTIFY)
 
     def take_output(mut self) -> List[UInt8]:
-        """Removes the bytes queued for the server.
-
-        Returns:
-            The bytes to write to the transport, possibly empty.
-        """
+        """Removes the bytes queued for the server."""
         var out = self._out^
         self._out = List[UInt8]()
         return out^
 
     def has_output(self) -> Bool:
-        """Checks for queued output.
-
-        Returns:
-            `True` if `take_output()` would return bytes.
-        """
+        """Checks for queued output."""
         return len(self._out) > 0
 
     def take_application_data(mut self) -> List[UInt8]:
-        """Removes the decrypted application data received so far.
-
-        Returns:
-            The bytes, possibly empty.
-        """
+        """Removes the decrypted application data received so far."""
         var out = self._app_in^
         self._app_in = List[UInt8]()
         return out^
 
     def is_connected(self) -> Bool:
-        """Checks whether the handshake has completed.
-
-        Returns:
-            `True` once application data can flow (also after close_notify).
-        """
+        """Checks whether the handshake has completed."""
         return self._state == _CONNECTED or self._state == _CLOSED
 
     def peer_closed(self) -> Bool:
-        """Checks whether the server sent close_notify.
-
-        Returns:
-            `True` if no more application data will arrive.
-        """
+        """Checks whether the server sent close_notify."""
         return self._state == _CLOSED
 
     def cipher_suite(self) -> Optional[CipherSuite]:
-        """Gets the negotiated suite.
-
-        Returns:
-            The suite once the ServerHello was accepted.
-        """
+        """Gets the negotiated suite."""
         return self._suite
 
     def group(self) -> UInt16:
-        """Gets the negotiated key exchange group.
-
-        Returns:
-            The named group, or 0 before the ServerHello.
-        """
+        """Gets the negotiated key exchange group."""
         return self._group
 
     def alpn(self) -> String:
-        """Gets the application protocol the server selected.
-
-        Returns:
-            "http/1.1", or empty if the server sent no ALPN extension.
-        """
+        """Gets the application protocol the server selected."""
         return self._alpn
 
     # Internals ------------------------------------------------------------

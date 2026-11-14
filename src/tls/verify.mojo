@@ -93,16 +93,6 @@ def verify_signature(
 
     ECDSA signatures are DER `ECDSA-Sig-Value`s; the curve comes from the
     key, so any of SHA-256/384/512 goes with either curve.
-
-    Args:
-        key: The signer's key.
-        algorithm: The signature algorithm and parameters.
-        message: The signed bytes.
-        signature: The signature.
-
-    Raises:
-        Error: If the key does not fit the algorithm, the algorithm is
-            unsupported, or the signature is invalid.
     """
     var ok: Bool
     if algorithm.kind == SIG_RSA_PKCS1 or algorithm.kind == SIG_RSA_PSS:
@@ -144,16 +134,6 @@ def verify_handshake_signature(
     uses MGF1 with the same hash and a salt as long as the digest (RFC 8446
     section 4.2.3). The PKCS #1 v1.5 schemes are accepted for completeness
     although TLS 1.3 forbids them in CertificateVerify.
-
-    Args:
-        key: The leaf key returned by `verify_chain`.
-        scheme: The TLS SignatureScheme code.
-        message: The signed content.
-        signature: The signature from the CertificateVerify message.
-
-    Raises:
-        Error: If the scheme is unsupported or does not fit the key, or the
-            signature is invalid.
     """
     var algorithm: SignatureAlgorithm
     if scheme == SCHEME_RSA_PSS_RSAE_SHA256:
@@ -239,16 +219,7 @@ def _match_pattern(pattern: StringSpan, host: StringSpan) -> Bool:
 
 
 def verify_hostname(cert: Certificate, host: StringSpan) raises:
-    """Checks that a certificate is valid for a host name.
-
-    Args:
-        cert: The leaf certificate.
-        host: A DNS name (one trailing dot allowed) or an IPv4 literal.
-
-    Raises:
-        Error: If no subjectAltName entry matches, the certificate has no
-            subjectAltName, or the host is an IPv6 literal.
-    """
+    """Checks that a certificate is valid for a host name."""
     var h = _lower(host)
     if h.endswith("."):
         var trimmed = String(h[byte = 0 : h.byte_length() - 1])
@@ -492,23 +463,6 @@ def verify_chain(
     """Validates a server certificate chain for a host name.
 
     See the module docstring for the checks.
-
-    Args:
-        chain: DER certificates as sent in the TLS Certificate message;
-            `chain[0]` is the leaf, the rest are candidate intermediates in
-            any order.
-        host: The server name the client connected to.
-        now_unix: The current time, unix seconds.
-        roots: The trust anchors.
-
-    Returns:
-        The leaf's public key, for `verify_handshake_signature`.
-
-    Raises:
-        Error: On any failure: a malformed certificate, an expired or
-            not-yet-valid certificate, a host name mismatch, a bad
-            signature, CA constraint violations, or no path to a trust
-            anchor.
     """
     if len(chain) == 0:
         raise Error("x509: empty certificate chain")

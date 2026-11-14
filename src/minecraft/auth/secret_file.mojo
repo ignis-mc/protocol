@@ -35,14 +35,7 @@ def _c_path(path: StringSpan) raises -> List[UInt8]:
 
 
 def make_private_dir(path: StringSpan) raises:
-    """Creates a directory with mode 0700 unless it already exists.
-
-    Args:
-        path: The directory path; its parent must exist.
-
-    Raises:
-        Error: If the directory cannot be created.
-    """
+    """Creates a directory with mode 0700 unless it already exists."""
     var c = _c_path(path)
     var rc = syscall6(
         _SYS_MKDIRAT, _AT_FDCWD, Int(c.unsafe_ptr()), 0o700, 0, 0, 0
@@ -57,13 +50,6 @@ def write_private_file(path: StringSpan, data: Span[UInt8, _]) raises:
 
     The file is opened without following a symlink at `path` and its mode
     is set before the data is written.
-
-    Args:
-        path: The file path.
-        data: The contents.
-
-    Raises:
-        Error: If the file cannot be opened, narrowed or fully written.
     """
     var c = _c_path(path)
     var fd = syscall6(

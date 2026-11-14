@@ -16,11 +16,7 @@ struct Vec2(Defaultable, ImplicitlyCopyable, Writable):
         self.y = 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the vector as `(x, y)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the vector as `(x, y)`."""
         writer.write("(", self.x, ", ", self.y, ")")
 
 
@@ -42,9 +38,5 @@ struct Vec3(Defaultable, ImplicitlyCopyable, Writable):
         self.z = 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the vector as `(x, y, z)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the vector as `(x, y, z)`."""
         writer.write("(", self.x, ", ", self.y, ", ", self.z, ")")

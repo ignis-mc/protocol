@@ -63,17 +63,7 @@ struct DataStoreChangeEntry(Marshaler):
         self.removal = DataStoreRemoval()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the change type is unknown or the input is malformed.
-        """
+        """Reads or writes the entry."""
         io.varuint32(self.change_type)
         if self.change_type == DATA_STORE_CHANGE_TYPE_UPDATE:
             self.update.marshal(io)
@@ -123,17 +113,7 @@ struct DataStoreUpdate(Marshaler):
         self.path_update_count = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the update.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the control type is unknown or the input is malformed.
-        """
+        """Reads or writes the update."""
         io.string(self.data_store_name)
         io.string(self.property)
         io.string(self.path)
@@ -200,11 +180,7 @@ struct DataStorePropertyNode(Copyable, Defaultable):
         self.map_value = List[DataStoreMapEntry]()
 
     def __init__(out self, type: Int32):
-        """Creates an empty value of a type.
-
-        Args:
-            type: One of the `DATA_STORE_PROPERTY_TYPE_*` constants.
-        """
+        """Creates an empty value of a type."""
         self = Self()
         self.type = type
 
@@ -220,22 +196,11 @@ struct DataStorePropertyValue(Copyable, Defaultable):
         self.nodes = [DataStorePropertyNode()]
 
     def __init__(out self, var root: DataStorePropertyNode):
-        """Creates a value whose top-level node is `root`.
-
-        Args:
-            root: The top-level value.
-        """
+        """Creates a value whose top-level node is `root`."""
         self.nodes = [root^]
 
     def add(mut self, var node: DataStorePropertyNode) -> Int:
-        """Appends a nested value.
-
-        Args:
-            node: The value.
-
-        Returns:
-            Its index, to put in a list or map entry.
-        """
+        """Appends a nested value."""
         self.nodes.append(node^)
         return len(self.nodes) - 1
 
@@ -277,17 +242,6 @@ def marshal_data_store_property_value[
     I: IO
 ](mut io: I, mut x: DataStorePropertyValue) raises:
     """Marshals a property value (gophertunnel `MarshalDataStorePropertyValue`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If a type is unknown, a node index is out of range, the value is
-        nested deeper than `MAX_DATA_STORE_DEPTH`, or the input is malformed.
     """
     if io.reads() or len(x.nodes) == 0:
         x.nodes = [DataStorePropertyNode()]

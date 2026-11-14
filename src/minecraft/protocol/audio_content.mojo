@@ -28,17 +28,7 @@ struct AudioContentRegistrationEntry(Marshaler):
         self.playback_content = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.audio_content_id)
         io.string(self.shared_metadata)
         io.string(self.server_content)

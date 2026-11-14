@@ -303,15 +303,6 @@ struct Command(Marshaler):
         """Reads or writes the command.
 
         The permission level travels as its lowercase name.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the permission level is unknown.
         """
         var permission = String(
             _command_permission_to_string(self.permission_level)
@@ -340,17 +331,7 @@ struct CommandOverload(Marshaler):
         self.parameters = List[CommandParameter]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the overload.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the overload."""
         io.bool(self.chaining)
         slice(io, self.parameters)
 
@@ -375,17 +356,7 @@ struct CommandParameter(Marshaler):
         self.options = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the parameter.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the parameter."""
         io.string(self.name)
         io.uint32(self.type)
         io.bool(self.optional)
@@ -423,26 +394,11 @@ struct CommandEnumContext(Copyable):
     """The `AvailableCommands` packet's enum values."""
 
     def __init__(out self, var enum_values: List[String]):
-        """Creates a context over the packet's enum values.
-
-        Args:
-            enum_values: The enum values of the packet.
-        """
+        """Creates a context over the packet's enum values."""
         self.enum_values = enum_values^
 
     def marshal[I: IO](self, mut io: I, mut x: CommandEnum) raises:
-        """Reads or writes one command enum.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-            x: The enum.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes one command enum."""
         io.string(x.type)
         uint32_slice(io, x.value_indices)
 
@@ -454,17 +410,6 @@ def command_enums[
 
     This is Go's `FuncIOSlice(io, &pk.Enums, CommandEnumContext{...}.Marshal)`
     from the `AvailableCommands` packet.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The enums.
-        enum_values: The packet's enum values.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     var ctx = CommandEnumContext(enum_values.copy())
     var count = UInt32(len(x))
@@ -495,17 +440,7 @@ struct ChainedSubcommand(Marshaler):
         self.values = List[ChainedSubcommandValue]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the chained subcommand.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the chained subcommand."""
         io.string(self.name)
         slice(io, self.values)
 
@@ -524,17 +459,7 @@ struct ChainedSubcommandValue(Marshaler):
         self.value = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.varuint32(self.index)
         io.varuint32(self.value)
 
@@ -553,17 +478,7 @@ struct DynamicEnum(Marshaler):
         self.values = List[String]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the enum.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the enum."""
         io.string(self.type)
         string_slice(io, self.values)
 
@@ -585,17 +500,7 @@ struct CommandEnumConstraint(Marshaler):
         self.constraints = List[UInt8]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the constraint.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the constraint."""
         io.uint32(self.enum_value_index)
         io.uint32(self.enum_index)
         io.byte_slice(self.constraints)
@@ -628,16 +533,6 @@ def command_origin_data[I: IO](mut io: I, mut x: CommandOrigin) raises:
     """Marshals a command origin (gophertunnel `CommandOriginData`).
 
     The origin travels as its name; the player unique ID is a fixed `int64`.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The origin.
-
-    Raises:
-        If the input is malformed or the origin is unknown.
     """
     var origin = String(_command_origin_to_string(x.origin))
     io.string(origin)
@@ -664,17 +559,7 @@ struct CommandOutputMessage(Marshaler):
         self.parameters = List[String]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the message.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the message."""
         io.string(self.message)
         io.bool(self.success)
         string_slice(io, self.parameters)

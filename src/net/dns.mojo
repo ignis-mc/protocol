@@ -27,19 +27,7 @@ def _lower(b: UInt8) -> UInt8:
 
 
 def encode_query(id: UInt16, name: StringSpan) raises -> List[UInt8]:
-    """Builds a recursive query for the A records of `name`.
-
-    Args:
-        id: The query id.
-        name: The host name; a trailing dot is allowed.
-
-    Returns:
-        The DNS message.
-
-    Raises:
-        Error: If a label is empty or longer than 63 bytes, or the name is
-            longer than 253 bytes.
-    """
+    """Builds a recursive query for the A records of `name`."""
     var out = List[UInt8]()
     put_u16(out, id)
     put_u16(out, 0x0100)  # standard query, recursion desired
@@ -86,17 +74,6 @@ def parse_response(data: Span[UInt8, _], id: UInt16) raises -> List[UInt32]:
 
     CNAME chains need no special handling: recursive resolvers include the
     target's A records in the same answer section.
-
-    Args:
-        data: The response message.
-        id: The id of the query.
-
-    Returns:
-        The addresses in answer order, possibly empty.
-
-    Raises:
-        Error: If the message is malformed, does not answer the query, is
-            truncated, or reports an error code (NXDOMAIN and others).
     """
     var r = Reader(data)
     if r.u16() != id:
@@ -136,14 +113,7 @@ def parse_response(data: Span[UInt8, _], id: UInt16) raises -> List[UInt32]:
 
 
 def parse_nameservers(conf: StringSpan) -> List[UInt32]:
-    """Reads the IPv4 `nameserver` lines of a resolv.conf.
-
-    Args:
-        conf: The file contents.
-
-    Returns:
-        The nameserver addresses in file order.
-    """
+    """Reads the IPv4 `nameserver` lines of a resolv.conf."""
     var out = List[UInt32]()
     for line in conf.splitlines():
         var fields = line.split()
@@ -156,15 +126,7 @@ def parse_nameservers(conf: StringSpan) -> List[UInt32]:
 
 
 def lookup_hosts(hosts: StringSpan, name: StringSpan) -> Optional[UInt32]:
-    """Looks a name up in hosts-file contents.
-
-    Args:
-        hosts: The contents of `/etc/hosts`.
-        name: The host name, compared case-insensitively.
-
-    Returns:
-        The first IPv4 address listed for the name, or `None`.
-    """
+    """Looks a name up in hosts-file contents."""
     var want = String(name).lower()
     for line in hosts.splitlines():
         var text = line
@@ -192,34 +154,12 @@ def _read_file(path: String) -> String:
 
 
 def resolve_ipv4(host: String, timeout_ms: Int) raises -> UInt32:
-    """Resolves a host name to one IPv4 address.
-
-    Args:
-        host: A host name or dotted-decimal address.
-        timeout_ms: The longest time to spend in total.
-
-    Returns:
-        The first address, in host byte order.
-
-    Raises:
-        Error: If the name cannot be resolved in time.
-    """
+    """Resolves a host name to one IPv4 address."""
     return resolve_ipv4_all(host, timeout_ms)[0]
 
 
 def resolve_ipv4_all(host: String, timeout_ms: Int) raises -> List[UInt32]:
-    """Resolves a host name to all of its IPv4 addresses.
-
-    Args:
-        host: A host name or dotted-decimal address.
-        timeout_ms: The longest time to spend in total.
-
-    Returns:
-        At least one address, in host byte order, in answer order.
-
-    Raises:
-        Error: If the name cannot be resolved in time.
-    """
+    """Resolves a host name to all of its IPv4 addresses."""
     try:
         return [SocketAddr.parse_ip(host)]
     except:

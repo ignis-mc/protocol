@@ -18,19 +18,7 @@ comptime MINECRAFT_AUTH_URL = "https://multiplayer.minecraft.net/authentication"
 def minecraft_chain_request(
     private_key: Span[UInt8, _], authorization: String
 ) raises -> Request:
-    """Builds the chain request.
-
-    Args:
-        private_key: The client's 48-byte P-384 private scalar; the chain
-            certifies its public key.
-        authorization: The `XBL3.0 x=…` header of the XSTS token.
-
-    Returns:
-        The `POST multiplayer.minecraft.net/authentication` request.
-
-    Raises:
-        Error: If the private key is invalid.
-    """
+    """Builds the chain request."""
     var body = String(
         '{"identityPublicKey":', go_quote(marshal_public_key(private_key)), "}"
     )
@@ -47,18 +35,7 @@ def minecraft_chain_request(
 def parse_minecraft_chain_response(
     request: Request, response: Response
 ) raises -> String:
-    """Returns the chain JSON (`{"chain":[…]}`) from a 200 response.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The response body as text.
-
-    Raises:
-        Error: On a non-200 status or a body that is not UTF-8.
-    """
+    """Returns the chain JSON (`{"chain":[…]}`) from a 200 response."""
     if response.status != 200:
         raise status_error(request, response)
     return String(from_utf8=Span(response.body))

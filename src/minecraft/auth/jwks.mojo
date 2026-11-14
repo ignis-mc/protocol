@@ -23,14 +23,7 @@ comptime _USER_AGENT = "libhttpclient/1.0.0.0"
 
 
 def jwks_request(jwks_url: String) -> Request:
-    """Builds the JWKS request (`refreshingKeySet.updateKeys`).
-
-    Args:
-        jwks_url: The `jwks_uri` from the OpenID configuration.
-
-    Returns:
-        The `GET` request.
-    """
+    """Builds the JWKS request (`refreshingKeySet.updateKeys`)."""
     var headers = List[Tuple[String, String]]()
     headers.append(("Content-Type", "application/json"))
     headers.append(("Accept", "application/json"))
@@ -71,15 +64,6 @@ def decode_key_set(body: Span[UInt8, _]) raises -> List[JSONWebKey]:
 
     Every key must carry an `x5t` SHA-1 thumbprint, hex (as Microsoft sends
     it) or base64url.
-
-    Args:
-        body: The JWKS JSON.
-
-    Returns:
-        The keys in order.
-
-    Raises:
-        Error: If the document or a key is malformed or a key lacks `x5t`.
     """
     var obj = decode_object(body)
     var out = List[JSONWebKey]()
@@ -100,11 +84,7 @@ def decode_key_set(body: Span[UInt8, _]) raises -> List[JSONWebKey]:
 
 
 struct RefreshingKeySet[T: Transport](KeySet):
-    """A cached JWKS, refreshed on demand (gophertunnel `refreshingKeySet`).
-
-    Parameters:
-        T: The HTTP transport.
-    """
+    """A cached JWKS, refreshed on demand (gophertunnel `refreshingKeySet`)."""
 
     var transport: Self.T
     """Fetches the JWKS."""
@@ -128,15 +108,7 @@ struct RefreshingKeySet[T: Transport](KeySet):
         refresh_interval: Int,
         var sig_algs: List[String],
     ):
-        """Creates an empty key set (`newRefreshingKeySet`).
-
-        Args:
-            transport: Fetches the JWKS.
-            jwks_url: The JWKS location.
-            refresh_interval: Seconds between refreshes; 0 or less means 30
-                minutes.
-            sig_algs: The provider's signing algorithms.
-        """
+        """Creates an empty key set (`newRefreshingKeySet`)."""
         var algs = List[String]()
         for a in sig_algs:
             if a.byte_length() != 0:
@@ -168,15 +140,7 @@ struct RefreshingKeySet[T: Transport](KeySet):
         return False
 
     def refresh(mut self, now_unix: Int) raises:
-        """Fetches the JWKS and replaces the cache on success.
-
-        Args:
-            now_unix: The current time, Unix seconds.
-
-        Raises:
-            Error: On a transport failure, a non-200 status or a malformed
-                document.
-        """
+        """Fetches the JWKS and replaces the cache on success."""
         var request = jwks_request(self.jwks_url)
         var response = self.transport.round_trip(request)
         if response.status != 200:
@@ -194,19 +158,7 @@ struct RefreshingKeySet[T: Transport](KeySet):
         mut self, jws: JSONWebSignature, now_unix: Int
     ) raises -> List[UInt8]:
         """Verifies with the cached keys, refreshing them first when empty
-        or when the `kid` is unknown and the interval has passed.
-
-        Args:
-            jws: The parsed token.
-            now_unix: The current time, Unix seconds.
-
-        Returns:
-            The verified payload.
-
-        Raises:
-            Error: If the `alg` is not accepted, the fetch fails, or no key
-                verifies the signature.
-        """
+        or when the `kid` is unknown and the interval has passed."""
         var accepted = False
         for a in self.sig_algs:
             if a == jws.algorithm:

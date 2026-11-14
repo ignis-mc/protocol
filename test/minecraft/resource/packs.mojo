@@ -6,16 +6,7 @@ from minecraft.internal.zip import METHOD_DEFLATE, METHOD_STORE, ZipWriter
 def manifest_json(
     uuid: StringSpan, version: StringSpan, name: StringSpan
 ) -> String:
-    """Returns a manifest with one `resources` module.
-
-    Args:
-        uuid: The header UUID.
-        version: The version as a JSON value, e.g. `[1, 0, 0]`.
-        name: The pack name.
-
-    Returns:
-        The manifest text.
-    """
+    """Returns a manifest with one `resources` module."""
     return (
         String('{"format_version": 2, "header": {"name": "')
         + name
@@ -32,17 +23,7 @@ def manifest_json(
 def build_pack(
     uuid: StringSpan, version: StringSpan, name: StringSpan, filler: Int = 0
 ) raises -> List[UInt8]:
-    """Builds a pack archive: a deflated manifest and a stored filler file.
-
-    Args:
-        uuid: The header UUID.
-        version: The version as a JSON value.
-        name: The pack name.
-        filler: Bytes of pseudo-random data to add, to make the pack big.
-
-    Returns:
-        The zip archive.
-    """
+    """Builds a pack archive: a deflated manifest and a stored filler file."""
     var w = ZipWriter()
     var manifest = manifest_json(uuid, version, name)
     w.add("pack/manifest.json", manifest.as_bytes(), METHOD_DEFLATE)

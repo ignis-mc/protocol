@@ -371,9 +371,16 @@ struct StackResponseSlotInfo(Marshaler):
             )
 
 
-@fieldwise_init
 struct StackRequestSlotInfo(Copyable, Defaultable):
-    """A slot as the client sees it, used by stack request actions."""
+    """A slot as the client sees it, used by stack request actions.
+
+    `_align` is padding, never marshalled: it makes the actions holding
+    slots 8-byte aligned like the actions holding a `List` or `String`.
+    On Mojo 1.2, a `Variant` whose largest arm is less aligned than another
+    arm (here 44 bytes aligned to 4 against 32 bytes aligned to 8) loses
+    its type tag when a `List` relocates it and corrupts neighbouring
+    memory.
+    """
 
     var container: FullContainerName
     """The container the slot is in."""
@@ -381,12 +388,23 @@ struct StackRequestSlotInfo(Copyable, Defaultable):
     """The index of the slot in the container."""
     var stack_network_id: Int32
     """The stack network ID the client expects in the slot."""
+    var _align: UInt64
 
     def __init__(out self):
         """Creates slot 0 of the default container."""
-        self.container = FullContainerName()
-        self.slot = 0
-        self.stack_network_id = 0
+        self = Self(FullContainerName(), 0, 0)
+
+    def __init__(
+        out self,
+        container: FullContainerName,
+        slot: UInt8,
+        stack_network_id: Int32,
+    ):
+        """Creates a slot."""
+        self.container = container.copy()
+        self.slot = slot
+        self.stack_network_id = stack_network_id
+        self._align = 0
 
 
 def stack_req_slot_info[I: IO](mut io: I, mut x: StackRequestSlotInfo) raises:
@@ -883,28 +901,6 @@ struct StackRequestAction(Marshaler):
     def __init__(out self):
         """Creates an empty take action."""
         self.value = TakeStackRequestAction()
-
-    def __init__(out self, *, copy: Self):
-        """Copies the held action.
-
-        Written out because, on Mojo 1.2, moving the `Variant` while a
-        `List` grows loses the type of actions with a `List` or `String`
-        field (auto craft, loom, reserved, results); each copy and move
-        rebuilds the variant from the held type instead.
-        """
-        self.value = Self._rebuild(copy.value)
-
-    def __init__(out self, *, deinit move: Self):
-        """Moves the held action (see the copy constructor)."""
-        self.value = Self._rebuild(move.value)
-
-    @staticmethod
-    def _rebuild(v: Self.Kinds) -> Self.Kinds:
-        comptime for i in range(len(Self.Kinds.Ts)):
-            comptime T = downcast[Self.Kinds.Ts[i], StackRequestActionKind]
-            if v.isa[T]():
-                return Self.Kinds(v[T].copy())
-        return Self.Kinds(TakeStackRequestAction())
 
     @implicit
     def __init__[T: StackRequestActionKind](out self, var value: T):

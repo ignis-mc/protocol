@@ -884,6 +884,28 @@ struct StackRequestAction(Marshaler):
         """Creates an empty take action."""
         self.value = TakeStackRequestAction()
 
+    def __init__(out self, *, copy: Self):
+        """Copies the held action.
+
+        Written out because, on Mojo 1.2, moving the `Variant` while a
+        `List` grows loses the type of actions with a `List` or `String`
+        field (auto craft, loom, reserved, results); each copy and move
+        rebuilds the variant from the held type instead.
+        """
+        self.value = Self._rebuild(copy.value)
+
+    def __init__(out self, *, deinit move: Self):
+        """Moves the held action (see the copy constructor)."""
+        self.value = Self._rebuild(move.value)
+
+    @staticmethod
+    def _rebuild(v: Self.Kinds) -> Self.Kinds:
+        comptime for i in range(len(Self.Kinds.Ts)):
+            comptime T = downcast[Self.Kinds.Ts[i], StackRequestActionKind]
+            if v.isa[T]():
+                return Self.Kinds(v[T].copy())
+        return Self.Kinds(TakeStackRequestAction())
+
     @implicit
     def __init__[T: StackRequestActionKind](out self, var value: T):
         """Wraps a concrete action."""

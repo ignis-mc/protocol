@@ -15,6 +15,8 @@ from minecraft.protocol.item_stack import (
     AutoCraftRecipeStackRequestAction,
     BeaconPaymentStackRequestAction,
     ConsumeStackRequestAction,
+    STACK_REQUEST_ACTION_CRAFT_CREATIVE,
+    STACK_REQUEST_ACTION_TAKE,
     CraftCreativeStackRequestAction,
     CraftGrindstoneRecipeStackRequestAction,
     CraftLoomRecipeStackRequestAction,
@@ -42,6 +44,7 @@ from minecraft.protocol.item_stack import (
 from minecraft.protocol.reader import Reader
 from minecraft.protocol.writer import Writer
 from nethernet.wire import hex_decode, hex_encode
+from std.sys.info import align_of, size_of
 from std.testing import TestSuite, assert_equal, assert_raises, assert_true
 
 
@@ -190,6 +193,20 @@ def test_craft_actions() raises:
         .identifier,
         "minecraft:stone",
     )
+
+
+def test_actions_keep_their_type_in_a_growing_list() raises:
+    # Regression: List growth used to turn the first action of
+    # [CraftCreative, Take] into a Take.
+    var l = List[StackRequestAction]()
+    l.append(StackRequestAction(CraftCreativeStackRequestAction()))
+    for _ in range(8):
+        l.append(StackRequestAction(TakeStackRequestAction()))
+    assert_equal(l[0].type_id(), STACK_REQUEST_ACTION_CRAFT_CREATIVE)
+    assert_equal(l[1].type_id(), STACK_REQUEST_ACTION_TAKE)
+    # The arms must share the largest alignment (see StackRequestSlotInfo).
+    assert_equal(align_of[TakeStackRequestAction](), 8)
+    assert_equal(size_of[TakeStackRequestAction]() % 8, 0)
 
 
 def test_item_stack_request() raises:

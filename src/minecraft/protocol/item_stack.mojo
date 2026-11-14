@@ -371,9 +371,16 @@ struct StackResponseSlotInfo(Marshaler):
             )
 
 
-@fieldwise_init
 struct StackRequestSlotInfo(Copyable, Defaultable):
-    """A slot as the client sees it, used by stack request actions."""
+    """A slot as the client sees it, used by stack request actions.
+
+    `_align` is padding, never marshalled: it makes the actions holding
+    slots 8-byte aligned like the actions holding a `List` or `String`.
+    On Mojo 1.2, a `Variant` whose largest arm is less aligned than another
+    arm (here 44 bytes aligned to 4 against 32 bytes aligned to 8) loses
+    its type tag when a `List` relocates it and corrupts neighbouring
+    memory.
+    """
 
     var container: FullContainerName
     """The container the slot is in."""
@@ -381,12 +388,23 @@ struct StackRequestSlotInfo(Copyable, Defaultable):
     """The index of the slot in the container."""
     var stack_network_id: Int32
     """The stack network ID the client expects in the slot."""
+    var _align: UInt64
 
     def __init__(out self):
         """Creates slot 0 of the default container."""
-        self.container = FullContainerName()
-        self.slot = 0
-        self.stack_network_id = 0
+        self = Self(FullContainerName(), 0, 0)
+
+    def __init__(
+        out self,
+        container: FullContainerName,
+        slot: UInt8,
+        stack_network_id: Int32,
+    ):
+        """Creates a slot."""
+        self.container = container.copy()
+        self.slot = slot
+        self.stack_network_id = stack_network_id
+        self._align = 0
 
 
 def stack_req_slot_info[I: IO](mut io: I, mut x: StackRequestSlotInfo) raises:

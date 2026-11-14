@@ -164,18 +164,7 @@ struct Skin(Marshaler):
         self.profile_hash = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the skin.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or an image size does not match its
-            dimensions.
-        """
+        """Reads or writes the skin."""
         io.string(self.skin_id)
         io.byte_slice(self.skin_resource_patch)
         io.uint32(self.skin_image_width)
@@ -210,11 +199,7 @@ struct Skin(Marshaler):
         io.string(self.profile_hash)
 
     def validate(self) -> Optional[String]:
-        """Checks that the skin, cape and animation images match their sizes.
-
-        Returns:
-            A description of the first mismatch, or `None` if all match.
-        """
+        """Checks that the skin, cape and animation images match their sizes."""
         var skin_size = self.skin_image_height * self.skin_image_width * 4
         if skin_size != UInt32(len(self.skin_data)):
             return String(
@@ -267,17 +252,7 @@ struct SkinAnimation(Marshaler):
         self.expression_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the animation.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the animation."""
         io.uint32(self.image_width)
         io.uint32(self.image_height)
         io.byte_slice(self.image_data)
@@ -309,17 +284,7 @@ struct PersonaPiece(Marshaler):
         self.product_id = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the piece.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the piece."""
         io.string(self.piece_id)
         io.uint32(self.piece_type)
         uuid(io, self.pack_id)
@@ -345,15 +310,6 @@ struct PersonaPieceTintColour(Marshaler):
 
         The wire uses the short v2168 names (`hair`, `hands`); reading maps
         them back to the login-data names.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
         """
         var wire_type = _persona_piece_tint_wire_type(self.piece_type)
         io.string(wire_type)

@@ -66,17 +66,7 @@ struct XalConfig(Copyable, Movable):
         var client_id: String,
         var redirect_uri: String,
     ):
-        """Creates a configuration.
-
-        Args:
-            device_type: The XASD device type.
-            device_version: The OS version.
-            user_agent: The XAL user agent.
-            title_id: The title ID.
-            sandbox: The sandbox.
-            client_id: The OAuth2 client ID.
-            redirect_uri: The OAuth2 redirect URI.
-        """
+        """Creates a configuration."""
         self.device_type = device_type^
         self.device_version = device_version^
         self.user_agent = user_agent^
@@ -87,11 +77,7 @@ struct XalConfig(Copyable, Movable):
 
 
 def android_config() -> XalConfig:
-    """Returns Minecraft: Bedrock Edition for Android's configuration.
-
-    Returns:
-        The values of gophertunnel's `auth.AndroidConfig`.
-    """
+    """Returns Minecraft: Bedrock Edition for Android's configuration."""
     return XalConfig(
         "Android",
         "13",
@@ -141,51 +127,23 @@ struct XASToken(Copyable, Defaultable, Movable):
         self.xuid = String()
 
     def valid(self, now_ns: Int) -> Bool:
-        """Reports whether the token is usable (Go `Token.Valid`).
-
-        Args:
-            now_ns: The current Unix time in nanoseconds.
-
-        Returns:
-            True if there is a token that does not expire within a minute.
-        """
+        """Reports whether the token is usable (Go `Token.Valid`)."""
         return (
             self.token.byte_length() > 0
             and now_ns < self.not_after_ns - _EXPIRATION_DELTA_NS
         )
 
     def valid_xsts(self, now_ns: Int) -> Bool:
-        """Reports whether this is a usable XSTS token (`xsts.Token.Valid`).
-
-        Args:
-            now_ns: The current Unix time in nanoseconds.
-
-        Returns:
-            `valid(now_ns)` and at least one `xui` entry.
-        """
+        """Reports whether this is a usable XSTS token (`xsts.Token.Valid`)."""
         return self.valid(now_ns) and self.has_user_info
 
     def authorization(self) -> String:
-        """Formats the token as an `Authorization` header value.
-
-        Returns:
-            `XBL3.0 x=<user hash>;<token>`.
-        """
+        """Formats the token as an `Authorization` header value."""
         return String("XBL3.0 x=", self.user_hash, ";", self.token)
 
 
 def parse_xas_token(raw: StringSpan) raises -> XASToken:
-    """Decodes a token object (`IssueInstant`, `NotAfter`, `Token`, claims).
-
-    Args:
-        raw: The token JSON object.
-
-    Returns:
-        The token.
-
-    Raises:
-        Error: If the JSON or a timestamp is malformed.
-    """
+    """Decodes a token object (`IssueInstant`, `NotAfter`, `Token`, claims)."""
     var obj = parse_object(raw.as_bytes())
     var t = XASToken()
     if case .Some(v) = lookup(obj, "IssueInstant"):
@@ -211,17 +169,7 @@ def parse_xas_token(raw: StringSpan) raises -> XASToken:
 
 
 def uuid_v4(random: Span[UInt8, _]) raises -> String:
-    """Formats 16 random bytes as a version 4 UUID (`uuid.NewString`).
-
-    Args:
-        random: 16 random bytes.
-
-    Returns:
-        The lowercase `8-4-4-4-12` form with version and variant bits set.
-
-    Raises:
-        Error: If `random` is not 16 bytes.
-    """
+    """Formats 16 random bytes as a version 4 UUID (`uuid.NewString`)."""
     if len(random) != 16:
         raise Error("uuid: need 16 random bytes")
     var b = List[UInt8](random)
@@ -238,19 +186,7 @@ def uuid_v4(random: Span[UInt8, _]) raises -> String:
 
 
 def device_id(device_type: StringSpan, uuid: String) raises -> String:
-    """Formats the XASD device `Id` for a device type (Go `deviceID`).
-
-    Args:
-        device_type: The XASD device type.
-        uuid: A fresh UUID.
-
-    Returns:
-        `{uuid}` for Android and Nintendo, upper case for iOS, braces and
-        upper case for Win32 and Xbox, plain for PlayStation.
-
-    Raises:
-        Error: For an unknown device type.
-    """
+    """Formats the XASD device `Id` for a device type (Go `deviceID`)."""
     if device_type == "Android" or device_type == "Nintendo":
         return String("{", uuid, "}")
     if device_type == "iOS":
@@ -276,20 +212,7 @@ def device_token_request(
     uuid: String,
     timestamp_ns: Int,
 ) raises -> Request:
-    """Builds the XASD device authentication request (`xasd.Authenticate`).
-
-    Args:
-        config: The title configuration.
-        proof_key: The 32-byte P-256 proof key.
-        uuid: A fresh UUID for the device `Id`.
-        timestamp_ns: Server-adjusted Unix time in nanoseconds.
-
-    Returns:
-        The signed request.
-
-    Raises:
-        Error: For an unknown device type or an invalid key.
-    """
+    """Builds the XASD device authentication request (`xasd.Authenticate`)."""
     var id = device_id(config.device_type, uuid)
     var serial = String()
     if config.device_type == "Win32" or config.device_type == "Xbox":
@@ -323,19 +246,7 @@ def device_token_request(
 def parse_token_response(
     request: Request, response: Response, now_ns: Int
 ) raises -> XASToken:
-    """Decodes an XASD or XSTS response and checks the token.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The token.
-
-    Raises:
-        Error: On a non-200 status or an invalid token.
-    """
+    """Decodes an XASD or XSTS response and checks the token."""
     if response.status != 200:
         raise status_error(request, response)
     var token = parse_xas_token(String(from_utf8=Span(response.body)))
@@ -352,22 +263,7 @@ def sisu_authorize_request(
     policy: SignaturePolicy,
     timestamp_ns: Int,
 ) raises -> Request:
-    """Builds the SISU authorization request (`Session.authorize`).
-
-    Args:
-        config: The title configuration.
-        access_token: The MSA access token (sent as `t=<token>`).
-        device_token: The XASD token.
-        proof_key: The 32-byte P-256 proof key.
-        policy: The policy NSAL default data gives `sisu.xboxlive.com`.
-        timestamp_ns: Server-adjusted Unix time in nanoseconds.
-
-    Returns:
-        The signed request. Like Go it has no `Content-Type` header.
-
-    Raises:
-        Error: If signing fails.
-    """
+    """Builds the SISU authorization request (`Session.authorize`)."""
     var body = String(
         '{"AccessToken":',
         go_quote(String("t=", access_token)),
@@ -405,14 +301,7 @@ struct SisuAuthorization(Copyable, Movable):
 
 
 def sisu_error_message(code: UInt32) -> String:
-    """Describes a SISU `X-Err` code (`sisu.ErrorCode.String`), shortened.
-
-    Args:
-        code: The numeric code.
-
-    Returns:
-        A human-readable reason.
-    """
+    """Describes a SISU `X-Err` code (`sisu.ErrorCode.String`), shortened."""
     if code == 0x8015DC03:
         return "account suspended from Xbox Live"
     if code == 0x8015DC05:
@@ -441,20 +330,7 @@ def sisu_error_message(code: UInt32) -> String:
 def parse_sisu_response(
     request: Request, response: Response, now_ns: Int
 ) raises -> SisuAuthorization:
-    """Decodes a SISU authorization response.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The title, user and authorization tokens.
-
-    Raises:
-        Error: On a non-200 status (with the `X-Err` reason) or when any of
-            the three tokens is invalid.
-    """
+    """Decodes a SISU authorization response."""
     if response.status != 200:
         var reason = String()
         if case .Some(code) = response.header("x-err"):
@@ -487,23 +363,7 @@ def xsts_request(
     user_token: String,
     timestamp_ns: Int,
 ) raises -> Request:
-    """Builds an XSTS authorization request (`xsts.Authorize`).
-
-    Args:
-        config: The title configuration.
-        proof_key: The 32-byte P-256 proof key.
-        relying_party: The relying party to authorize for.
-        device_token: The XASD token.
-        title_token: The XAST token.
-        user_token: The XASU token.
-        timestamp_ns: Server-adjusted Unix time in nanoseconds.
-
-    Returns:
-        The signed request.
-
-    Raises:
-        Error: If signing fails.
-    """
+    """Builds an XSTS authorization request (`xsts.Authorize`)."""
     var body = String(
         '{"RelyingParty":',
         go_quote(relying_party),

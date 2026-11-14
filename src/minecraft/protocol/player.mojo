@@ -148,17 +148,7 @@ struct PlayerListEntry(Marshaler):
         self.player_colour = RGBA()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry; a removal carries only the UUID.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry; a removal carries only the UUID."""
         _player_list_action(io, self.action_type)
         uuid(io, self.uuid)
         if self.action_type == PLAYER_LIST_ACTION_REMOVE:
@@ -207,18 +197,7 @@ struct PlayerMovementSettings(Copyable, Defaultable):
 def player_move_settings[
     I: IO
 ](mut io: I, mut x: PlayerMovementSettings) raises:
-    """Marshals movement settings (gophertunnel `PlayerMoveSettings`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The settings.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals movement settings (gophertunnel `PlayerMoveSettings`)."""
     io.varint32(x.rewind_history_size)
     io.bool(x.server_authoritative_block_breaking)
 
@@ -240,17 +219,7 @@ struct PlayerBlockAction(Marshaler):
         self.face = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varint32(self.action)
         block_pos(io, self.block_pos)
         io.varint32(self.face)
@@ -270,17 +239,7 @@ struct PlayerArmourDamageEntry(Marshaler):
         self.damage = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.varint32(self.armour_slot)
         io.int16(self.damage)
 
@@ -299,16 +258,6 @@ struct TeleportData(Marshaler):
         self.teleport_source_entity_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the data."""
         io.int32(self.teleport_cause)
         io.int32(self.teleport_source_entity_type)

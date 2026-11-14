@@ -11,42 +11,19 @@ from .transport import Request, Response, status_error
 
 
 def playfab_url(title_id: String) -> String:
-    """Returns a title's PlayFab API base URL (`title.Title.URL`).
-
-    Args:
-        title_id: The PlayFab title ID, e.g. `20CA2`.
-
-    Returns:
-        `https://<lowercase id>.playfabapi.com`.
-    """
+    """Returns a title's PlayFab API base URL (`title.Title.URL`)."""
     return String("https://", title_id.lower(), ".playfabapi.com")
 
 
 def login_with_xbox_url(title_id: String) -> String:
-    """Returns the `LoginWithXbox` URL, used to resolve its relying party.
-
-    Args:
-        title_id: The PlayFab title ID.
-
-    Returns:
-        `https://<id>.playfabapi.com/Client/LoginWithXbox`.
-    """
+    """Returns the `LoginWithXbox` URL, used to resolve its relying party."""
     return String(playfab_url(title_id), "/Client/LoginWithXbox")
 
 
 def login_with_xbox_request(
     title_id: String, xbox_token: String, create_account: Bool
 ) -> Request:
-    """Builds the `Client/LoginWithXbox` request.
-
-    Args:
-        title_id: The PlayFab title ID.
-        xbox_token: The XSTS token as `XBL3.0 x=<uhs>;<token>`.
-        create_account: Whether to create a PlayFab account if none exists.
-
-    Returns:
-        The request; the body is Go's `json.Encoder` output.
-    """
+    """Builds the `Client/LoginWithXbox` request."""
     var body = String('{"TitleId":', go_quote(title_id))
     if create_account:
         body += ',"CreateAccount":true'
@@ -76,19 +53,7 @@ struct LoginResult(Copyable, Movable):
 def parse_login_response(
     request: Request, response: Response
 ) raises -> LoginResult:
-    """Decodes a `LoginWithXbox` response.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The login result.
-
-    Raises:
-        Error: On a non-200 status (with PlayFab's error code and message)
-            or a result without entity token, session ticket or player ID.
-    """
+    """Decodes a `LoginWithXbox` response."""
     if response.status != 200:
         var detail = Optional[String](None)
         try:

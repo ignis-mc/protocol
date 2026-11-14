@@ -49,12 +49,7 @@ struct Pack(Copyable, Sized, Writable):
         var manifest: Manifest,
         var content: List[UInt8],
     ):
-        """Wraps an archive and its already parsed manifest.
-
-        Args:
-            manifest: The manifest.
-            content: The whole zip archive.
-        """
+        """Wraps an archive and its already parsed manifest."""
         self._checksum = sha256(Span(content))
         self.manifest = manifest^
         self._download_url = String()
@@ -67,16 +62,6 @@ struct Pack(Copyable, Sized, Writable):
 
         The manifest is the first entry named `manifest.json` at any depth;
         the pack is a world template if the archive holds a `level.dat`.
-
-        Args:
-            data: The zip archive.
-
-        Returns:
-            The pack.
-
-        Raises:
-            Error: If the data is not a zip archive, has no
-                `manifest.json`, or the manifest is invalid.
         """
         var entries = zip_entries(Span(data))
         var found = _find(entries, "manifest.json")
@@ -98,17 +83,7 @@ struct Pack(Copyable, Sized, Writable):
 
     @staticmethod
     def read_path(path: String) raises -> Pack:
-        """Reads a pack from a zip archive on disk (Go `ReadPath`).
-
-        Args:
-            path: The archive path (`.zip` or `.mcpack`).
-
-        Returns:
-            The pack.
-
-        Raises:
-            Error: If the file cannot be read or is not a valid pack.
-        """
+        """Reads a pack from a zip archive on disk (Go `ReadPath`)."""
         var data: List[UInt8]
         with open(path, "r") as f:
             data = f.read_bytes()
@@ -118,20 +93,7 @@ struct Pack(Copyable, Sized, Writable):
     def read_url(
         url: String, client: HttpClient, timeout_ms: Int = 30000
     ) raises -> Pack:
-        """Downloads a pack and parses it (Go `ReadURL`).
-
-        Args:
-            url: An https URL of the archive.
-            client: The HTTPS client.
-            timeout_ms: The longest time for the download.
-
-        Returns:
-            The pack, with `download_url()` set to `url`.
-
-        Raises:
-            Error: If the request fails, the status is not 200, or the body
-                is not a valid pack.
-        """
+        """Downloads a pack and parses it (Go `ReadURL`)."""
         var resp = client.get(url, timeout_ms=timeout_ms)
         if resp.status != 200:
             raise Error(
@@ -144,51 +106,27 @@ struct Pack(Copyable, Sized, Writable):
         return pack^
 
     def name(self) -> String:
-        """Returns the name of the pack.
-
-        Returns:
-            The manifest header's name.
-        """
+        """Returns the name of the pack."""
         return self.manifest.header.name
 
     def uuid(self) -> UUID:
-        """Returns the UUID of the pack.
-
-        Returns:
-            The manifest header's UUID.
-        """
+        """Returns the UUID of the pack."""
         return self.manifest.header.uuid
 
     def description(self) -> String:
-        """Returns the description of the pack.
-
-        Returns:
-            The manifest header's description.
-        """
+        """Returns the description of the pack."""
         return self.manifest.header.description
 
     def version(self) -> String:
-        """Returns the version as `major.minor.patch`.
-
-        Returns:
-            The version text.
-        """
+        """Returns the version as `major.minor.patch`."""
         return String(self.manifest.header.version)
 
     def modules(self) -> List[Module]:
-        """Returns the modules the pack consists of.
-
-        Returns:
-            A copy of the manifest's modules.
-        """
+        """Returns the modules the pack consists of."""
         return self.manifest.modules.copy()
 
     def dependencies(self) -> List[Dependency]:
-        """Returns the packs this pack depends on.
-
-        Returns:
-            A copy of the manifest's dependencies.
-        """
+        """Returns the packs this pack depends on."""
         return self.manifest.dependencies.copy()
 
     def _has_module(self, a: StringSpan, b: StringSpan = "") -> Bool:
@@ -198,109 +136,51 @@ struct Pack(Copyable, Sized, Writable):
         return False
 
     def has_scripts(self) -> Bool:
-        """Checks for a `client_data` module.
-
-        Returns:
-            `True` if the pack has client scripts.
-        """
+        """Checks for a `client_data` module."""
         return self._has_module("client_data")
 
     def has_behaviours(self) -> Bool:
-        """Checks for a `data` or `client_data` module.
-
-        Returns:
-            `True` if the pack has behaviours or scripts.
-        """
+        """Checks for a `data` or `client_data` module."""
         return self._has_module("client_data", "data")
 
     def has_textures(self) -> Bool:
-        """Checks for a `resources` module.
-
-        Returns:
-            `True` if the pack has textures.
-        """
+        """Checks for a `resources` module."""
         return self._has_module("resources")
 
     def has_world_template(self) -> Bool:
-        """Checks whether the archive held a `level.dat`.
-
-        Returns:
-            `True` for world templates.
-        """
+        """Checks whether the archive held a `level.dat`."""
         return self.manifest.world_template
 
     def download_url(self) -> String:
-        """Returns the URL the pack was downloaded from, if any.
-
-        Returns:
-            The URL, or an empty string for packs sent over the connection.
-        """
+        """Returns the URL the pack was downloaded from, if any."""
         return self._download_url
 
     def checksum(self) -> Array[UInt8, 32]:
-        """Returns the SHA-256 of the whole archive.
-
-        Returns:
-            The checksum.
-        """
+        """Returns the SHA-256 of the whole archive."""
         return self._checksum.copy()
 
     def __len__(self) -> Int:
-        """Returns the size of the archive (Go `Len`).
-
-        Returns:
-            The archive length in bytes.
-        """
+        """Returns the size of the archive (Go `Len`)."""
         return len(self._content)
 
     def data_chunk_count(self, length: Int) -> Int:
-        """Counts the chunks the archive splits into.
-
-        Args:
-            length: The chunk size; must be positive.
-
-        Returns:
-            The number of chunks, the last possibly short.
-        """
+        """Counts the chunks the archive splits into."""
         return (len(self._content) + length - 1) // length
 
     def encrypted(self) -> Bool:
-        """Checks whether the pack came with a content key.
-
-        Returns:
-            `True` if the content key is set.
-        """
+        """Checks whether the pack came with a content key."""
         return self._content_key.byte_length() > 0
 
     def content_key(self) -> String:
-        """Returns the key the pack's files are encrypted with.
-
-        Returns:
-            The content key, empty for unencrypted packs.
-        """
+        """Returns the key the pack's files are encrypted with."""
         return self._content_key
 
     def content(self) -> Span[UInt8, origin_of(self._content)]:
-        """Returns the raw zip archive.
-
-        Returns:
-            A view of the archive bytes.
-        """
+        """Returns the raw zip archive."""
         return Span(self._content)
 
     def read_file(self, file_path: StringSpan) raises -> List[UInt8]:
-        """Reads one file from the archive, matching the name ignoring case.
-
-        Args:
-            file_path: The path inside the archive.
-
-        Returns:
-            The file's content.
-
-        Raises:
-            Error: If the file is missing, larger than `MAX_MANIFEST_SIZE`,
-                or corrupt.
-        """
+        """Reads one file from the archive, matching the name ignoring case."""
         var entries = zip_entries(Span(self._content))
         var want = String(file_path).lower()
         for e in entries:
@@ -309,35 +189,17 @@ struct Pack(Copyable, Sized, Writable):
         raise Error(t"file {file_path} not found in the resource pack")
 
     def with_content_key(var self, var key: String) -> Pack:
-        """Returns the pack with its content key set.
-
-        Args:
-            key: The content key.
-
-        Returns:
-            The same pack with the key.
-        """
+        """Returns the pack with its content key set."""
         self._content_key = key^
         return self^
 
     def with_download_url(var self, var url: String) -> Pack:
-        """Returns the pack with its download URL set.
-
-        Args:
-            url: The URL the archive came from.
-
-        Returns:
-            The same pack with the URL.
-        """
+        """Returns the pack with its download URL set."""
         self._download_url = url^
         return self^
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes `name vversion (uuid): description`, like Go's `String`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes `name vversion (uuid): description`, like Go's `String`."""
         writer.write(
             self.manifest.header.name,
             " v",

@@ -24,30 +24,12 @@ comptime _TABLE_MASK = _MAX_TABLE_SIZE - 1
 
 
 def snappy_max_encoded_len(src_len: Int) -> Int:
-    """Returns the largest encoding of `src_len` bytes.
-
-    Args:
-        src_len: The uncompressed length.
-
-    Returns:
-        The upper bound from golang/snappy's `MaxEncodedLen`.
-    """
+    """Returns the largest encoding of `src_len` bytes."""
     return 32 + src_len + src_len // 6
 
 
 def snappy_decoded_len(data: Span[UInt8, _]) raises -> Int:
-    """Reads the decoded length from the start of a Snappy block.
-
-    Args:
-        data: The encoded block.
-
-    Returns:
-        The decoded length.
-
-    Raises:
-        Error: If the varint header is missing, malformed or above
-            0xFFFFFFFF.
-    """
+    """Reads the decoded length from the start of a Snappy block."""
     return _decoded_len(data)[0]
 
 
@@ -74,17 +56,6 @@ def snappy_decode(data: Span[UInt8, _], max_size: Int) raises -> List[UInt8]:
 
     The length header is checked against `max_size` before any output is
     allocated.
-
-    Args:
-        data: The encoded block.
-        max_size: The largest decoded size accepted, in bytes.
-
-    Returns:
-        The decoded bytes.
-
-    Raises:
-        Error: If the block is corrupt or decodes to more than `max_size`
-            bytes.
     """
     var header = _decoded_len(data)
     var dlen = header[0]
@@ -172,12 +143,6 @@ def snappy_encode(data: Span[UInt8, _]) -> List[UInt8]:
     """Encodes `data` as a Snappy block.
 
     The output is byte-identical to golang/snappy's `Encode`.
-
-    Args:
-        data: The bytes to encode.
-
-    Returns:
-        The encoded block.
     """
     var out = List[UInt8](capacity=snappy_max_encoded_len(len(data)))
     var v = UInt64(len(data))

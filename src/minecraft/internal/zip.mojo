@@ -74,19 +74,11 @@ struct ZipEntry(Copyable, Writable):
         self.local_offset = 0
 
     def is_dir(self) -> Bool:
-        """Reports whether the entry is a directory (its name ends in `/`).
-
-        Returns:
-            `True` for directories.
-        """
+        """Reports whether the entry is a directory (its name ends in `/`)."""
         return self.name.endswith("/")
 
     def base(self) -> String:
-        """Returns the last path element, like Go's `filepath.Base`.
-
-        Returns:
-            The name after the last `/`, ignoring a trailing one.
-        """
+        """Returns the last path element, like Go's `filepath.Base`."""
         var stop = self.name.byte_length()
         while stop > 1 and self.name.as_bytes()[stop - 1] == 0x2F:
             stop -= 1
@@ -97,11 +89,7 @@ struct ZipEntry(Copyable, Writable):
         return String(name[byte = slash + 1 :])
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the name and sizes.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the name and sizes."""
         writer.write(
             self.name,
             " (",
@@ -113,18 +101,7 @@ struct ZipEntry(Copyable, Writable):
 
 
 def zip_entries(data: Span[UInt8, _]) raises -> List[ZipEntry]:
-    """Lists the entries of an archive from its central directory.
-
-    Args:
-        data: The whole archive.
-
-    Returns:
-        The entries in central directory order.
-
-    Raises:
-        Error: If the archive is malformed, ZIP64, split over disks, or
-            has an entry that is encrypted.
-    """
+    """Lists the entries of an archive from its central directory."""
     if len(data) < _END_LEN:
         raise Error("zip: not a valid zip file")
     var end = -1
@@ -181,20 +158,7 @@ def zip_entries(data: Span[UInt8, _]) raises -> List[ZipEntry]:
 def zip_read(
     data: Span[UInt8, _], entry: ZipEntry, max_size: Int
 ) raises -> List[UInt8]:
-    """Reads and decompresses one entry, checking its size and CRC-32.
-
-    Args:
-        data: The whole archive.
-        entry: An entry from `zip_entries(data)`.
-        max_size: The largest content accepted, in bytes.
-
-    Returns:
-        The entry's content.
-
-    Raises:
-        Error: If the entry is larger than `max_size`, uses an unsupported
-            method, is truncated, or fails the size or CRC-32 check.
-    """
+    """Reads and decompresses one entry, checking its size and CRC-32."""
     if entry.uncompressed_size > max_size:
         raise Error(t"zip: {entry.name} is larger than {max_size} bytes")
     var p = entry.local_offset
@@ -240,18 +204,7 @@ struct ZipWriter(Movable):
         content: Span[UInt8, _],
         method: UInt16 = METHOD_DEFLATE,
     ) raises:
-        """Appends an entry.
-
-        Args:
-            name: The path inside the archive; end it in `/` for a
-                directory.
-            content: The file content.
-            method: `METHOD_STORE` or `METHOD_DEFLATE`.
-
-        Raises:
-            Error: If the method is unsupported or the archive would need
-                ZIP64.
-        """
+        """Appends an entry."""
         var data: List[UInt8]
         if method == METHOD_STORE:
             data = List[UInt8](content)
@@ -303,11 +256,7 @@ struct ZipWriter(Movable):
         self._count += 1
 
     def finish(deinit self) -> List[UInt8]:
-        """Writes the central directory and returns the archive.
-
-        Returns:
-            The complete archive.
-        """
+        """Writes the central directory and returns the archive."""
         var out = self._out^
         var offset = len(out)
         put_bytes(out, Span(self._central))

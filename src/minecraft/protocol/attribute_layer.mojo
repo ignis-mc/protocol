@@ -112,17 +112,7 @@ struct AttributeData(Marshaler):
         self.colour_operation = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the type and the fields of that type.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the type is unknown.
-        """
+        """Reads or writes the type and the fields of that type."""
         io.varuint32(self.type)
         if self.type == ATTRIBUTE_DATA_TYPE_BOOL:
             io.bool(self.bool_value)
@@ -153,17 +143,7 @@ struct NoiseAlignment(Marshaler):
         self.value = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the alignment.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the alignment."""
         io.uint8(self.type)
         io.varuint32(self.value)
 
@@ -188,17 +168,7 @@ struct AttributeTransitionSettings(Marshaler):
         self.clock_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the settings.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the settings."""
         io.varuint32(self.total_transition_ticks)
         io.varuint32(self.current_transition_ticks)
         io.varint32(self.ease_type)
@@ -234,17 +204,7 @@ struct AttributeNoiseTransitionSettings(Marshaler):
         self.noise_alignment = NoiseAlignment()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the settings.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the settings."""
         io.varuint32(self.total_transition_ticks)
         io.varuint32(self.current_transition_ticks)
         io.varint32(self.ease_type)
@@ -283,17 +243,7 @@ struct EnvironmentAttributeData(Marshaler):
         self.noise_transition_settings = AttributeNoiseTransitionSettings()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the name, the payload type and its fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the payload type is unknown.
-        """
+        """Reads or writes the name, the payload type and its fields."""
         io.string(self.attribute_name)
         io.varuint32(self.payload_type)
         if self.payload_type == ENVIRONMENT_ATTRIBUTE_PAYLOAD_TYPE_CONSTANT:
@@ -335,17 +285,7 @@ struct AttributeLayerSettings(Marshaler):
         self.transitions_paused = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the settings.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the settings."""
         io.int32(self.priority)
         io.float32(self.float_weight)
         io.bool(self.enabled)
@@ -372,17 +312,7 @@ struct AttributeLayerData(Marshaler):
         self.environment_attributes = List[EnvironmentAttributeData]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the layer.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the layer."""
         io.string(self.name)
         io.varint32(self.dimension_id)
         self.settings.marshal(io)

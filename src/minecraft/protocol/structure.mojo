@@ -82,17 +82,7 @@ struct StructureSettings(Marshaler):
         self.pivot = Vec3()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the settings.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the settings."""
         io.string(self.palette_name)
         io.bool(self.ignore_entities)
         io.bool(self.ignore_blocks)

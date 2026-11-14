@@ -21,16 +21,6 @@ struct TakeItemActor(Packet):
         self.taker_entity_runtime_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         actor_runtime_id(io, self.item_entity_runtime_id)
         actor_runtime_id(io, self.taker_entity_runtime_id)

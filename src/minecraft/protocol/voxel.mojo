@@ -24,17 +24,7 @@ struct VoxelCells(Marshaler):
         self.storage = List[UInt8]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the grid.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the grid."""
         io.uint8(self.x_size)
         io.uint8(self.y_size)
         io.uint8(self.z_size)
@@ -55,17 +45,7 @@ struct VoxelShapeNameEntry(Marshaler):
         self.id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.name)
         io.uint16(self.id)
 
@@ -90,17 +70,7 @@ struct VoxelShape(Marshaler):
         self.z_coordinates = List[Float32]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the shape.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the shape."""
         self.cells.marshal(io)
         func_slice[I.float32](io, self.x_coordinates)
         func_slice[I.float32](io, self.y_coordinates)

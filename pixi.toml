@@ -17,7 +17,7 @@ mojo = ">=1.2.0,<1.3.0"
 test = { cmd = "bash scripts/run_tests.sh", description = "Run every unit test file" }
 format = { cmd = "mojo format src test examples", description = "Format all Mojo sources" }
 format-check = { cmd = "bash scripts/check_format.sh", description = "Fail if formatting would change anything" }
-lint-docs = { cmd = "bash scripts/lint_docs.sh", description = "Fail on missing or malformed docstrings" }
+lint-docs = { cmd = "bash scripts/lint_docs.sh", description = "Check that the API docs build" }
 build = { cmd = "bash scripts/build_packages.sh", description = "Precompile the packages" }
 check = { depends-on = ["format-check", "lint-docs", "test"], description = "Everything CI runs except interop" }
 

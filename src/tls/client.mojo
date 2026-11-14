@@ -42,11 +42,7 @@ def _connect_any(
 
 
 struct TlsStream[V: CertificateVerifier](Movable):
-    """A client connection whose server check is `V`.
-
-    Parameters:
-        V: The certificate verifier.
-    """
+    """A client connection whose server check is `V`."""
 
     var _tcp: TcpStream
     var _engine: ClientEngine[Self.V]
@@ -55,12 +51,7 @@ struct TlsStream[V: CertificateVerifier](Movable):
     def __init__(
         out self, var tcp: TcpStream, var engine: ClientEngine[Self.V]
     ):
-        """Wraps a connected socket and a started engine.
-
-        Args:
-            tcp: The TCP connection.
-            engine: The engine, after `start()`.
-        """
+        """Wraps a connected socket and a started engine."""
         self._tcp = tcp^
         self._engine = engine^
         self._buf = List[UInt8](length=_READ_CHUNK, fill=0)
@@ -69,21 +60,7 @@ struct TlsStream[V: CertificateVerifier](Movable):
     def open(
         host: String, port: Int, var verifier: Self.V, timeout_ms: Int
     ) raises -> Self:
-        """Resolves `host`, connects and completes the handshake.
-
-        Args:
-            host: The server name, used for DNS, SNI and verification.
-            port: The TCP port.
-            verifier: Checks the server's certificate.
-            timeout_ms: The longest time for the whole connection setup.
-
-        Returns:
-            The connected stream.
-
-        Raises:
-            Error: If resolution, connection or the handshake fails or
-                takes longer than `timeout_ms`.
-        """
+        """Resolves `host`, connects and completes the handshake."""
         var deadline = monotonic_ms() + timeout_ms
         var tcp = _connect_any(
             resolve_ipv4_all(host, timeout_ms), UInt16(port), deadline
@@ -131,31 +108,12 @@ struct TlsStream[V: CertificateVerifier](Movable):
                 raise Error("tls: connection closed during handshake")
 
     def write(mut self, data: Span[UInt8, _]) raises:
-        """Sends application data.
-
-        Args:
-            data: The bytes to send.
-
-        Raises:
-            Error: If the connection failed or is closed for writing.
-        """
+        """Sends application data."""
         self._engine.write(data)
         self._flush(30000)
 
     def read(mut self, timeout_ms: Int) raises -> List[UInt8]:
-        """Waits for application data.
-
-        Args:
-            timeout_ms: The longest time to wait.
-
-        Returns:
-            The next decrypted bytes, or an empty list once the server has
-            sent close_notify.
-
-        Raises:
-            Error: On timeout, on a protocol error, or if the TCP stream
-                ends without close_notify (a possible truncation).
-        """
+        """Waits for application data."""
         var deadline = monotonic_ms() + timeout_ms
         while True:
             var data = self._engine.take_application_data()
@@ -176,27 +134,15 @@ struct TlsStream[V: CertificateVerifier](Movable):
             pass
 
     def cipher_suite(self) -> Optional[CipherSuite]:
-        """Gets the negotiated cipher suite.
-
-        Returns:
-            The suite.
-        """
+        """Gets the negotiated cipher suite."""
         return self._engine.cipher_suite()
 
     def group(self) -> UInt16:
-        """Gets the negotiated key exchange group.
-
-        Returns:
-            The named group code.
-        """
+        """Gets the negotiated key exchange group."""
         return self._engine.group()
 
     def alpn(self) -> String:
-        """Gets the negotiated application protocol.
-
-        Returns:
-            "http/1.1" or empty.
-        """
+        """Gets the negotiated application protocol."""
         return self._engine.alpn()
 
 
@@ -206,59 +152,25 @@ struct TlsConn(Movable):
     var _inner: TlsStream[PkiVerifier]
 
     def __init__(out self, var inner: TlsStream[PkiVerifier]):
-        """Wraps a connected stream.
-
-        Args:
-            inner: The stream.
-        """
+        """Wraps a connected stream."""
         self._inner = inner^
 
     @staticmethod
     def connect(
         host: String, port: Int, roots: RootStore, timeout_ms: Int
     ) raises -> TlsConn:
-        """Connects and authenticates `host` against `roots`.
-
-        Args:
-            host: The server name, used for DNS, SNI and verification.
-            port: The TCP port, usually 443.
-            roots: The trusted root certificates.
-            timeout_ms: The longest time for the whole connection setup.
-
-        Returns:
-            The connection.
-
-        Raises:
-            Error: If the connection, handshake or verification fails.
-        """
+        """Connects and authenticates `host` against `roots`."""
         var verifier = PkiVerifier(roots.copy(), unix_time_s())
         return TlsConn(
             TlsStream[PkiVerifier].open(host, port, verifier^, timeout_ms)
         )
 
     def write(mut self, data: Span[UInt8, _]) raises:
-        """Sends application data.
-
-        Args:
-            data: The bytes to send.
-
-        Raises:
-            Error: If the connection failed or is closed for writing.
-        """
+        """Sends application data."""
         self._inner.write(data)
 
     def read(mut self, timeout_ms: Int) raises -> List[UInt8]:
-        """Waits for application data.
-
-        Args:
-            timeout_ms: The longest time to wait.
-
-        Returns:
-            The next bytes, or an empty list after close_notify.
-
-        Raises:
-            Error: On timeout, protocol error or truncation.
-        """
+        """Waits for application data."""
         return self._inner.read(timeout_ms)
 
     def close(mut self):
@@ -266,9 +178,5 @@ struct TlsConn(Movable):
         self._inner.close()
 
     def cipher_suite(self) -> Optional[CipherSuite]:
-        """Gets the negotiated cipher suite.
-
-        Returns:
-            The suite.
-        """
+        """Gets the negotiated cipher suite."""
         return self._inner.cipher_suite()

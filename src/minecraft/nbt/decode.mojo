@@ -54,16 +54,6 @@ def decode(data: Span[UInt8, _], encoding: Int) raises -> Tree:
 
     Unlike Go, trailing bytes after the tag are an error; use `decode_from`
     to read a tag from a longer buffer.
-
-    Args:
-        data: The encoded tag.
-        encoding: One of the encoding constants.
-
-    Returns:
-        The decoded tree.
-
-    Raises:
-        If the input is malformed, exceeds a limit or has trailing bytes.
     """
     var pos = 0
     var tree = decode_from(data, pos, encoding)
@@ -76,17 +66,6 @@ def decode_from(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Tree:
     """Decodes one named tag starting at `pos` (gophertunnel `Decoder.Decode`).
-
-    Args:
-        data: The input.
-        pos: The offset of the tag; advanced past it on success.
-        encoding: One of the encoding constants.
-
-    Returns:
-        The decoded tree.
-
-    Raises:
-        If the input is malformed or exceeds a limit.
     """
     check_encoding(encoding)
     var start = pos
@@ -106,17 +85,7 @@ def decode_from(
 
 
 def from_nbt(x: NBT) raises -> Tree:
-    """Decodes a raw `NBT` value from a packet into a tree.
-
-    Args:
-        x: The value; an empty value gives an empty tree.
-
-    Returns:
-        The decoded tree.
-
-    Raises:
-        If the bytes are malformed.
-    """
+    """Decodes a raw `NBT` value from a packet into a tree."""
     if len(x.raw) == 0:
         return Tree(TAG_END)
     return decode(Span(x.raw), x.encoding)

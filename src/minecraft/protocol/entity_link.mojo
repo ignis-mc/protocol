@@ -45,17 +45,7 @@ struct EntityLink(Marshaler):
         self.vehicle_angular_velocity = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the link.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the link."""
         actor_unique_id(io, self.ridden_entity_unique_id)
         actor_unique_id(io, self.rider_entity_unique_id)
         io.uint8(self.type)
@@ -87,17 +77,7 @@ struct PassengerOfBlockData(Marshaler):
         self.emote_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the data."""
         block_pos(io, self.block_position)
         vec3(io, self.offset)
         io.float32(self.rotation)

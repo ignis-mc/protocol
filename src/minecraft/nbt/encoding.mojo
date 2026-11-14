@@ -49,14 +49,7 @@ comptime MAX_ELEMENTS = 1 << 24
 
 
 def tag_name(tag: UInt8) -> String:
-    """Names a tag type the way gophertunnel's `tagType.String` does.
-
-    Args:
-        tag: One of the `TAG_*` constants.
-
-    Returns:
-        `TAG_Byte`, `TAG_List`, ...; `TAG_Unknown(n)` for invalid types.
-    """
+    """Names a tag type the way gophertunnel's `tagType.String` does."""
     if tag == TAG_END:
         return "TAG_End"
     if tag == TAG_BYTE:
@@ -87,26 +80,12 @@ def tag_name(tag: UInt8) -> String:
 
 
 def is_valid_tag(tag: UInt8) -> Bool:
-    """Checks whether a tag type is known (gophertunnel `tagType.IsValid`).
-
-    Args:
-        tag: The tag type byte.
-
-    Returns:
-        `True` for `TAG_END` through `TAG_LONG_ARRAY`.
-    """
+    """Checks whether a tag type is known (gophertunnel `tagType.IsValid`)."""
     return tag <= TAG_LONG_ARRAY
 
 
 def check_encoding(encoding: Int) raises:
-    """Rejects values that are not one of the three encoding constants.
-
-    Args:
-        encoding: The encoding to check.
-
-    Raises:
-        If `encoding` is unknown.
-    """
+    """Rejects values that are not one of the three encoding constants."""
     if (
         encoding != NETWORK_LITTLE_ENDIAN
         and encoding != LITTLE_ENDIAN
@@ -127,19 +106,7 @@ def _overrun(op: StringSpan) -> Error:
 def read_byte(
     data: Span[UInt8, _], mut pos: Int, op: StringSpan
 ) raises -> UInt8:
-    """Reads one byte.
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced by one.
-        op: The operation named in the error.
-
-    Returns:
-        The byte.
-
-    Raises:
-        If the input is exhausted.
-    """
+    """Reads one byte."""
     if pos >= len(data):
         raise _overrun(op)
     var b = data[pos]
@@ -178,38 +145,14 @@ def _read_varuint(
 def read_int16(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Int16:
-    """Reads a `TAG_Short` payload (fixed width in every encoding).
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the value.
-        encoding: The encoding.
-
-    Returns:
-        The value.
-
-    Raises:
-        If the input is exhausted.
-    """
+    """Reads a `TAG_Short` payload (fixed width in every encoding)."""
     return Int16(UInt16(_read_fixed(data, pos, 2, encoding, "Int16")))
 
 
 def read_int32(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Int32:
-    """Reads a `TAG_Int` payload or a length.
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the value.
-        encoding: The encoding; network uses a zigzag varint32.
-
-    Returns:
-        The value.
-
-    Raises:
-        If the input is exhausted or the varint is too long.
-    """
+    """Reads a `TAG_Int` payload or a length."""
     if encoding == NETWORK_LITTLE_ENDIAN:
         var ux = UInt32(_read_varuint(data, pos, 5, "Int32"))
         var x = Int32(ux >> 1)
@@ -222,19 +165,7 @@ def read_int32(
 def read_int64(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Int64:
-    """Reads a `TAG_Long` payload.
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the value.
-        encoding: The encoding; network uses a zigzag varint64.
-
-    Returns:
-        The value.
-
-    Raises:
-        If the input is exhausted or the varint is too long.
-    """
+    """Reads a `TAG_Long` payload."""
     if encoding == NETWORK_LITTLE_ENDIAN:
         var ux = _read_varuint(data, pos, 10, "Int64")
         var x = Int64(ux >> 1)
@@ -247,19 +178,7 @@ def read_int64(
 def read_float32(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Float32:
-    """Reads a `TAG_Float` payload (fixed width in every encoding).
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the value.
-        encoding: The encoding.
-
-    Returns:
-        The value.
-
-    Raises:
-        If the input is exhausted.
-    """
+    """Reads a `TAG_Float` payload (fixed width in every encoding)."""
     var bits = UInt32(_read_fixed(data, pos, 4, encoding, "Float32"))
     return bitcast[DType.float32](bits)
 
@@ -267,19 +186,7 @@ def read_float32(
 def read_float64(
     data: Span[UInt8, _], mut pos: Int, encoding: Int
 ) raises -> Float64:
-    """Reads a `TAG_Double` payload (fixed width in every encoding).
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the value.
-        encoding: The encoding.
-
-    Returns:
-        The value.
-
-    Raises:
-        If the input is exhausted.
-    """
+    """Reads a `TAG_Double` payload (fixed width in every encoding)."""
     return bitcast[DType.float64](
         _read_fixed(data, pos, 8, encoding, "Float64")
     )
@@ -293,17 +200,6 @@ def read_string_length(
     Network strings use a varuint32 length, the others an unsigned 16-bit
     one. Lengths above `MAX_STRING_SIZE` are rejected in every encoding (Go
     accepts up to 65535 when reading big endian but never writes them).
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the prefix only.
-        encoding: The encoding.
-
-    Returns:
-        The string length in bytes.
-
-    Raises:
-        If the length is too large or the input is too short.
     """
     var n: Int
     if encoding == NETWORK_LITTLE_ENDIAN:
@@ -327,23 +223,7 @@ def read_length(
     min_width: Int,
     op: StringSpan,
 ) raises -> Int:
-    """Reads the element count of an array or list and bounds it.
-
-    Args:
-        data: The input.
-        pos: The read offset; advanced past the count.
-        encoding: The encoding.
-        min_width: The fewest bytes one element can take, used to reject
-            counts the remaining input cannot hold before allocating.
-        op: The operation named in the error.
-
-    Returns:
-        The element count.
-
-    Raises:
-        If the count is negative, above `MAX_ELEMENTS` or larger than the
-        remaining input allows.
-    """
+    """Reads the element count of an array or list and bounds it."""
     var n = Int(read_int32(data, pos, encoding))
     if n < 0:
         raise Error(t"nbt: negative length {n} during op '{op}'")
@@ -377,24 +257,12 @@ def _write_varuint(mut out: List[UInt8], v: UInt64):
 
 
 def write_int16(mut out: List[UInt8], x: Int16, encoding: Int):
-    """Appends a `TAG_Short` payload.
-
-    Args:
-        out: The destination.
-        x: The value.
-        encoding: The encoding.
-    """
+    """Appends a `TAG_Short` payload."""
     _write_fixed(out, UInt64(UInt16(x)), 2, encoding)
 
 
 def write_int32(mut out: List[UInt8], x: Int32, encoding: Int):
-    """Appends a `TAG_Int` payload or a length.
-
-    Args:
-        out: The destination.
-        x: The value.
-        encoding: The encoding; network uses a zigzag varint32.
-    """
+    """Appends a `TAG_Int` payload or a length."""
     if encoding == NETWORK_LITTLE_ENDIAN:
         var ux = UInt32(x) << 1
         if x < 0:
@@ -405,13 +273,7 @@ def write_int32(mut out: List[UInt8], x: Int32, encoding: Int):
 
 
 def write_int64(mut out: List[UInt8], x: Int64, encoding: Int):
-    """Appends a `TAG_Long` payload.
-
-    Args:
-        out: The destination.
-        x: The value.
-        encoding: The encoding; network uses a zigzag varint64.
-    """
+    """Appends a `TAG_Long` payload."""
     if encoding == NETWORK_LITTLE_ENDIAN:
         var ux = UInt64(x) << 1
         if x < 0:
@@ -422,38 +284,17 @@ def write_int64(mut out: List[UInt8], x: Int64, encoding: Int):
 
 
 def write_float32(mut out: List[UInt8], x: Float32, encoding: Int):
-    """Appends a `TAG_Float` payload.
-
-    Args:
-        out: The destination.
-        x: The value.
-        encoding: The encoding.
-    """
+    """Appends a `TAG_Float` payload."""
     _write_fixed(out, UInt64(bitcast[DType.uint32](x)), 4, encoding)
 
 
 def write_float64(mut out: List[UInt8], x: Float64, encoding: Int):
-    """Appends a `TAG_Double` payload.
-
-    Args:
-        out: The destination.
-        x: The value.
-        encoding: The encoding.
-    """
+    """Appends a `TAG_Double` payload."""
     _write_fixed(out, bitcast[DType.uint64](x), 8, encoding)
 
 
 def write_string(mut out: List[UInt8], s: Span[UInt8, _], encoding: Int) raises:
-    """Appends a length-prefixed string (a tag name or `TAG_String` payload).
-
-    Args:
-        out: The destination.
-        s: The UTF-8 bytes.
-        encoding: The encoding; network uses a varuint32 length.
-
-    Raises:
-        If `s` is longer than `MAX_STRING_SIZE`.
-    """
+    """Appends a length-prefixed string (a tag name or `TAG_String` payload)."""
     if len(s) > MAX_STRING_SIZE:
         raise Error(
             t"nbt: string is not valid: string length exceeds maximum length"

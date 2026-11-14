@@ -42,17 +42,7 @@ struct CommandOutput(Packet):
         self.data_set = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         command_origin_data(io, self.command_origin)
         var output_type = String(
             _command_output_type_to_string(self.output_type)

@@ -26,17 +26,7 @@ struct SubChunkRequest(Packet):
         self.position = SubChunkPos()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.varint32(self.dimension)
         slice(io, self.offsets)
         sub_chunk_pos(io, self.position)

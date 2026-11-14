@@ -66,17 +66,7 @@ struct ClientMovementPredictionSync(Packet):
         self.flying = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         bitset(io, self.actor_flags, Int(ENTITY_DATA_FLAG_COUNT))
         io.float32(self.bounding_box_scale)
         io.float32(self.bounding_box_width)

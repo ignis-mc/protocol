@@ -14,14 +14,7 @@ struct UUID(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         self.bytes = SIMD[DType.uint8, 16](0)
 
     def __init__(out self, bytes: Span[UInt8, _]) raises:
-        """Creates a UUID from 16 bytes.
-
-        Args:
-            bytes: The bytes, most significant first.
-
-        Raises:
-            Error: If `bytes` is not 16 bytes long.
-        """
+        """Creates a UUID from 16 bytes."""
         if len(bytes) != 16:
             raise Error("uuid: need exactly 16 bytes")
         self.bytes = SIMD[DType.uint8, 16](0)
@@ -30,17 +23,7 @@ struct UUID(Defaultable, Equatable, ImplicitlyCopyable, Writable):
 
     @staticmethod
     def parse(text: StringSpan) raises -> UUID:
-        """Parses the canonical `8-4-4-4-12` hex form.
-
-        Args:
-            text: The UUID text, upper or lower case.
-
-        Returns:
-            The parsed UUID.
-
-        Raises:
-            Error: If the text is not a canonical UUID.
-        """
+        """Parses the canonical `8-4-4-4-12` hex form."""
         var raw = text.as_bytes()
         if len(raw) != 36:
             raise Error("uuid: wrong length")
@@ -56,47 +39,22 @@ struct UUID(Defaultable, Equatable, ImplicitlyCopyable, Writable):
 
     @staticmethod
     def from_random(random: Span[UInt8, _]) raises -> UUID:
-        """Builds a version 4 UUID from 16 random bytes.
-
-        Args:
-            random: 16 bytes from a secure source.
-
-        Returns:
-            The UUID with its version and variant bits set.
-
-        Raises:
-            Error: If `random` is not 16 bytes long.
-        """
+        """Builds a version 4 UUID from 16 random bytes."""
         var id = UUID(random)
         id.bytes[6] = (id.bytes[6] & 0x0F) | 0x40
         id.bytes[8] = (id.bytes[8] & 0x3F) | 0x80
         return id
 
     def is_nil(self) -> Bool:
-        """Checks whether every byte is zero.
-
-        Returns:
-            `True` for the nil UUID.
-        """
+        """Checks whether every byte is zero."""
         return self.bytes.reduce_or() == 0
 
     def __eq__(self, other: Self) -> Bool:
-        """Compares two UUIDs.
-
-        Args:
-            other: The UUID to compare with.
-
-        Returns:
-            `True` if all 16 bytes are equal.
-        """
+        """Compares two UUIDs."""
         return self.bytes == other.bytes
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the canonical lowercase `8-4-4-4-12` form.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the canonical lowercase `8-4-4-4-12` form."""
         var digits = "0123456789abcdef".as_bytes()
         var out = List[UInt8](capacity=36)
         for i in range(16):

@@ -264,17 +264,7 @@ struct ItemStackRequest(Marshaler):
         self.filter_cause = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the request.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the request."""
         io.varint32(self.request_id)
         slice(io, self.actions)
         string_slice(io, self.filter_strings)
@@ -302,15 +292,6 @@ struct ItemStackResponse(Marshaler):
 
         The container info is optional on the wire and sent only when
         non-empty.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
         """
         io.uint8(self.status)
         io.varint32(self.request_id)
@@ -334,17 +315,7 @@ struct StackResponseContainerInfo(Marshaler):
         self.slot_info = List[StackResponseSlotInfo]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the container info.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the container info."""
         self.container.marshal(io)
         slice(io, self.slot_info)
 
@@ -378,18 +349,7 @@ struct StackResponseSlotInfo(Marshaler):
         self.durability_correction = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the slot info.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the durability correction does not fit an `int16`, or the
-            input is malformed.
-        """
+        """Reads or writes the slot info."""
         io.uint8(self.slot)
         io.uint8(self.hotbar_slot)
         io.uint8(self.count)
@@ -430,18 +390,7 @@ struct StackRequestSlotInfo(Copyable, Defaultable):
 
 
 def stack_req_slot_info[I: IO](mut io: I, mut x: StackRequestSlotInfo) raises:
-    """Marshals a slot (gophertunnel `StackReqSlotInfo`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a slot (gophertunnel `StackReqSlotInfo`)."""
     x.container.marshal(io)
     io.uint8(x.slot)
     io.int32(x.stack_network_id)
@@ -465,12 +414,6 @@ def stack_request_action_variant(id: UInt8) -> UInt32:
 
     The variant list leaves out the two container actions that are never
     sent, so IDs above them are two higher than their variant.
-
-    Args:
-        id: One of the `STACK_REQUEST_ACTION_*` constants.
-
-    Returns:
-        The variant index.
     """
     if id > STACK_REQUEST_ACTION_TAKE_OUT_CONTAINER:
         return UInt32(id) - 2
@@ -510,17 +453,7 @@ struct TakeStackRequestAction(StackRequestActionKind):
         self.destination = StackRequestSlotInfo()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         _transfer(io, self.count, self.source, self.destination)
 
 
@@ -543,17 +476,7 @@ struct PlaceStackRequestAction(StackRequestActionKind):
         self.destination = StackRequestSlotInfo()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         _transfer(io, self.count, self.source, self.destination)
 
 
@@ -573,17 +496,7 @@ struct SwapStackRequestAction(StackRequestActionKind):
         self.destination = StackRequestSlotInfo()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         stack_req_slot_info(io, self.source)
         stack_req_slot_info(io, self.destination)
 
@@ -607,17 +520,7 @@ struct DropStackRequestAction(StackRequestActionKind):
         self.randomly = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.uint8(self.count)
         stack_req_slot_info(io, self.source)
         io.bool(self.randomly)
@@ -639,17 +542,7 @@ struct DestroyStackRequestAction(StackRequestActionKind):
         self.source = StackRequestSlotInfo()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.uint8(self.count)
         stack_req_slot_info(io, self.source)
 
@@ -670,17 +563,7 @@ struct ConsumeStackRequestAction(StackRequestActionKind):
         self.source = StackRequestSlotInfo()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.uint8(self.count)
         stack_req_slot_info(io, self.source)
 
@@ -698,17 +581,7 @@ struct CreateStackRequestAction(StackRequestActionKind):
         self.results_slot = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.uint8(self.results_slot)
 
 
@@ -723,17 +596,7 @@ struct LabTableCombineStackRequestAction(StackRequestActionKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes nothing: the action has no fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            Never; `Marshaler` requires the signature.
-        """
+        """Reads or writes nothing: the action has no fields."""
         pass
 
 
@@ -753,17 +616,7 @@ struct BeaconPaymentStackRequestAction(StackRequestActionKind):
         self.secondary_effect = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varint32(self.primary_effect)
         io.varint32(self.secondary_effect)
 
@@ -787,17 +640,7 @@ struct MineBlockStackRequestAction(StackRequestActionKind):
         self.stack_network_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varint32(self.hotbar_slot)
         io.varint32(self.predicted_durability)
         io.int32(self.stack_network_id)
@@ -819,17 +662,7 @@ struct CraftRecipeStackRequestAction(StackRequestActionKind):
         self.number_of_crafts = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varuint32(self.recipe_network_id)
         io.uint8(self.number_of_crafts)
 
@@ -853,17 +686,7 @@ struct AutoCraftRecipeStackRequestAction(StackRequestActionKind):
         self.ingredients = List[ItemDescriptorCount]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varuint32(self.recipe_network_id)
         io.uint8(self.number_of_crafts)
         # FuncIOSlice(r, &a.Ingredients, StackRequestItemDescriptorCount)
@@ -894,17 +717,7 @@ struct CraftCreativeStackRequestAction(StackRequestActionKind):
         self.number_of_crafts = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varuint32(self.creative_item_network_id)
         io.uint8(self.number_of_crafts)
 
@@ -925,17 +738,7 @@ struct CraftRecipeOptionalStackRequestAction(StackRequestActionKind):
         self.filter_string_index = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varuint32(self.recipe_network_id)
         io.int32(self.filter_string_index)
 
@@ -959,17 +762,7 @@ struct CraftGrindstoneRecipeStackRequestAction(StackRequestActionKind):
         self.cost = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         var recipe_network_id = Int32(self.recipe_network_id)
         io.int32(recipe_network_id)
         self.recipe_network_id = UInt32(recipe_network_id)
@@ -993,17 +786,7 @@ struct CraftLoomRecipeStackRequestAction(StackRequestActionKind):
         self.times_crafted = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.string(self.pattern)
         io.uint8(self.times_crafted)
 
@@ -1024,17 +807,7 @@ struct CraftReservedStackRequestAction(StackRequestActionKind):
         self.number_of_crafts = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.string(self.reserved_id)
         io.uint8(self.number_of_crafts)
 
@@ -1050,17 +823,7 @@ struct CraftNonImplementedStackRequestAction(StackRequestActionKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes nothing: the action has no fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            Never; `Marshaler` requires the signature.
-        """
+        """Reads or writes nothing: the action has no fields."""
         pass
 
 
@@ -1080,17 +843,7 @@ struct CraftResultsDeprecatedStackRequestAction(StackRequestActionKind):
         self.times_crafted = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         slice(io, self.result_items)
         io.uint8(self.times_crafted)
 
@@ -1133,22 +886,11 @@ struct StackRequestAction(Marshaler):
 
     @implicit
     def __init__[T: StackRequestActionKind](out self, var value: T):
-        """Wraps a concrete action.
-
-        Parameters:
-            T: The action type.
-
-        Args:
-            value: The action.
-        """
+        """Wraps a concrete action."""
         self.value = Self.Kinds(value^)
 
     def type_id(self) -> UInt8:
-        """Gets the type ID of the held action.
-
-        Returns:
-            One of the `STACK_REQUEST_ACTION_*` constants.
-        """
+        """Gets the type ID of the held action."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], StackRequestActionKind]
             if self.value.isa[T]():
@@ -1157,14 +899,7 @@ struct StackRequestAction(Marshaler):
 
     @staticmethod
     def from_type(id: UInt8) -> Optional[StackRequestAction]:
-        """Creates an empty action of a type (Go `lookupStackRequestAction`).
-
-        Args:
-            id: One of the `STACK_REQUEST_ACTION_*` constants.
-
-        Returns:
-            The action, or `None` for an unknown type ID.
-        """
+        """Creates an empty action of a type (Go `lookupStackRequestAction`)."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], StackRequestActionKind]
             if id == T.ID:
@@ -1172,17 +907,7 @@ struct StackRequestAction(Marshaler):
         return None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action with its type.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the action type is unknown or the input is malformed.
-        """
+        """Reads or writes the action with its type."""
         stack_request_action(io, self)
 
 
@@ -1190,16 +915,6 @@ def stack_request_action[I: IO](mut io: I, mut x: StackRequestAction) raises:
     """Marshals an action with its type (gophertunnel `IO.StackRequestAction`).
 
     The type ID byte that follows the variant is ignored when reading.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the variant is unknown or the input is malformed.
     """
     var id = x.type_id()
     var variant = stack_request_action_variant(id)

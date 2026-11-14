@@ -132,15 +132,7 @@ struct PeerKey(Copyable, Equatable, Writable):
 
     @staticmethod
     def rsa(modulus: Span[UInt8, _], exponent: Span[UInt8, _]) -> PeerKey:
-        """Creates an RSA key.
-
-        Args:
-            modulus: The modulus, big-endian.
-            exponent: The public exponent, big-endian.
-
-        Returns:
-            The key, with leading zero bytes stripped.
-        """
+        """Creates an RSA key."""
         var key = PeerKey()
         key.kind = KEY_RSA
         key.modulus = _strip_zeros(modulus)
@@ -149,29 +141,14 @@ struct PeerKey(Copyable, Equatable, Writable):
 
     @staticmethod
     def ec(kind: Int, point: Span[UInt8, _]) -> PeerKey:
-        """Creates an EC key.
-
-        Args:
-            kind: `KEY_EC_P256` or `KEY_EC_P384`.
-            point: The uncompressed SEC 1 point.
-
-        Returns:
-            The key. The point is checked when it is used.
-        """
+        """Creates an EC key."""
         var key = PeerKey()
         key.kind = kind
         key.point = List[UInt8](point)
         return key^
 
     def __eq__(self, other: PeerKey) -> Bool:
-        """Checks equality.
-
-        Args:
-            other: The key to compare against.
-
-        Returns:
-            `True` if both keys are the same algorithm and value.
-        """
+        """Checks equality."""
         return (
             self.kind == other.kind
             and bytes_equal(Span(self.modulus), Span(other.modulus))
@@ -180,11 +157,7 @@ struct PeerKey(Copyable, Equatable, Writable):
         )
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes a short description, such as `RSA-2048` or `EC P-256`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes a short description, such as `RSA-2048` or `EC P-256`."""
         if self.kind == KEY_RSA:
             var bits = 8 * len(self.modulus)
             if len(self.modulus) > 0:
@@ -219,26 +192,13 @@ struct SignatureAlgorithm(Copyable, Equatable):
     """The PSS salt length in bytes; 0 for other kinds."""
 
     def __init__(out self, kind: Int, hash: Int, salt_length: Int = 0):
-        """Creates an algorithm.
-
-        Args:
-            kind: The signature kind.
-            hash: The hash identifier.
-            salt_length: The PSS salt length.
-        """
+        """Creates an algorithm."""
         self.kind = kind
         self.hash = hash
         self.salt_length = salt_length
 
     def __eq__(self, other: SignatureAlgorithm) -> Bool:
-        """Checks equality.
-
-        Args:
-            other: The algorithm to compare against.
-
-        Returns:
-            `True` if kind, hash and salt length match.
-        """
+        """Checks equality."""
         return (
             self.kind == other.kind
             and self.hash == other.hash
@@ -332,11 +292,7 @@ struct Certificate(Copyable):
         self.unhandled_critical = False
 
     def name(self) -> String:
-        """Describes the certificate for error messages.
-
-        Returns:
-            The subject commonName, or `(no CN)`.
-        """
+        """Describes the certificate for error messages."""
         if self.common_name.byte_length() == 0:
             return "(no CN)"
         return self.common_name
@@ -385,16 +341,7 @@ def _digits(s: Span[UInt8, _], start: Int, count: Int) raises -> Int:
 
 
 def days_from_civil(year: Int, month: Int, day: Int) -> Int:
-    """Counts days since 1970-01-01 in the proleptic Gregorian calendar.
-
-    Args:
-        year: The year.
-        month: The month, 1 to 12.
-        day: The day of the month.
-
-    Returns:
-        The day number; negative before 1970.
-    """
+    """Counts days since 1970-01-01 in the proleptic Gregorian calendar."""
     # Howard Hinnant's days_from_civil.
     var y = year - 1 if month <= 2 else year
     var era = (y if y >= 0 else y - 399) // 400
@@ -410,16 +357,6 @@ def parse_time(tag: UInt8, content: Span[UInt8, _]) raises -> Int:
 
     Only the forms RFC 5280 allows are accepted: `YYMMDDHHMMSSZ` and
     `YYYYMMDDHHMMSSZ`. A UTCTime year below 50 is 20YY, otherwise 19YY.
-
-    Args:
-        tag: `DER_UTC_TIME` or `DER_GENERALIZED_TIME`.
-        content: The time string.
-
-    Returns:
-        Unix seconds.
-
-    Raises:
-        Error: If the tag or format is wrong or a field is out of range.
     """
     var year: Int
     var pos: Int
@@ -517,19 +454,7 @@ def _parse_pss_params(params: Span[UInt8, _]) raises -> SignatureAlgorithm:
 
 
 def parse_signature_algorithm(der: Span[UInt8, _]) raises -> SignatureAlgorithm:
-    """Decodes a signature AlgorithmIdentifier.
-
-    Args:
-        der: The AlgorithmIdentifier contents (inside the SEQUENCE).
-
-    Returns:
-        The algorithm; `SIG_UNKNOWN` for algorithms outside the supported
-        set (including SHA-1 and PSS with mismatched or default hashes).
-
-    Raises:
-        Error: If the encoding is malformed, or parameters are present where
-            the algorithm forbids them.
-    """
+    """Decodes a signature AlgorithmIdentifier."""
     var r = Reader(der)
     var oid = der_expect(r, DER_OID)
     var rsa_hash = 0
@@ -565,18 +490,7 @@ def parse_signature_algorithm(der: Span[UInt8, _]) raises -> SignatureAlgorithm:
 
 
 def parse_public_key(spki: Span[UInt8, _]) raises -> PeerKey:
-    """Decodes a SubjectPublicKeyInfo.
-
-    Args:
-        spki: The SubjectPublicKeyInfo contents (inside the SEQUENCE).
-
-    Returns:
-        The key; `KEY_UNKNOWN` for algorithms and curves outside RSA, P-256
-        and P-384.
-
-    Raises:
-        Error: If the encoding is malformed.
-    """
+    """Decodes a SubjectPublicKeyInfo."""
     var r = Reader(spki)
     var alg = Reader(der_expect(r, DER_SEQUENCE))
     var bits = der_expect(r, DER_BIT_STRING)
@@ -729,19 +643,7 @@ def _parse_extension(
 
 
 def parse_certificate(der: Span[UInt8, _]) raises -> Certificate:
-    """Parses a DER-encoded X.509 certificate.
-
-    Args:
-        der: The certificate.
-
-    Returns:
-        The decoded fields.
-
-    Raises:
-        Error: If the encoding is malformed, the inner and outer signature
-            algorithms differ, an extension appears twice or in a v1/v2
-            certificate, or a recognised extension is malformed.
-    """
+    """Parses a DER-encoded X.509 certificate."""
     var cert = Certificate()
     var top = Reader(der)
     var outer = Reader(der_expect(top, DER_SEQUENCE))

@@ -40,17 +40,7 @@ struct FurnaceOptions(Marshaler):
         self.layout = FURNACE_LAYOUT_NONE
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the options.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the options."""
         io.varint32(self.left_furnace_tab)
         io.bool(self.filtering)
         io.varint32(self.layout)

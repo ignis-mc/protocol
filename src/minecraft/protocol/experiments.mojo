@@ -17,26 +17,11 @@ struct ExperimentData(Marshaler):
         self.enabled = False
 
     def __init__(out self, name: String, enabled: Bool):
-        """Creates an experiment.
-
-        Args:
-            name: The name of the experiment.
-            enabled: Whether it is enabled.
-        """
+        """Creates an experiment."""
         self.name = name
         self.enabled = enabled
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the experiment.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the experiment."""
         io.string(self.name)
         io.bool(self.enabled)

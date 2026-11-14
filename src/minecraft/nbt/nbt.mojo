@@ -62,25 +62,13 @@ struct NBT(Copyable, Defaultable, Writable):
         self.encoding = NETWORK_LITTLE_ENDIAN
 
     def __init__(out self, var raw: List[UInt8], encoding: Int):
-        """Wraps already encoded bytes.
-
-        Args:
-            raw: One complete encoded tag.
-            encoding: The encoding of `raw`.
-        """
+        """Wraps already encoded bytes."""
         self.raw = raw^
         self.encoding = encoding
 
     @staticmethod
     def empty_compound(encoding: Int = NETWORK_LITTLE_ENDIAN) -> NBT:
-        """Creates an empty root compound with an empty name.
-
-        Args:
-            encoding: The encoding to use.
-
-        Returns:
-            `{}` encoded in `encoding`.
-        """
+        """Creates an empty root compound with an empty name."""
         var raw: List[UInt8] = [TAG_COMPOUND]
         if encoding == NETWORK_LITTLE_ENDIAN:
             raw.append(0)
@@ -91,29 +79,17 @@ struct NBT(Copyable, Defaultable, Writable):
         return NBT(raw^, encoding)
 
     def is_empty(self) -> Bool:
-        """Checks whether the value holds no tag.
-
-        Returns:
-            `True` for an empty value or a lone `TAG_END`.
-        """
+        """Checks whether the value holds no tag."""
         return len(self.raw) == 0 or (len(self.raw) == 1 and self.raw[0] == 0)
 
     def root_type(self) -> UInt8:
-        """Gets the type of the root tag.
-
-        Returns:
-            One of the `TAG_*` constants; `TAG_END` when empty.
-        """
+        """Gets the type of the root tag."""
         if len(self.raw) == 0:
             return TAG_END
         return self.raw[0]
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes a short description.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes a short description."""
         writer.write("NBT(", len(self.raw), " bytes)")
 
 
@@ -151,11 +127,7 @@ def _copy_varuint[
 def _copy_int32[
     I: IO
 ](mut io: I, mut out: List[UInt8], encoding: Int) raises -> Int:
-    """Copies an int32 and returns it; used for lengths.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Copies an int32 and returns it; used for lengths."""
     if encoding == NETWORK_LITTLE_ENDIAN:
         var u = UInt32(_copy_varuint(io, out, 5))
         var v = Int32(u >> 1)
@@ -271,17 +243,6 @@ def nbt[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
 
     A root `TAG_END` is accepted and means "no value". An empty `NBT()` is
     written as an empty compound, like Go's nil map.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-        encoding: The encoding on the wire.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     if not io.reads():
         if len(x.raw) == 0:
@@ -302,19 +263,7 @@ def nbt[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
 
 
 def nbt_list[I: IO](mut io: I, mut x: NBT, encoding: Int) raises:
-    """Marshals a root list tag (gophertunnel `IO.NBTList`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value; its root tag must be a list.
-        encoding: The encoding on the wire.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a root list tag (gophertunnel `IO.NBTList`)."""
     if not io.reads() and len(x.raw) == 0:
         # Go writes a nil slice as an empty list of TAG_End.
         var raw: List[UInt8] = [TAG_LIST, 0, 0]

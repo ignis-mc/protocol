@@ -22,11 +22,7 @@ struct ResourcePackDeliveryConfig(Copyable, Defaultable):
         self.chunk_send_delay_ms = 0
 
     def normalized(self) -> ResourcePackDeliveryConfig:
-        """Replaces zero values with the defaults.
-
-        Returns:
-            The config with defaults applied and negative delays set to 0.
-        """
+        """Replaces zero values with the defaults."""
         var c = ResourcePackDeliveryConfig()
         c.chunk_size = self.chunk_size
         c.chunk_send_delay_ms = self.chunk_send_delay_ms

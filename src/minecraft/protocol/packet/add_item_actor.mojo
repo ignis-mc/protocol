@@ -39,17 +39,7 @@ struct AddItemActor(Packet):
         self.from_fishing = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         actor_unique_id(io, self.entity_unique_id)
         actor_runtime_id(io, self.entity_runtime_id)
         item_instance(io, self.item)

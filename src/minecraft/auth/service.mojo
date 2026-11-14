@@ -50,15 +50,7 @@ comptime _LEEWAY_NS = 60 * NANOS_PER_SECOND
 
 
 def discovery_request(app_type: String, version: String) -> Request:
-    """Builds the discovery request (`Discover`).
-
-    Args:
-        app_type: The application type, `MinecraftPE`.
-        version: The game version, e.g. `1.26.60`.
-
-    Returns:
-        `GET …/api/v1.0/discovery/<app_type>/builds/<version>`.
-    """
+    """Builds the discovery request (`Discover`)."""
     var headers = List[Tuple[String, String]]()
     headers.append(("Content-Type", "application/json"))
     headers.append(("User-Agent", USER_AGENT))
@@ -91,28 +83,14 @@ struct AuthorizationEnvironment(Copyable, Movable):
         var playfab_title_id: String,
         var edu_playfab_title_id: String,
     ):
-        """Creates an environment.
-
-        Args:
-            service_uri: Base URL of the authorization service.
-            issuer: The OpenID issuer.
-            playfab_title_id: The PlayFab title ID.
-            edu_playfab_title_id: The Education Edition title ID.
-        """
+        """Creates an environment."""
         self.service_uri = service_uri^
         self.issuer = issuer^
         self.playfab_title_id = playfab_title_id^
         self.edu_playfab_title_id = edu_playfab_title_id^
 
     def issuer_domain(self) raises -> String:
-        """Returns the issuer as Go's `Issuer.JoinPath().String()` prints it.
-
-        Returns:
-            The issuer with a `/` path when it has none.
-
-        Raises:
-            Error: Never in practice; kept for URL parsing.
-        """
+        """Returns the issuer as Go's `Issuer.JoinPath().String()` prints it."""
         var s = self.issuer.copy()
         var scheme_end = s.find("://")
         if scheme_end >= 0 and s.find("/", scheme_end + 3) < 0:
@@ -142,19 +120,7 @@ def _service_error(request: Request, response: Response) -> Error:
 def parse_discovery_response(
     request: Request, response: Response
 ) raises -> AuthorizationEnvironment:
-    """Decodes discovery and extracts the `auth` `prod` environment.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The authorization environment.
-
-    Raises:
-        Error: On a non-200 status, a missing `auth`/`prod` entry or an
-            empty `serviceUri` or `issuer`.
-    """
+    """Decodes discovery and extracts the `auth` `prod` environment."""
     if response.status != 200:
         raise _service_error(request, response)
     var result = parse_object(
@@ -197,14 +163,6 @@ def session_start_request(
 
     Uses gophertunnel's defaults: a Windows 10 UWP device with 16 GiB of
     memory, game version `CURRENT_VERSION`, language `en-US`.
-
-    Args:
-        env: The authorization environment.
-        session_ticket: The PlayFab session ticket.
-        device_id: A fresh UUID for the device.
-
-    Returns:
-        The `POST …/api/v1.0/session/start` request.
     """
     var body = String(
         '{"device":{"applicationType":',
@@ -243,14 +201,7 @@ struct ServiceToken(Copyable, Movable):
     """Expiry as Unix nanoseconds."""
 
     def valid(self, now_ns: Int) -> Bool:
-        """Reports whether the token is usable (`Token.Valid`).
-
-        Args:
-            now_ns: The current Unix time in nanoseconds.
-
-        Returns:
-            True if it is set and does not expire within a minute.
-        """
+        """Reports whether the token is usable (`Token.Valid`)."""
         return (
             self.authorization_header.byte_length() > 0
             and now_ns < self.valid_until_ns - _EXPIRATION_DELTA_NS
@@ -263,13 +214,6 @@ def check_token_claims(authorization_header: String, now_ns: Int) raises:
     The signature is not verified (neither does Go). The payload must have
     a non-nil `pmid` UUID, and `nbf`, `exp` and `iat`, when present, must
     hold at `now_ns` with go-jose's one-minute leeway.
-
-    Args:
-        authorization_header: `MCToken <jwt>`.
-        now_ns: The current Unix time in nanoseconds.
-
-    Raises:
-        Error: If the JWT is malformed or a claim check fails.
     """
     var jwt = authorization_header.copy()
     if jwt.startswith("MCToken "):
@@ -299,19 +243,7 @@ def check_token_claims(authorization_header: String, now_ns: Int) raises:
 def parse_session_start_response(
     request: Request, response: Response, now_ns: Int
 ) raises -> ServiceToken:
-    """Decodes a session start response.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-        now_ns: The current Unix time in nanoseconds.
-
-    Returns:
-        The service token.
-
-    Raises:
-        Error: On a non-200 status, an invalid token or bad claims.
-    """
+    """Decodes a session start response."""
     if response.status != 200:
         raise _service_error(request, response)
     var root = parse_object(Span(response.body))
@@ -339,20 +271,7 @@ def multiplayer_token_request(
     token: ServiceToken,
     private_key: Span[UInt8, _],
 ) raises -> Request:
-    """Builds the multiplayer session start request (`MultiplayerToken`).
-
-    Args:
-        env: The authorization environment.
-        token: The service token.
-        private_key: The client's 48-byte P-384 private scalar; its public
-            key becomes the token's `cpk` claim.
-
-    Returns:
-        The `POST …/api/v1.0/multiplayer/session/start` request.
-
-    Raises:
-        Error: If the private key is invalid.
-    """
+    """Builds the multiplayer session start request (`MultiplayerToken`)."""
     var body = String(
         '{"publicKey":', go_quote(marshal_public_key(private_key)), "}\n"
     )
@@ -371,18 +290,7 @@ def multiplayer_token_request(
 def parse_multiplayer_token_response(
     request: Request, response: Response
 ) raises -> String:
-    """Decodes a multiplayer session start response.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The signed multiplayer token (a JWT).
-
-    Raises:
-        Error: On a non-200 status or an empty token.
-    """
+    """Decodes a multiplayer session start response."""
     if response.status != 200:
         raise _service_error(request, response)
     var root = parse_object(Span(response.body))
@@ -396,14 +304,7 @@ def parse_multiplayer_token_response(
 
 def openid_configuration_request(env: AuthorizationEnvironment) -> Request:
     """Builds the OpenID configuration request
-    (`AuthorizationEnvironment.configuration`).
-
-    Args:
-        env: The authorization environment.
-
-    Returns:
-        `GET <issuer>/.well-known/openid-configuration`.
-    """
+    (`AuthorizationEnvironment.configuration`)."""
     var headers = List[Tuple[String, String]]()
     headers.append(("Accept", "application/json"))
     headers.append(("Content-Type", "application/json"))
@@ -432,18 +333,7 @@ struct ProviderConfig(Copyable, Movable):
 def parse_openid_configuration(
     request: Request, response: Response
 ) raises -> ProviderConfig:
-    """Decodes the OpenID configuration.
-
-    Args:
-        request: The request that was sent.
-        response: Its response.
-
-    Returns:
-        The configuration.
-
-    Raises:
-        Error: On a non-200 status or a malformed document.
-    """
+    """Decodes the OpenID configuration."""
     if response.status != 200:
         raise _service_error(request, response)
     var obj = decode_object(Span(response.body))
@@ -471,21 +361,6 @@ def verifier[
     Fetches the OpenID configuration now; the JWKS is fetched on the first
     verification. The required issuer is the environment's, with a `/`
     path added, and the audience is the multiplayer audience.
-
-    Parameters:
-        T: The HTTP transport.
-
-    Args:
-        env: The authorization environment from discovery.
-        transport: Fetches the configuration and keys.
-        refresh_interval: Seconds between JWKS refreshes for unknown key
-            IDs.
-
-    Returns:
-        The verifier, for `login.request.parse`.
-
-    Raises:
-        Error: If the configuration cannot be fetched or decoded.
     """
     var request = openid_configuration_request(env)
     var config: ProviderConfig

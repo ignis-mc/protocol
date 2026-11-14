@@ -33,16 +33,6 @@ struct UpdateClientOptions(Packet):
         self.filter_profanity = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         optional_uint8(io, self.graphics_mode)
         optional_bool(io, self.filter_profanity)

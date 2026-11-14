@@ -141,16 +141,6 @@ struct ListenConfig(Copyable):
 
         With authentication enabled this first fetches the authorization
         environment and OpenID configuration over HTTPS.
-
-        Args:
-            address: `host:port` to serve signaling on; port 0 picks one.
-
-        Returns:
-            The listener.
-
-        Raises:
-            Error: If the address cannot be bound or, with authentication,
-                the verifier cannot be created.
         """
         var verifier = Optional[IDTokenVerifier[DefaultKeySet]](None)
         if not self.authentication_disabled:
@@ -172,32 +162,13 @@ struct ListenConfig(Copyable):
     ](
         self, address: StringSpan, var verifier: Optional[IDTokenVerifier[K]]
     ) raises -> Listener[K]:
-        """Starts listening with a given multiplayer token verifier.
-
-        Args:
-            address: `host:port` to serve signaling on; port 0 picks one.
-            verifier: Checks multiplayer tokens; `None` parses logins
-                without verification (they are then never authenticated).
-
-        Parameters:
-            K: The verifier's key source.
-
-        Returns:
-            The listener.
-
-        Raises:
-            Error: If the address cannot be bound.
-        """
+        """Starts listening with a given multiplayer token verifier."""
         return Listener[K](self, SocketAddr.parse(address), verifier^)
 
 
 struct Listener[K: KeySet](Movable):
     """Accepts Minecraft connections over NetherNet (gophertunnel
-    `Listener`).
-
-    Parameters:
-        K: The key source of the multiplayer token verifier.
-    """
+    `Listener`)."""
 
     var _http: NetherNetListener[EndpointServer]
     var _lan: Optional[NetherNetListener[DiscoveryListener]]
@@ -221,16 +192,7 @@ struct Listener[K: KeySet](Movable):
         address: SocketAddr,
         var verifier: Optional[IDTokenVerifier[Self.K]],
     ) raises:
-        """Creates a listener; `ListenConfig.listen` is the usual way.
-
-        Args:
-            config: The settings.
-            address: Where to serve HTTP signaling.
-            verifier: The multiplayer token verifier, or `None`.
-
-        Raises:
-            Error: If a socket cannot be bound or randomness is missing.
-        """
+        """Creates a listener; `ListenConfig.listen` is the usual way."""
         var net = config.nethernet.copy()
         if len(net.identity_key) == 0:
             # Both signaling paths answer with the same identity.
@@ -290,39 +252,19 @@ struct Listener[K: KeySet](Movable):
     # ===------------------------------------------------------------------=== #
 
     def addr(mut self) raises -> SocketAddr:
-        """Returns the address HTTP signaling is served on.
-
-        Returns:
-            The bound address, with the port the kernel picked.
-
-        Raises:
-            Error: If the kernel refuses.
-        """
+        """Returns the address HTTP signaling is served on."""
         return self._http.signaling().local_addr()
 
     def identity_key(self) -> List[UInt8]:
-        """Returns the NetherNet identity key answers are signed with.
-
-        Returns:
-            The 48-byte P-384 private scalar, to persist across restarts.
-        """
+        """Returns the NetherNet identity key answers are signed with."""
         return self._http.identity_key()
 
     def player_count(self) -> Int:
-        """Counts connections logging in plus accepted ones not released.
-
-        Returns:
-            The player count shown in the status.
-        """
+        """Counts connections logging in plus accepted ones not released."""
         return self._player_count
 
     def status(self) -> ServerStatus:
-        """Builds the current status (gophertunnel `status`).
-
-        Returns:
-            The status, with a limit of one more than the count when the
-            listener has none.
-        """
+        """Builds the current status (gophertunnel `status`)."""
         var s = self._status_provider.server_status(
             self._player_count, self._maximum_players
         )
@@ -332,11 +274,7 @@ struct Listener[K: KeySet](Movable):
         return s^
 
     def set_status_provider(mut self, var provider: ListenerStatusProvider):
-        """Replaces the name and sub-name shown in the server list.
-
-        Args:
-            provider: The new provider.
-        """
+        """Replaces the name and sub-name shown in the server list."""
         self._status_provider = provider^
         self._update_status()
 
@@ -347,19 +285,11 @@ struct Listener[K: KeySet](Movable):
             self._lan.value().signaling().set_server_data(s.server_data())
 
     def add_resource_pack(mut self, var pack: Pack):
-        """Offers another pack to clients that connect from now on.
-
-        Args:
-            pack: The pack.
-        """
+        """Offers another pack to clients that connect from now on."""
         self._packs.append(ArcPointer(pack^))
 
     def remove_resource_pack(mut self, uuid: StringSpan):
-        """Stops offering a pack to clients that connect from now on.
-
-        Args:
-            uuid: The pack's UUID.
-        """
+        """Stops offering a pack to clients that connect from now on."""
         var i = 0
         while i < len(self._packs):
             if String(self._packs[i][].uuid()) == uuid:
@@ -369,11 +299,7 @@ struct Listener[K: KeySet](Movable):
 
     def take_errors(mut self) -> List[String]:
         """Takes the reasons connections failed to log in since the last
-        call (what gophertunnel writes to `ErrorLog`).
-
-        Returns:
-            The most recent errors, oldest first.
-        """
+        call (what gophertunnel writes to `ErrorLog`)."""
         var out = self._errors^
         self._errors = List[String]()
         return out^
@@ -391,12 +317,7 @@ struct Listener[K: KeySet](Movable):
 
     def disconnect(mut self, mut conn: Conn, message: String):
         """Sends a `Disconnect` and closes the connection (gophertunnel
-        `Listener.Disconnect`).
-
-        Args:
-            conn: The connection.
-            message: The message; empty skips the disconnect screen.
-        """
+        `Listener.Disconnect`)."""
         conn.disconnect(message)
 
     # ===------------------------------------------------------------------=== #
@@ -404,11 +325,7 @@ struct Listener[K: KeySet](Movable):
     # ===------------------------------------------------------------------=== #
 
     def add_poll_fds(self, mut set: PollSet):
-        """Adds every descriptor `poll()` reads from to a `PollSet`.
-
-        Args:
-            set: The set to add the descriptors to.
-        """
+        """Adds every descriptor `poll()` reads from to a `PollSet`."""
         self._http.add_poll_fds(set)
         if self._lan:
             self._lan.value().add_poll_fds(set)
@@ -418,11 +335,7 @@ struct Listener[K: KeySet](Movable):
             self._closing[i].add_poll_fds(set)
 
     def next_timeout(self) -> Int:
-        """Computes when `poll()` next has timer work to do.
-
-        Returns:
-            An absolute monotonic time in milliseconds.
-        """
+        """Computes when `poll()` next has timer work to do."""
         var t = self._http.next_timeout()
         if self._lan:
             t = min(t, self._lan.value().next_timeout())
@@ -434,14 +347,7 @@ struct Listener[K: KeySet](Movable):
         return t
 
     def poll(mut self, now_ms: Int) raises:
-        """Advances signaling, NetherNet handshakes and Minecraft logins.
-
-        Args:
-            now_ms: The current monotonic time in milliseconds.
-
-        Raises:
-            Error: If a signaling channel fails.
-        """
+        """Advances signaling, NetherNet handshakes and Minecraft logins."""
         self._http.poll(now_ms)
         while True:
             var next = self._http.try_accept()
@@ -533,27 +439,13 @@ struct Listener[K: KeySet](Movable):
         self._deadlines.append(deadline)
 
     def try_accept(mut self) -> Optional[Conn]:
-        """Takes a logged-in connection without blocking.
-
-        Returns:
-            A connection ready for `start_game`, or `None`.
-        """
+        """Takes a logged-in connection without blocking."""
         if len(self._ready) == 0:
             return None
         return self._ready.pop(0)
 
     def accept(mut self, timeout_ms: Int) raises -> Optional[Conn]:
-        """Waits for the next logged-in connection (gophertunnel `Accept`).
-
-        Args:
-            timeout_ms: The longest time to wait; negative waits forever.
-
-        Returns:
-            A connection ready for `start_game`, or `None` on timeout.
-
-        Raises:
-            Error: If a signaling channel fails.
-        """
+        """Waits for the next logged-in connection (gophertunnel `Accept`)."""
         var deadline = _NEVER
         if timeout_ms >= 0:
             deadline = monotonic_ms() + timeout_ms

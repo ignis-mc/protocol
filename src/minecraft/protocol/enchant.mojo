@@ -23,17 +23,7 @@ struct EnchantmentOption(Marshaler):
         self.recipe_network_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the option.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the option."""
         io.uint8(self.cost)
         self.enchantments.marshal(io)
         io.string(self.name)
@@ -56,17 +46,7 @@ struct ItemEnchantments(Marshaler):
         )
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the enchantments.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the enchantments."""
         io.int32(self.slot)
         for i in range(3):
             slice(io, self.enchantments[i])
@@ -87,16 +67,6 @@ struct EnchantmentInstance(Marshaler):
         self.level = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the enchantment.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the enchantment."""
         io.uint8(self.type)
         io.uint8(self.level)

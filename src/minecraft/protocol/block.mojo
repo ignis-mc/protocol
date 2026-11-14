@@ -19,17 +19,7 @@ struct BlockEntry(Marshaler):
         self.properties = NBT()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         io.string(self.name)
         nbt(io, self.properties, NETWORK_LITTLE_ENDIAN)
 
@@ -57,17 +47,7 @@ struct BlockChangeEntry(Marshaler):
         self.synced_update_type = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the entry.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the entry."""
         block_pos(io, self.block_pos)
         io.varuint32(self.block_runtime_id)
         io.varuint32(self.flags)

@@ -29,16 +29,6 @@ struct ServerBoundLoadingScreen(Packet):
         self.loading_screen_id = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.varint32(self.type)
         optional_func[I.uint32](io, self.loading_screen_id)

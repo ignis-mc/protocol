@@ -17,17 +17,7 @@ struct EducationSharedResourceURI(Marshaler):
         self.link_uri = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.button_name)
         io.string(self.link_uri)
 
@@ -43,17 +33,7 @@ struct EducationAgentCapabilities(Marshaler):
         self.can_modify_blocks = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         optional_bool(io, self.can_modify_blocks)
 
 
@@ -71,16 +51,6 @@ struct EducationExternalLinkSettings(Marshaler):
         self.display_name = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.url)
         io.string(self.display_name)

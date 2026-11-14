@@ -98,17 +98,7 @@ struct AbilityLayer(Marshaler):
         self.walk_speed = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the layer.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the layer."""
         io.uint16(self.type)
         io.uint32(self.abilities)
         io.uint32(self.values)
@@ -137,17 +127,7 @@ struct AbilityData(Marshaler):
         self.layers = List[AbilityLayer]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the data."""
         # gophertunnel `ActorUniqueIDInt64`: a little-endian int64.
         io.int64(self.entity_unique_id)
         io.uint8(self.player_permissions)
@@ -171,34 +151,16 @@ struct AbilityValue(Marshaler):
 
     @implicit
     def __init__(out self, value: Bool):
-        """Creates a boolean value.
-
-        Args:
-            value: The value.
-        """
+        """Creates a boolean value."""
         self.value = value
 
     @implicit
     def __init__(out self, value: Float32):
-        """Creates a float value.
-
-        Args:
-            value: The value.
-        """
+        """Creates a float value."""
         self.value = value
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value (see `ability_value`).
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value (see `ability_value`)."""
         ability_value(io, self)
 
 
@@ -206,16 +168,6 @@ def ability_value[I: IO](mut io: I, mut x: AbilityValue) raises:
     """Marshals a type byte, a bool and a float; only one of them is used.
 
     This is gophertunnel `IO.AbilityValue`.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the type byte is neither bool (1) nor float (2).
     """
     var value_type = _ABILITY_VALUE_TYPE_FLOAT
     var bool_value = False

@@ -19,11 +19,7 @@ struct BlockPos(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         self.z = 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the position as `(x, y, z)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the position as `(x, y, z)`."""
         writer.write("(", self.x, ", ", self.y, ", ", self.z, ")")
 
 
@@ -42,11 +38,7 @@ struct ChunkPos(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         self.z = 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the position as `(x, z)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the position as `(x, z)`."""
         writer.write("(", self.x, ", ", self.z, ")")
 
 
@@ -68,9 +60,5 @@ struct SubChunkPos(Defaultable, Equatable, ImplicitlyCopyable, Writable):
         self.z = 0
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the position as `(x, y, z)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the position as `(x, y, z)`."""
         writer.write("(", self.x, ", ", self.y, ", ", self.z, ")")

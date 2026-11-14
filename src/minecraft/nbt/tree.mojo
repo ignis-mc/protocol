@@ -50,22 +50,11 @@ struct Tag(Equatable, ImplicitlyCopyable, Writable):
     """The position of the tag in the tree's arena."""
 
     def __eq__(self, other: Self) -> Bool:
-        """Checks whether two handles name the same tag.
-
-        Args:
-            other: The other handle.
-
-        Returns:
-            `True` if both refer to the same arena slot.
-        """
+        """Checks whether two handles name the same tag."""
         return self.index == other.index
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes `Tag(index)`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes `Tag(index)`."""
         writer.write("Tag(", self.index, ")")
 
 
@@ -122,17 +111,7 @@ struct Tree(Copyable, Defaultable, Writable):
         self._entries.append(_Entry(TAG_COMPOUND, 0, 0))
 
     def __init__(out self, root_type: UInt8, name: StringSpan = "") raises:
-        """Creates a tree with a zero-valued root of any type.
-
-        Args:
-            root_type: The root tag type. `TAG_END` makes an empty tree that
-                encodes as a single `TAG_End` byte; a `TAG_LIST` root takes
-                its element type from the first appended value.
-            name: The root tag's name.
-
-        Raises:
-            If `root_type` is not a known tag type.
-        """
+        """Creates a tree with a zero-valued root of any type."""
         if root_type > TAG_LONG_ARRAY:
             raise Error(t"nbt: unknown tag type {root_type}")
         self = Tree._bare()
@@ -284,33 +263,15 @@ struct Tree(Copyable, Defaultable, Writable):
     # ===------------------------------------------------------------------=== #
 
     def root(self) -> Tag:
-        """Gets the root tag.
-
-        Returns:
-            A handle to the root.
-        """
+        """Gets the root tag."""
         return Tag(0)
 
     def is_empty(self) -> Bool:
-        """Checks whether the tree has no value (a root `TAG_End`).
-
-        Returns:
-            `True` for an empty tree.
-        """
+        """Checks whether the tree has no value (a root `TAG_End`)."""
         return len(self._entries) == 0 or self._entries[0].tag == TAG_END
 
     def type_of(self, t: Tag) raises -> UInt8:
-        """Gets the type of a tag.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            One of the `TAG_*` constants.
-
-        Raises:
-            If `t` is not a handle into this tree.
-        """
+        """Gets the type of a tag."""
         return self._entries[self._check(t)].tag
 
     def name(self, t: Tag) -> String:
@@ -318,61 +279,24 @@ struct Tree(Copyable, Defaultable, Writable):
         an empty name.
 
         Invalid UTF-8 is replaced with U+FFFD.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The name, or an empty string for an invalid handle.
         """
         if t.index < 0 or t.index >= len(self._entries):
             return String()
         return String(from_utf8_lossy=self._name_span(t.index))
 
     def elem_type(self, t: Tag) raises -> UInt8:
-        """Gets the element type of a list.
-
-        Args:
-            t: A list tag.
-
-        Returns:
-            The element type; `TAG_END` for an untyped empty list.
-
-        Raises:
-            If `t` is not a list.
-        """
+        """Gets the element type of a list."""
         return self._entries[self._expect(t, TAG_LIST)].elem
 
     def length(self, t: Tag) raises -> Int:
-        """Gets the size of a tag.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The entry count of a compound or list, the element count of an
-            array, the byte length of a string, and 0 for numbers.
-
-        Raises:
-            If `t` is not a handle into this tree.
-        """
+        """Gets the size of a tag."""
         ref e = self._entries[self._check(t)]
         if e.tag == TAG_COMPOUND or e.tag == TAG_LIST:
             return len(e.children)
         return e.length
 
     def children(self, t: Tag) raises -> List[Tag]:
-        """Lists the entries of a compound or list in order.
-
-        Args:
-            t: A compound or list tag.
-
-        Returns:
-            Handles to the entries.
-
-        Raises:
-            If `t` is not a compound or list.
-        """
+        """Lists the entries of a compound or list in order."""
         ref e = self._entries[self._check(t)]
         if e.tag != TAG_COMPOUND and e.tag != TAG_LIST:
             raise Error(t"nbt: a {tag_name(e.tag)} has no entries")
@@ -382,18 +306,7 @@ struct Tree(Copyable, Defaultable, Writable):
         return out^
 
     def at(self, t: Tag, i: Int) raises -> Tag:
-        """Gets the `i`-th entry of a compound or list.
-
-        Args:
-            t: A compound or list tag.
-            i: The index.
-
-        Returns:
-            A handle to the entry.
-
-        Raises:
-            If `t` is not a compound or list or `i` is out of range.
-        """
+        """Gets the `i`-th entry of a compound or list."""
         ref e = self._entries[self._check(t)]
         if e.tag != TAG_COMPOUND and e.tag != TAG_LIST:
             raise Error(t"nbt: a {tag_name(e.tag)} has no entries")
@@ -406,13 +319,6 @@ struct Tree(Copyable, Defaultable, Writable):
 
         If the name repeats (only possible in decoded input), the last entry
         wins, as in gophertunnel's map decoding.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The entry, or `None` if it is missing or `t` is not a compound.
         """
         if t.index < 0 or t.index >= len(self._entries):
             return None
@@ -424,30 +330,11 @@ struct Tree(Copyable, Defaultable, Writable):
         return Tag(self._entries[t.index].children[pos])
 
     def has(self, t: Tag, key: StringSpan) -> Bool:
-        """Checks whether a compound has an entry.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            `True` if the entry exists.
-        """
+        """Checks whether a compound has an entry."""
         return Bool(self.get(t, key))
 
     def require(self, t: Tag, key: StringSpan) raises -> Tag:
-        """Looks up an entry of a compound that must exist.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The entry.
-
-        Raises:
-            If `t` is not a compound or has no such entry.
-        """
+        """Looks up an entry of a compound that must exist."""
         _ = self._expect(t, TAG_COMPOUND)
         if case .Some(found) = self.get(t, key):
             return found
@@ -458,163 +345,52 @@ struct Tree(Copyable, Defaultable, Writable):
     # ===------------------------------------------------------------------=== #
 
     def as_byte(self, t: Tag) raises -> UInt8:
-        """Gets the value of a `TAG_Byte`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Byte`."""
         return UInt8(self._entries[self._expect(t, TAG_BYTE)].value)
 
     def as_bool(self, t: Tag) raises -> Bool:
-        """Gets a `TAG_Byte` as a bool (`1` is true, as in gophertunnel).
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets a `TAG_Byte` as a bool (`1` is true, as in gophertunnel)."""
         return self.as_byte(t) == 1
 
     def as_short(self, t: Tag) raises -> Int16:
-        """Gets the value of a `TAG_Short`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Short`."""
         return Int16(self._entries[self._expect(t, TAG_SHORT)].value)
 
     def as_int(self, t: Tag) raises -> Int32:
-        """Gets the value of a `TAG_Int`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Int`."""
         return Int32(self._entries[self._expect(t, TAG_INT)].value)
 
     def as_long(self, t: Tag) raises -> Int64:
-        """Gets the value of a `TAG_Long`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Long`."""
         return self._entries[self._expect(t, TAG_LONG)].value
 
     def as_float(self, t: Tag) raises -> Float32:
-        """Gets the value of a `TAG_Float`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Float`."""
         var bits = self._entries[self._expect(t, TAG_FLOAT)].value
         return bitcast[DType.float32](UInt32(bits))
 
     def as_double(self, t: Tag) raises -> Float64:
-        """Gets the value of a `TAG_Double`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_Double`."""
         var bits = self._entries[self._expect(t, TAG_DOUBLE)].value
         return bitcast[DType.float64](UInt64(bits))
 
     def as_string(self, t: Tag) raises -> String:
-        """Gets the value of a `TAG_String`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the tag has another type or is not valid UTF-8 (use
-            `as_string_bytes` for the raw bytes).
-        """
+        """Gets the value of a `TAG_String`."""
         ref e = self._entries[self._expect(t, TAG_STRING)]
         return String(from_utf8=Span(self._bytes)[e.start : e.start + e.length])
 
     def as_string_bytes(self, t: Tag) raises -> List[UInt8]:
-        """Gets the raw bytes of a `TAG_String`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            The bytes as they were decoded or set.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the raw bytes of a `TAG_String`."""
         ref e = self._entries[self._expect(t, TAG_STRING)]
         return List[UInt8](Span(self._bytes)[e.start : e.start + e.length])
 
     def as_byte_array(self, t: Tag) raises -> List[UInt8]:
-        """Gets the value of a `TAG_ByteArray`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            A copy of the bytes.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_ByteArray`."""
         ref e = self._entries[self._expect(t, TAG_BYTE_ARRAY)]
         return List[UInt8](Span(self._bytes)[e.start : e.start + e.length])
 
     def as_int_array(self, t: Tag) raises -> List[Int32]:
-        """Gets the value of a `TAG_IntArray`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            A copy of the values.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_IntArray`."""
         ref e = self._entries[self._expect(t, TAG_INT_ARRAY)]
         var out = List[Int32](capacity=e.length)
         for j in range(e.length):
@@ -622,215 +398,62 @@ struct Tree(Copyable, Defaultable, Writable):
         return out^
 
     def as_long_array(self, t: Tag) raises -> List[Int64]:
-        """Gets the value of a `TAG_LongArray`.
-
-        Args:
-            t: The tag.
-
-        Returns:
-            A copy of the values.
-
-        Raises:
-            If the tag has another type.
-        """
+        """Gets the value of a `TAG_LongArray`."""
         ref e = self._entries[self._expect(t, TAG_LONG_ARRAY)]
         return List[Int64](Span(self._numbers)[e.start : e.start + e.length])
 
     def get_byte(self, t: Tag, key: StringSpan) raises -> UInt8:
-        """Gets a `TAG_Byte` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Byte` entry of a compound."""
         return self.as_byte(self.require(t, key))
 
     def get_bool(self, t: Tag, key: StringSpan) raises -> Bool:
-        """Gets a `TAG_Byte` entry of a compound as a bool.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Byte` entry of a compound as a bool."""
         return self.as_bool(self.require(t, key))
 
     def get_short(self, t: Tag, key: StringSpan) raises -> Int16:
-        """Gets a `TAG_Short` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Short` entry of a compound."""
         return self.as_short(self.require(t, key))
 
     def get_int(self, t: Tag, key: StringSpan) raises -> Int32:
-        """Gets a `TAG_Int` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Int` entry of a compound."""
         return self.as_int(self.require(t, key))
 
     def get_long(self, t: Tag, key: StringSpan) raises -> Int64:
-        """Gets a `TAG_Long` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Long` entry of a compound."""
         return self.as_long(self.require(t, key))
 
     def get_float(self, t: Tag, key: StringSpan) raises -> Float32:
-        """Gets a `TAG_Float` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Float` entry of a compound."""
         return self.as_float(self.require(t, key))
 
     def get_double(self, t: Tag, key: StringSpan) raises -> Float64:
-        """Gets a `TAG_Double` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Double` entry of a compound."""
         return self.as_double(self.require(t, key))
 
     def get_string(self, t: Tag, key: StringSpan) raises -> String:
-        """Gets a `TAG_String` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The value.
-
-        Raises:
-            If the entry is missing, has another type or is not UTF-8.
-        """
+        """Gets a `TAG_String` entry of a compound."""
         return self.as_string(self.require(t, key))
 
     def get_byte_array(self, t: Tag, key: StringSpan) raises -> List[UInt8]:
-        """Gets a `TAG_ByteArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            A copy of the bytes.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_ByteArray` entry of a compound."""
         return self.as_byte_array(self.require(t, key))
 
     def get_int_array(self, t: Tag, key: StringSpan) raises -> List[Int32]:
-        """Gets a `TAG_IntArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            A copy of the values.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_IntArray` entry of a compound."""
         return self.as_int_array(self.require(t, key))
 
     def get_long_array(self, t: Tag, key: StringSpan) raises -> List[Int64]:
-        """Gets a `TAG_LongArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            A copy of the values.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_LongArray` entry of a compound."""
         return self.as_long_array(self.require(t, key))
 
     def get_compound(self, t: Tag, key: StringSpan) raises -> Tag:
-        """Gets a `TAG_Compound` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            A handle to the nested compound.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_Compound` entry of a compound."""
         var found = self.require(t, key)
         _ = self._expect(found, TAG_COMPOUND)
         return found
 
     def get_list(self, t: Tag, key: StringSpan) raises -> Tag:
-        """Gets a `TAG_List` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            A handle to the list.
-
-        Raises:
-            If the entry is missing or has another type.
-        """
+        """Gets a `TAG_List` entry of a compound."""
         var found = self.require(t, key)
         _ = self._expect(found, TAG_LIST)
         return found
@@ -841,171 +464,51 @@ struct Tree(Copyable, Defaultable, Writable):
     # ===------------------------------------------------------------------=== #
 
     def put_byte(mut self, t: Tag, key: StringSpan, v: UInt8) raises -> Tag:
-        """Sets a `TAG_Byte` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Byte` entry of a compound."""
         return self._add_named(t, key, TAG_BYTE, Int64(v))
 
     def put_bool(mut self, t: Tag, key: StringSpan, v: Bool) raises -> Tag:
-        """Sets a `TAG_Byte` entry of a compound to 1 or 0.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Byte` entry of a compound to 1 or 0."""
         return self._add_named(t, key, TAG_BYTE, Int64(1) if v else Int64(0))
 
     def put_short(mut self, t: Tag, key: StringSpan, v: Int16) raises -> Tag:
-        """Sets a `TAG_Short` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Short` entry of a compound."""
         return self._add_named(t, key, TAG_SHORT, Int64(v))
 
     def put_int(mut self, t: Tag, key: StringSpan, v: Int32) raises -> Tag:
-        """Sets a `TAG_Int` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Int` entry of a compound."""
         return self._add_named(t, key, TAG_INT, Int64(v))
 
     def put_long(mut self, t: Tag, key: StringSpan, v: Int64) raises -> Tag:
-        """Sets a `TAG_Long` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Long` entry of a compound."""
         return self._add_named(t, key, TAG_LONG, v)
 
     def put_float(mut self, t: Tag, key: StringSpan, v: Float32) raises -> Tag:
-        """Sets a `TAG_Float` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Float` entry of a compound."""
         return self._add_named(t, key, TAG_FLOAT, _f32_bits(v))
 
     def put_double(mut self, t: Tag, key: StringSpan, v: Float64) raises -> Tag:
-        """Sets a `TAG_Double` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_Double` entry of a compound."""
         return self._add_named(t, key, TAG_DOUBLE, _f64_bits(v))
 
     def put_string(
         mut self, t: Tag, key: StringSpan, v: StringSpan
     ) raises -> Tag:
-        """Sets a `TAG_String` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The value.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_String` entry of a compound."""
         self._need_compound(t)
         return self._add_bytes(t, key, TAG_STRING, v.as_bytes())
 
     def put_byte_array(
         mut self, t: Tag, key: StringSpan, v: Span[UInt8, _]
     ) raises -> Tag:
-        """Sets a `TAG_ByteArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The bytes.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_ByteArray` entry of a compound."""
         self._need_compound(t)
         return self._add_bytes(t, key, TAG_BYTE_ARRAY, v)
 
     def put_int_array(
         mut self, t: Tag, key: StringSpan, v: Span[Int32, _]
     ) raises -> Tag:
-        """Sets a `TAG_IntArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The values.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_IntArray` entry of a compound."""
         self._need_compound(t)
         var n = List[Int64](capacity=len(v))
         for x in v:
@@ -1015,55 +518,18 @@ struct Tree(Copyable, Defaultable, Writable):
     def put_long_array(
         mut self, t: Tag, key: StringSpan, v: Span[Int64, _]
     ) raises -> Tag:
-        """Sets a `TAG_LongArray` entry of a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            v: The values.
-
-        Returns:
-            The new entry.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets a `TAG_LongArray` entry of a compound."""
         self._need_compound(t)
         return self._add_numbers(t, key, TAG_LONG_ARRAY, List[Int64](v))
 
     def put_compound(mut self, t: Tag, key: StringSpan) raises -> Tag:
-        """Sets an entry of a compound to a new empty compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            The new compound, to fill in.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Sets an entry of a compound to a new empty compound."""
         return self._add_named(t, key, TAG_COMPOUND, 0)
 
     def put_list(
         mut self, t: Tag, key: StringSpan, elem: UInt8 = TAG_END
     ) raises -> Tag:
-        """Sets an entry of a compound to a new empty list.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-            elem: The element type. With `TAG_END` the first appended value
-                sets it; a list left empty is then written as a list of
-                `TAG_End`, like gophertunnel's `[]any{}`.
-
-        Returns:
-            The new list, to fill in.
-
-        Raises:
-            If `t` is not a compound or `elem` is unknown.
-        """
+        """Sets an entry of a compound to a new empty list."""
         if elem > TAG_LONG_ARRAY:
             raise Error(t"nbt: unknown tag type {elem}")
         var l = self._add_named(t, key, TAG_LIST, 0)
@@ -1073,38 +539,14 @@ struct Tree(Copyable, Defaultable, Writable):
     def put_tree(
         mut self, t: Tag, key: StringSpan, src: Tree, src_tag: Tag
     ) raises -> Tag:
-        """Sets an entry of a compound to a copy of a tag from another tree.
-
-        Args:
-            t: A compound tag.
-            key: The entry name; the copied tag's own name is dropped.
-            src: The tree to copy from.
-            src_tag: The tag in `src` to copy, with everything below it.
-
-        Returns:
-            The copy.
-
-        Raises:
-            If `t` is not a compound or `src_tag` is not in `src`.
-        """
+        """Sets an entry of a compound to a copy of a tag from another tree."""
         self._need_compound(t)
         var child = self._copy_entry(src, src._check(src_tag), key.as_bytes())
         self._attach(t, child)
         return Tag(child)
 
     def remove(mut self, t: Tag, key: StringSpan) raises -> Bool:
-        """Removes every entry named `key` from a compound.
-
-        Args:
-            t: A compound tag.
-            key: The entry name.
-
-        Returns:
-            `True` if an entry was removed.
-
-        Raises:
-            If `t` is not a compound.
-        """
+        """Removes every entry named `key` from a compound."""
         var p = self._expect(t, TAG_COMPOUND)
         var kept = List[Int]()
         var removed = False
@@ -1134,146 +576,47 @@ struct Tree(Copyable, Defaultable, Writable):
         _ = self._expect(t, TAG_LIST)
 
     def append_byte(mut self, t: Tag, v: UInt8) raises -> Tag:
-        """Appends a `TAG_Byte` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Byte` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_BYTE, Int64(v))
 
     def append_short(mut self, t: Tag, v: Int16) raises -> Tag:
-        """Appends a `TAG_Short` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Short` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_SHORT, Int64(v))
 
     def append_int(mut self, t: Tag, v: Int32) raises -> Tag:
-        """Appends a `TAG_Int` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Int` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_INT, Int64(v))
 
     def append_long(mut self, t: Tag, v: Int64) raises -> Tag:
-        """Appends a `TAG_Long` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Long` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_LONG, v)
 
     def append_float(mut self, t: Tag, v: Float32) raises -> Tag:
-        """Appends a `TAG_Float` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Float` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_FLOAT, _f32_bits(v))
 
     def append_double(mut self, t: Tag, v: Float64) raises -> Tag:
-        """Appends a `TAG_Double` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_Double` to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_DOUBLE, _f64_bits(v))
 
     def append_string(mut self, t: Tag, v: StringSpan) raises -> Tag:
-        """Appends a `TAG_String` to a list.
-
-        Args:
-            t: A list tag.
-            v: The value.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_String` to a list."""
         self._need_list(t)
         return self._add_bytes(t, "", TAG_STRING, v.as_bytes())
 
     def append_byte_array(mut self, t: Tag, v: Span[UInt8, _]) raises -> Tag:
-        """Appends a `TAG_ByteArray` to a list.
-
-        Args:
-            t: A list tag.
-            v: The bytes.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_ByteArray` to a list."""
         self._need_list(t)
         return self._add_bytes(t, "", TAG_BYTE_ARRAY, v)
 
     def append_int_array(mut self, t: Tag, v: Span[Int32, _]) raises -> Tag:
-        """Appends a `TAG_IntArray` to a list.
-
-        Args:
-            t: A list tag.
-            v: The values.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_IntArray` to a list."""
         self._need_list(t)
         var n = List[Int64](capacity=len(v))
         for x in v:
@@ -1281,49 +624,17 @@ struct Tree(Copyable, Defaultable, Writable):
         return self._add_numbers(t, "", TAG_INT_ARRAY, n^)
 
     def append_long_array(mut self, t: Tag, v: Span[Int64, _]) raises -> Tag:
-        """Appends a `TAG_LongArray` to a list.
-
-        Args:
-            t: A list tag.
-            v: The values.
-
-        Returns:
-            The new element.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a `TAG_LongArray` to a list."""
         self._need_list(t)
         return self._add_numbers(t, "", TAG_LONG_ARRAY, List[Int64](v))
 
     def append_compound(mut self, t: Tag) raises -> Tag:
-        """Appends a new empty compound to a list.
-
-        Args:
-            t: A list tag.
-
-        Returns:
-            The new compound, to fill in.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a new empty compound to a list."""
         self._need_list(t)
         return self._add(t, "", TAG_COMPOUND, 0)
 
     def append_list(mut self, t: Tag, elem: UInt8 = TAG_END) raises -> Tag:
-        """Appends a new empty list to a list.
-
-        Args:
-            t: A list tag.
-            elem: The nested list's element type (see `put_list`).
-
-        Returns:
-            The new list, to fill in.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a new empty list to a list."""
         self._need_list(t)
         if elem > TAG_LONG_ARRAY:
             raise Error(t"nbt: unknown tag type {elem}")
@@ -1332,19 +643,7 @@ struct Tree(Copyable, Defaultable, Writable):
         return l
 
     def append_tree(mut self, t: Tag, src: Tree, src_tag: Tag) raises -> Tag:
-        """Appends a copy of a tag from another tree to a list.
-
-        Args:
-            t: A list tag.
-            src: The tree to copy from.
-            src_tag: The tag in `src` to copy, with everything below it.
-
-        Returns:
-            The copy.
-
-        Raises:
-            If `t` is not a list or holds another type.
-        """
+        """Appends a copy of a tag from another tree to a list."""
         self._need_list(t)
         var empty = List[UInt8]()
         var child = self._copy_entry(src, src._check(src_tag), Span(empty))
@@ -1361,9 +660,6 @@ struct Tree(Copyable, Defaultable, Writable):
         Numbers carry SNBT suffixes (`1b`, `2s`, `3`, `4L`, `5.5f`, `6.5d`),
         arrays are `[B; ...]`, `[I; ...]`, `[L; ...]`. The root's name is
         not written; an empty tree writes nothing.
-
-        Args:
-            writer: The destination.
         """
         if self.is_empty():
             return

@@ -53,15 +53,6 @@ struct PlayerUpdateEntityOverrides(Packet):
         """Reads or writes the packet's fields.
 
         After the type comes its name as a string; a reader ignores it.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the type is unknown or the input is malformed.
         """
         actor_unique_id(io, self.entity_unique_id)
         io.varuint32(self.property_index)

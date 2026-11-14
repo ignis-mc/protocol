@@ -24,19 +24,7 @@ trait KeySet(Deinitable, Movable):
     def verify_signature(
         mut self, jws: JSONWebSignature, now_unix: Int
     ) raises -> List[UInt8]:
-        """Checks the signature and returns the payload.
-
-        Args:
-            jws: The parsed token.
-            now_unix: The current time, Unix seconds, for key refresh.
-
-        Returns:
-            The verified payload.
-
-        Raises:
-            Error: If no key verifies the signature or keys cannot be
-                fetched.
-        """
+        """Checks the signature and returns the payload."""
         ...
 
 
@@ -48,28 +36,13 @@ struct StaticKeySet(Copyable, KeySet):
     """The keys."""
 
     def __init__(out self, var keys: List[JSONWebKey]):
-        """Creates a key set.
-
-        Args:
-            keys: The keys.
-        """
+        """Creates a key set."""
         self.keys = keys^
 
     def verify_signature(
         mut self, jws: JSONWebSignature, now_unix: Int
     ) raises -> List[UInt8]:
-        """Returns the payload if any key verifies the signature.
-
-        Args:
-            jws: The parsed token.
-            now_unix: Unused.
-
-        Returns:
-            The payload.
-
-        Raises:
-            Error: If no key verifies it.
-        """
+        """Returns the payload if any key verifies the signature."""
         for k in self.keys:
             if k.verify(jws):
                 return jws.payload.copy()
@@ -135,11 +108,7 @@ struct IDToken(Copyable, Movable):
 
 
 struct IDTokenVerifier[K: KeySet](Movable):
-    """Verifies ID tokens from one issuer (go-oidc `IDTokenVerifier`).
-
-    Parameters:
-        K: Where signing keys come from.
-    """
+    """Verifies ID tokens from one issuer (go-oidc `IDTokenVerifier`)."""
 
     var issuer: String
     """The exact `iss` required."""
@@ -151,13 +120,7 @@ struct IDTokenVerifier[K: KeySet](Movable):
     def __init__(
         out self, var issuer: String, var key_set: Self.K, var config: Config
     ):
-        """Creates a verifier (go-oidc `NewVerifier`).
-
-        Args:
-            issuer: The exact `iss` required.
-            key_set: The signing keys.
-            config: The options.
-        """
+        """Creates a verifier (go-oidc `NewVerifier`)."""
         self.issuer = issuer^
         self.key_set = key_set^
         self.config = config^
@@ -165,19 +128,7 @@ struct IDTokenVerifier[K: KeySet](Movable):
     def verify(
         mut self, raw_id_token: StringSpan, now_unix: Int
     ) raises -> IDToken:
-        """Verifies a token and returns its claims (go-oidc `Verify`).
-
-        Args:
-            raw_id_token: The compact JWT.
-            now_unix: The current time, Unix seconds.
-
-        Returns:
-            The verified token.
-
-        Raises:
-            Error: If the token is malformed, its signature does not verify,
-                or a claim check fails.
-        """
+        """Verifies a token and returns its claims (go-oidc `Verify`)."""
         var algs = self.config.supported_signing_algs.copy()
         if len(algs) == 0:
             algs.append(RS256)

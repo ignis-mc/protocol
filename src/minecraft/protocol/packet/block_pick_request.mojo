@@ -25,17 +25,7 @@ struct BlockPickRequest(Packet):
         self.hot_bar_slot = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         block_pos(io, self.position)
         io.bool(self.add_block_nbt)
         io.uint8(self.hot_bar_slot)

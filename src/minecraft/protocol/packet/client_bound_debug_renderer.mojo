@@ -32,17 +32,7 @@ struct DebugMarkerData(Marshaler):
         self.duration = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the marker.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed.
-        """
+        """Reads or writes the marker."""
         io.string(self.text)
         vec3(io, self.position)
         be_argb(io, self.colour)
@@ -65,17 +55,7 @@ struct ClientBoundDebugRenderer(Packet):
         self.data = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         var typ = String(_client_bound_debug_render_to_string(self.type))
         io.string(typ)
         self.type = _client_bound_debug_render_from_string(typ)

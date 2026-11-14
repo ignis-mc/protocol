@@ -53,17 +53,7 @@ struct EducationSettings(Packet):
         self.external_link_settings = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.string(self.code_builder_default_uri)
         io.string(self.code_builder_title)
         io.bool(self.can_resize_code_builder)

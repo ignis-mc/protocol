@@ -69,17 +69,7 @@ struct ServerBoundDiagnostics(Packet):
         self.whisker_scopes = List[WhiskerScopeDataSummary]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.float32(self.average_frames_per_second)
         io.float32(self.average_server_sim_tick_time)
         io.float32(self.average_client_sim_tick_time)

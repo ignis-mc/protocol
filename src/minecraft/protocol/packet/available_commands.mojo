@@ -47,17 +47,7 @@ struct AvailableCommands(Packet):
         self.constraints = List[CommandEnumConstraint]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         string_slice(io, self.enum_values)
         string_slice(io, self.chained_subcommand_values)
         string_slice(io, self.suffixes)

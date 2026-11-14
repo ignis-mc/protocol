@@ -65,17 +65,7 @@ struct LocatorBarWaypoint(Marshaler):
         self.action = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         uuid(io, self.group_handle)
         self.waypoint.marshal(io)
         io.uint8(self.action)
@@ -95,17 +85,7 @@ struct WaypointWorldPosition(Marshaler):
         self.dimension_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         vec3(io, self.position)
         io.varint32(self.dimension_id)
 
@@ -142,17 +122,7 @@ struct Waypoint(Marshaler):
         self.actor_unique_id = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.uint32(self.update_flag)
         optional_bool(io, self.visible)
         optional_marshaler(io, self.world_position)

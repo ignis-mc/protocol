@@ -42,11 +42,7 @@ struct Header(Defaultable, ImplicitlyCopyable, Writable):
         self.target_sub_client = 0
 
     def encode(self) -> UInt32:
-        """Packs the header into its varuint32 value.
-
-        Returns:
-            `id | sender << 10 | target << 12`.
-        """
+        """Packs the header into its varuint32 value."""
         return (
             self.packet_id
             | (UInt32(self.sender_sub_client) << 10)
@@ -55,14 +51,7 @@ struct Header(Defaultable, ImplicitlyCopyable, Writable):
 
     @staticmethod
     def decode(value: UInt32) -> Header:
-        """Unpacks a header from its varuint32 value.
-
-        Args:
-            value: The decoded varuint32.
-
-        Returns:
-            The header fields.
-        """
+        """Unpacks a header from its varuint32 value."""
         return Header(
             value & 0x3FF,
             UInt8((value >> 10) & 0x3),
@@ -70,32 +59,14 @@ struct Header(Defaultable, ImplicitlyCopyable, Writable):
         )
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the packet ID.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the packet ID."""
         writer.write("packet ", self.packet_id)
 
 
 def encode_packet[
     P: Packet
 ](mut pk: P, shield_id: Int32 = 0) raises -> List[UInt8]:
-    """Encodes a packet with its header, ready to be put in a batch.
-
-    Parameters:
-        P: The packet type.
-
-    Args:
-        pk: The packet. Its fields are only read.
-        shield_id: The shield's item runtime ID, for packets with items.
-
-    Returns:
-        The header followed by the payload.
-
-    Raises:
-        Error: If a field cannot be encoded.
-    """
+    """Encodes a packet with its header, ready to be put in a batch."""
     var w = ProtocolWriter(shield_id)
     var header = Header(P.ID, 0, 0).encode()
     w.varuint32(header)
@@ -112,28 +83,13 @@ struct PacketData(Copyable, Writable):
     """The bytes after the header."""
 
     def __init__(out self, var header: Header, var payload: List[UInt8]):
-        """Wraps a header and its payload.
-
-        Args:
-            header: The decoded header.
-            payload: The payload bytes.
-        """
+        """Wraps a header and its payload."""
         self.header = header
         self.payload = payload^
 
     @staticmethod
     def parse(packet: Span[UInt8, _]) raises -> PacketData:
-        """Splits one packet from a batch into its header and payload.
-
-        Args:
-            packet: The bytes of one packet, header included.
-
-        Returns:
-            The header and a copy of the payload.
-
-        Raises:
-            Error: If the header is truncated.
-        """
+        """Splits one packet from a batch into its header and payload."""
         var r = Reader(packet)
         var value = UInt32(0)
         r.varuint32(value)
@@ -142,35 +98,13 @@ struct PacketData(Copyable, Writable):
         return PacketData(Header.decode(value), rest^)
 
     def id(self) -> UInt32:
-        """Gets the packet ID.
-
-        Returns:
-            The ID from the header.
-        """
+        """Gets the packet ID."""
         return self.header.packet_id
 
     def decode[
         P: Packet
     ](self, shield_id: Int32 = 0, limits: Bool = True) raises -> P:
-        """Decodes the payload as packet type `P`.
-
-        Parameters:
-            P: The packet type to decode.
-
-        Args:
-            shield_id: The shield's item runtime ID, for packets with items.
-            limits: Whether to enforce slice length limits. gophertunnel
-                enforces them only when a server reads a client's packets;
-                clients read server packets (item registries, creative
-                content) without them.
-
-        Returns:
-            The decoded packet.
-
-        Raises:
-            Error: If the ID does not match `P`, the payload is malformed, or
-                bytes are left over.
-        """
+        """Decodes the payload as packet type `P`."""
         if self.header.packet_id != P.ID:
             raise Error(
                 t"packet {self.header.packet_id} is not the expected {P.ID}"
@@ -183,11 +117,7 @@ struct PacketData(Copyable, Writable):
         return pk^
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the packet ID and payload length.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the packet ID and payload length."""
         writer.write(
             "packet ", self.header.packet_id, " (", len(self.payload), " bytes)"
         )

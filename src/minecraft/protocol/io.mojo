@@ -31,244 +31,93 @@ trait IO(Deinitable, Movable):
     """A reader or writer of protocol values (gophertunnel `protocol.IO`)."""
 
     def reads(self) -> Bool:
-        """Says whether this IO decodes (`True`) or encodes (`False`).
-
-        Returns:
-            `True` for a reader.
-        """
+        """Says whether this IO decodes (`True`) or encodes (`False`)."""
         ...
 
     def uint8(mut self, mut x: UInt8) raises:
-        """Reads or writes an unsigned byte.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes an unsigned byte."""
         ...
 
     def int8(mut self, mut x: Int8) raises:
-        """Reads or writes a signed byte.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a signed byte."""
         ...
 
     def bool(mut self, mut x: Bool) raises:
-        """Reads or writes a boolean as one byte.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a boolean as one byte."""
         ...
 
     def uint16(mut self, mut x: UInt16) raises:
-        """Reads or writes a little-endian `uint16`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `uint16`."""
         ...
 
     def int16(mut self, mut x: Int16) raises:
-        """Reads or writes a little-endian `int16`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `int16`."""
         ...
 
     def uint32(mut self, mut x: UInt32) raises:
-        """Reads or writes a little-endian `uint32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `uint32`."""
         ...
 
     def int32(mut self, mut x: Int32) raises:
-        """Reads or writes a little-endian `int32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `int32`."""
         ...
 
     def be_int32(mut self, mut x: Int32) raises:
-        """Reads or writes a big-endian `int32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a big-endian `int32`."""
         ...
 
     def uint64(mut self, mut x: UInt64) raises:
-        """Reads or writes a little-endian `uint64`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `uint64`."""
         ...
 
     def int64(mut self, mut x: Int64) raises:
-        """Reads or writes a little-endian `int64`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian `int64`."""
         ...
 
     def float32(mut self, mut x: Float32) raises:
-        """Reads or writes a little-endian IEEE 754 `float32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian IEEE 754 `float32`."""
         ...
 
     def float64(mut self, mut x: Float64) raises:
-        """Reads or writes a little-endian IEEE 754 `float64`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a little-endian IEEE 754 `float64`."""
         ...
 
     def varint32(mut self, mut x: Int32) raises:
-        """Reads or writes a zigzag-encoded variable-length `int32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a zigzag-encoded variable-length `int32`."""
         ...
 
     def varuint32(mut self, mut x: UInt32) raises:
-        """Reads or writes a variable-length `uint32`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a variable-length `uint32`."""
         ...
 
     def varint64(mut self, mut x: Int64) raises:
-        """Reads or writes a zigzag-encoded variable-length `int64`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a zigzag-encoded variable-length `int64`."""
         ...
 
     def varuint64(mut self, mut x: UInt64) raises:
-        """Reads or writes a variable-length `uint64`.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a variable-length `uint64`."""
         ...
 
     def string(mut self, mut x: String) raises:
-        """Reads or writes a string prefixed with its varuint32 byte length.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a string prefixed with its varuint32 byte length."""
         ...
 
     def string_utf(mut self, mut x: String) raises:
-        """Reads or writes a string prefixed with its `int16` byte length.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes a string prefixed with its `int16` byte length."""
         ...
 
     def byte_slice(mut self, mut x: List[UInt8]) raises:
-        """Reads or writes bytes prefixed with their varuint32 length.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes bytes prefixed with their varuint32 length."""
         ...
 
     def bytes(mut self, mut x: List[UInt8]) raises:
-        """Reads every remaining byte, or writes the bytes without a length.
-
-        Args:
-            x: The value.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads every remaining byte, or writes the bytes without a length."""
         ...
 
     def slice_length(mut self, length: UInt32, max: UInt32) raises:
         """Checks a list length a reader is about to allocate.
 
         Writers accept anything.
-
-        Args:
-            length: The decoded element count.
-            max: The limit to enforce when limits are enabled.
-
-        Raises:
-            If the input is malformed or a value is invalid.
         """
         ...
 
@@ -276,39 +125,19 @@ trait IO(Deinitable, Movable):
         """Gets the item runtime ID of the shield.
 
         Item stacks with this ID carry an extra field.
-
-        Returns:
-            The shield's runtime ID, 0 if unknown.
         """
         ...
 
 
 def unknown_enum_option(value: Int, enum: StringSpan) raises:
-    """Raises the error for an enum value a packet does not know.
-
-    Args:
-        value: The offending value.
-        enum: The name of the enum.
-
-    Raises:
-        Error: Always.
-    """
+    """Raises the error for an enum value a packet does not know."""
     raise Error(t"unknown value '{value}' for enum type '{enum}'")
 
 
 def invalid_value(
     value: StringSpan, for_field: StringSpan, reason: StringSpan
 ) raises:
-    """Raises the error for a value that is not valid for a field.
-
-    Args:
-        value: The offending value, formatted.
-        for_field: The field it was read into.
-        reason: Why it is invalid.
-
-    Raises:
-        Error: Always.
-    """
+    """Raises the error for a value that is not valid for a field."""
     raise Error(t"invalid value '{value}' for {for_field}: {reason}")
 
 
@@ -318,85 +147,30 @@ def invalid_value(
 
 
 def actor_runtime_id[I: IO](mut io: I, mut x: UInt64) raises:
-    """Marshals an entity runtime ID (a varuint64).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals an entity runtime ID (a varuint64)."""
     io.varuint64(x)
 
 
 def actor_unique_id[I: IO](mut io: I, mut x: Int64) raises:
-    """Marshals an entity unique ID (a varint64).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals an entity unique ID (a varint64)."""
     io.varint64(x)
 
 
 def vec2[I: IO](mut io: I, mut x: Vec2) raises:
-    """Marshals two `float32` values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals two `float32` values."""
     io.float32(x.x)
     io.float32(x.y)
 
 
 def vec3[I: IO](mut io: I, mut x: Vec3) raises:
-    """Marshals three `float32` values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals three `float32` values."""
     io.float32(x.x)
     io.float32(x.y)
     io.float32(x.z)
 
 
 def block_pos[I: IO](mut io: I, mut x: BlockPos) raises:
-    """Marshals a block position as three varint32 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a block position as three varint32 values."""
     io.varint32(x.x)
     io.varint32(x.y)
     io.varint32(x.z)
@@ -404,16 +178,6 @@ def block_pos[I: IO](mut io: I, mut x: BlockPos) raises:
 
 def ublock_pos[I: IO](mut io: I, mut x: BlockPos) raises:
     """Marshals a block position whose Y is a varuint32 (gophertunnel `UBlockPos`).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     io.varint32(x.x)
     var y = UInt32(x.y)
@@ -423,53 +187,20 @@ def ublock_pos[I: IO](mut io: I, mut x: BlockPos) raises:
 
 
 def chunk_pos[I: IO](mut io: I, mut x: ChunkPos) raises:
-    """Marshals a chunk position as two varint32 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a chunk position as two varint32 values."""
     io.varint32(x.x)
     io.varint32(x.z)
 
 
 def sub_chunk_pos[I: IO](mut io: I, mut x: SubChunkPos) raises:
-    """Marshals a sub-chunk position as three little-endian `int32` values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a sub-chunk position as three little-endian `int32` values."""
     io.int32(x.x)
     io.int32(x.y)
     io.int32(x.z)
 
 
 def sound_pos[I: IO](mut io: I, mut x: Vec3) raises:
-    """Marshals a position as a block position scaled by 8.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a position as a block position scaled by 8."""
     var b = BlockPos(Int32(x.x * 8), Int32(x.y * 8), Int32(x.z * 8))
     block_pos(io, b)
     if io.reads():
@@ -477,18 +208,7 @@ def sound_pos[I: IO](mut io: I, mut x: Vec3) raises:
 
 
 def byte_float[I: IO](mut io: I, mut x: Float32) raises:
-    """Marshals an angle as one byte of 1/256 turns.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The angle in degrees.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals an angle as one byte of 1/256 turns."""
     var v = UInt8(Int(x / (360.0 / 256.0)) & 0xFF)
     io.uint8(v)
     if io.reads():
@@ -496,18 +216,7 @@ def byte_float[I: IO](mut io: I, mut x: Float32) raises:
 
 
 def uuid[I: IO](mut io: I, mut x: UUID) raises:
-    """Marshals a UUID as two little-endian 64-bit halves.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a UUID as two little-endian 64-bit halves."""
     var hi = UInt64(0)
     var lo = UInt64(0)
     for i in range(8):
@@ -522,18 +231,7 @@ def uuid[I: IO](mut io: I, mut x: UUID) raises:
 
 
 def rgb[I: IO](mut io: I, mut x: RGBA) raises:
-    """Marshals a colour as three `float32` channels in 0 to 1.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value; alpha is set to 255 when reading.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a colour as three `float32` channels in 0 to 1."""
     var r = Float32(x.r) / 255
     var g = Float32(x.g) / 255
     var b = Float32(x.b) / 255
@@ -550,18 +248,7 @@ def rgb[I: IO](mut io: I, mut x: RGBA) raises:
 
 
 def rgba[I: IO](mut io: I, mut x: RGBA) raises:
-    """Marshals a colour as a little-endian `uint32` (R in the low byte).
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a colour as a little-endian `uint32` (R in the low byte)."""
     var v = (
         UInt32(x.r)
         | (UInt32(x.g) << 8)
@@ -579,18 +266,7 @@ def rgba[I: IO](mut io: I, mut x: RGBA) raises:
 
 
 def be_argb[I: IO](mut io: I, mut x: RGBA) raises:
-    """Marshals a colour as a big-endian `int32` in ARGB byte order.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a colour as a big-endian `int32` in ARGB byte order."""
     var v = Int32(
         Int(x.a) | (Int(x.r) << 8) | (Int(x.g) << 16) | (Int(x.b) << 24)
     )
@@ -614,37 +290,14 @@ trait Marshaler(Copyable, Defaultable, Deinitable):
     """A value with a layout (gophertunnel `protocol.Marshaler`)."""
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes every field of the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes every field of the value."""
         ...
 
 
 def slice_of_len[
     T: Marshaler, I: IO
 ](mut io: I, length: UInt32, mut x: List[T]) raises:
-    """Marshals `length` elements whose count was already marshalled.
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        length: The element count.
-        x: The list; replaced with `length` new elements when reading.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals `length` elements whose count was already marshalled."""
     if io.reads():
         io.slice_length(length, MAX_SLICE_LENGTH)
         x = List[T](capacity=Int(length))
@@ -658,57 +311,21 @@ def slice_of_len[
 
 
 def slice[T: Marshaler, I: IO](mut io: I, mut x: List[T]) raises:
-    """Marshals a list prefixed with its varuint32 length.
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a list prefixed with its varuint32 length."""
     var count = UInt32(len(x))
     io.varuint32(count)
     slice_of_len(io, count, x)
 
 
 def slice_uint8_length[T: Marshaler, I: IO](mut io: I, mut x: List[T]) raises:
-    """Marshals a list prefixed with its length as one byte.
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a list prefixed with its length as one byte."""
     var count = UInt8(len(x))
     io.uint8(count)
     slice_of_len(io, UInt32(count), x)
 
 
 def slice_uint32_length[T: Marshaler, I: IO](mut io: I, mut x: List[T]) raises:
-    """Marshals a list prefixed with its length as a little-endian `uint32`.
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a list prefixed with its length as a little-endian `uint32`."""
     var count = UInt32(len(x))
     io.uint32(count)
     slice_of_len(io, count, x)
@@ -717,19 +334,7 @@ def slice_uint32_length[T: Marshaler, I: IO](mut io: I, mut x: List[T]) raises:
 def optional_marshaler[
     T: Marshaler, I: IO
 ](mut io: I, mut x: Optional[T]) raises:
-    """Marshals a presence flag, then the value if present.
-
-    Parameters:
-        T: The value type.
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then the value if present."""
     var present = x is not None
     io.bool(present)
     if io.reads():
@@ -753,18 +358,7 @@ def _count[I: IO](mut io: I, n: Int) raises -> Int:
 
 
 def string_slice[I: IO](mut io: I, mut x: List[String]) raises:
-    """Marshals a varuint32-prefixed list of strings.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of strings."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[String](capacity=n)
@@ -778,18 +372,7 @@ def string_slice[I: IO](mut io: I, mut x: List[String]) raises:
 
 
 def varint32_slice[I: IO](mut io: I, mut x: List[Int32]) raises:
-    """Marshals a varuint32-prefixed list of varint32 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of varint32 values."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[Int32](length=n, fill=0)
@@ -798,18 +381,7 @@ def varint32_slice[I: IO](mut io: I, mut x: List[Int32]) raises:
 
 
 def varuint32_slice[I: IO](mut io: I, mut x: List[UInt32]) raises:
-    """Marshals a varuint32-prefixed list of varuint32 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of varuint32 values."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[UInt32](length=n, fill=0)
@@ -818,18 +390,7 @@ def varuint32_slice[I: IO](mut io: I, mut x: List[UInt32]) raises:
 
 
 def varint64_slice[I: IO](mut io: I, mut x: List[Int64]) raises:
-    """Marshals a varuint32-prefixed list of varint64 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of varint64 values."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[Int64](length=n, fill=0)
@@ -838,18 +399,7 @@ def varint64_slice[I: IO](mut io: I, mut x: List[Int64]) raises:
 
 
 def varuint64_slice[I: IO](mut io: I, mut x: List[UInt64]) raises:
-    """Marshals a varuint32-prefixed list of varuint64 values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of varuint64 values."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[UInt64](length=n, fill=0)
@@ -858,18 +408,7 @@ def varuint64_slice[I: IO](mut io: I, mut x: List[UInt64]) raises:
 
 
 def uint8_slice[I: IO](mut io: I, mut x: List[UInt8]) raises:
-    """Marshals a varuint32-prefixed list of single bytes.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of single bytes."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[UInt8](length=n, fill=0)
@@ -878,18 +417,7 @@ def uint8_slice[I: IO](mut io: I, mut x: List[UInt8]) raises:
 
 
 def int32_slice[I: IO](mut io: I, mut x: List[Int32]) raises:
-    """Marshals a varuint32-prefixed list of little-endian `int32` values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of little-endian `int32` values."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[Int32](length=n, fill=0)
@@ -898,18 +426,7 @@ def int32_slice[I: IO](mut io: I, mut x: List[Int32]) raises:
 
 
 def uuid_slice[I: IO](mut io: I, mut x: List[UUID]) raises:
-    """Marshals a varuint32-prefixed list of UUIDs.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of UUIDs."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[UUID](length=n, fill=UUID())
@@ -918,18 +435,7 @@ def uuid_slice[I: IO](mut io: I, mut x: List[UUID]) raises:
 
 
 def block_pos_slice[I: IO](mut io: I, mut x: List[BlockPos]) raises:
-    """Marshals a varuint32-prefixed list of block positions.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of block positions."""
     var n = _count(io, len(x))
     if io.reads():
         x = List[BlockPos](length=n, fill=BlockPos())
@@ -938,18 +444,7 @@ def block_pos_slice[I: IO](mut io: I, mut x: List[BlockPos]) raises:
 
 
 def optional_string[I: IO](mut io: I, mut x: Optional[String]) raises:
-    """Marshals a presence flag, then a string if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a string if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -961,18 +456,7 @@ def optional_string[I: IO](mut io: I, mut x: Optional[String]) raises:
 
 
 def optional_bool[I: IO](mut io: I, mut x: Optional[Bool]) raises:
-    """Marshals a presence flag, then a boolean if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a boolean if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -984,18 +468,7 @@ def optional_bool[I: IO](mut io: I, mut x: Optional[Bool]) raises:
 
 
 def optional_uint8[I: IO](mut io: I, mut x: Optional[UInt8]) raises:
-    """Marshals a presence flag, then a byte if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a byte if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1007,18 +480,7 @@ def optional_uint8[I: IO](mut io: I, mut x: Optional[UInt8]) raises:
 
 
 def optional_int32[I: IO](mut io: I, mut x: Optional[Int32]) raises:
-    """Marshals a presence flag, then a little-endian `int32` if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a little-endian `int32` if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1030,18 +492,7 @@ def optional_int32[I: IO](mut io: I, mut x: Optional[Int32]) raises:
 
 
 def optional_uint32[I: IO](mut io: I, mut x: Optional[UInt32]) raises:
-    """Marshals a presence flag, then a little-endian `uint32` if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a little-endian `uint32` if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1053,18 +504,7 @@ def optional_uint32[I: IO](mut io: I, mut x: Optional[UInt32]) raises:
 
 
 def optional_varint32[I: IO](mut io: I, mut x: Optional[Int32]) raises:
-    """Marshals a presence flag, then a varint32 if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a varint32 if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1076,18 +516,7 @@ def optional_varint32[I: IO](mut io: I, mut x: Optional[Int32]) raises:
 
 
 def optional_float32[I: IO](mut io: I, mut x: Optional[Float32]) raises:
-    """Marshals a presence flag, then a `float32` if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a `float32` if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1100,16 +529,6 @@ def optional_float32[I: IO](mut io: I, mut x: Optional[Float32]) raises:
 
 def optional_actor_unique_id[I: IO](mut io: I, mut x: Optional[Int64]) raises:
     """Marshals a presence flag, then an entity unique ID (varint64) if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     var present = x is not None
     io.bool(present)
@@ -1122,18 +541,7 @@ def optional_actor_unique_id[I: IO](mut io: I, mut x: Optional[Int64]) raises:
 
 
 def optional_uint64[I: IO](mut io: I, mut x: Optional[UInt64]) raises:
-    """Marshals a presence flag, then a little-endian `uint64` if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a little-endian `uint64` if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1145,18 +553,7 @@ def optional_uint64[I: IO](mut io: I, mut x: Optional[UInt64]) raises:
 
 
 def optional_byte_slice[I: IO](mut io: I, mut x: Optional[List[UInt8]]) raises:
-    """Marshals a presence flag, then varuint32-prefixed bytes if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then varuint32-prefixed bytes if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1170,18 +567,7 @@ def optional_byte_slice[I: IO](mut io: I, mut x: Optional[List[UInt8]]) raises:
 
 
 def optional_block_pos[I: IO](mut io: I, mut x: Optional[BlockPos]) raises:
-    """Marshals a presence flag, then a block position if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a block position if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1193,18 +579,7 @@ def optional_block_pos[I: IO](mut io: I, mut x: Optional[BlockPos]) raises:
 
 
 def optional_vec2[I: IO](mut io: I, mut x: Optional[Vec2]) raises:
-    """Marshals a presence flag, then two `float32` values if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then two `float32` values if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1216,18 +591,7 @@ def optional_vec2[I: IO](mut io: I, mut x: Optional[Vec2]) raises:
 
 
 def optional_vec3[I: IO](mut io: I, mut x: Optional[Vec3]) raises:
-    """Marshals a presence flag, then three `float32` values if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then three `float32` values if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1239,18 +603,7 @@ def optional_vec3[I: IO](mut io: I, mut x: Optional[Vec3]) raises:
 
 
 def optional_uuid[I: IO](mut io: I, mut x: Optional[UUID]) raises:
-    """Marshals a presence flag, then a UUID if present.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a presence flag, then a UUID if present."""
     var present = x is not None
     io.bool(present)
     if not present:
@@ -1262,18 +615,7 @@ def optional_uuid[I: IO](mut io: I, mut x: Optional[UUID]) raises:
 
 
 def uint32_slice[I: IO](mut io: I, mut x: List[UInt32]) raises:
-    """Marshals a varuint32-prefixed list of little-endian `uint32` values.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals a varuint32-prefixed list of little-endian `uint32` values."""
     var n = UInt32(len(x))
     io.varuint32(n)
     if io.reads():
@@ -1289,21 +631,7 @@ def func_slice_of_len[
     //,
     f: def(mut I, mut T) thin raises -> None,
 ](mut io: I, length: UInt32, mut x: List[T]) raises:
-    """Marshals `length` elements with `f` (gophertunnel `FuncSliceOfLen`).
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-        f: The IO function for one element, such as `I.float32`.
-
-    Args:
-        io: The reader or writer.
-        length: The element count, already marshalled by the caller.
-        x: The list; replaced with `length` new elements when reading.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals `length` elements with `f` (gophertunnel `FuncSliceOfLen`)."""
     if io.reads():
         io.slice_length(length, MAX_SLICE_LENGTH)
         x = List[T](capacity=Int(length))
@@ -1323,18 +651,6 @@ def func_slice[
     f: def(mut I, mut T) thin raises -> None,
 ](mut io: I, mut x: List[T]) raises:
     """Marshals a varuint32-prefixed list with `f` (gophertunnel `FuncSlice`).
-
-    Parameters:
-        T: The element type.
-        I: The reader or writer type.
-        f: The IO function for one element, such as `I.float32`.
-
-    Args:
-        io: The reader or writer.
-        x: The list.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     var count = UInt32(len(x))
     io.varuint32(count)
@@ -1350,18 +666,6 @@ def optional_func[
     """Marshals a presence flag, then the value with `f` if present.
 
     This is gophertunnel `OptionalFunc`.
-
-    Parameters:
-        T: The value type.
-        I: The reader or writer type.
-        f: The IO function for the value, such as `vec3[I]`.
-
-    Args:
-        io: The reader or writer.
-        x: The optional value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     var present = x is not None
     io.bool(present)
@@ -1376,19 +680,7 @@ def optional_func[
 def marshal_variant[
     I: IO, *Ts: Marshaler
 ](mut io: I, mut x: Variant[*Ts]) raises:
-    """Marshals the arm a variant of `Marshaler` structs currently holds.
-
-    Parameters:
-        I: The reader or writer type.
-        Ts: The arm types.
-
-    Args:
-        io: The reader or writer.
-        x: The variant.
-
-    Raises:
-        If the input is malformed or a value is invalid.
-    """
+    """Marshals the arm a variant of `Marshaler` structs currently holds."""
     comptime for i in range(len(Ts)):
         if x.isa[Ts[i]]():
             x[Ts[i]].marshal(io)

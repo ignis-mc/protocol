@@ -90,17 +90,7 @@ struct MapTrackedObject(Marshaler):
         self.block_position = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the object.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or the type is unknown.
-        """
+        """Reads or writes the object."""
         io.int32(self.type)
         optional_actor_unique_id(io, self.entity_unique_id)
         optional_block_pos(io, self.block_position)
@@ -137,17 +127,7 @@ struct MapDecoration(Marshaler):
         self.colour = RGBA()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the decoration.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the decoration."""
         io.uint8(self.type)
         io.uint8(self.rotation)
         io.uint8(self.x)
@@ -170,16 +150,6 @@ struct PixelRequest(Marshaler):
         self.index = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the request.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the request."""
         rgba(io, self.colour)
         io.uint16(self.index)

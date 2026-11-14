@@ -31,18 +31,7 @@ struct NetworkChunkPublisherUpdate(Packet):
         self.saved_chunks = List[ChunkPos]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or there are more than 9216 saved
-            chunks.
-        """
+        """Reads or writes the packet's fields."""
         block_pos(io, self.position)
         io.varuint32(self.radius)
         var count = UInt32(len(self.saved_chunks))

@@ -34,17 +34,7 @@ struct PlayerLocation(Packet):
         self.position = Vec3()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the type is unknown or the input is malformed.
-        """
+        """Reads or writes the packet's fields."""
         actor_unique_id(io, self.entity_unique_id)
         var variant = UInt32(self.type)  # Go: IntegerFunc(..., Varuint32)
         io.varuint32(variant)

@@ -242,17 +242,7 @@ struct MemoryCategoryCounter(Marshaler):
         self.bytes = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.uint8(self.category)
         io.uint64(self.bytes)
 
@@ -283,17 +273,7 @@ struct EntityDiagnosticTimingInfo(Marshaler):
         self.dimension = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.display_name)
         io.string(self.entity)
         io.uint64(self.duration_nanos)
@@ -322,17 +302,7 @@ struct SystemDiagnosticTimingInfo(Marshaler):
         self.percent_of_total = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.display_name)
         io.uint64(self.system_index)
         io.uint64(self.duration_nanos)
@@ -353,17 +323,7 @@ struct SystemCategory(Marshaler):
         self.system_index = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.category_name)
         io.uint64(self.system_index)
 
@@ -391,17 +351,7 @@ struct WhiskerScopeDataSummary(Marshaler):
         self.total_low_cost_ns = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.string(self.label)
         io.string(self.indentation)
         io.uint64(self.total_high_cost_ns)

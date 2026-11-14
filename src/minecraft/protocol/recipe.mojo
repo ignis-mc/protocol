@@ -46,17 +46,7 @@ struct PotionContainerChangeRecipe(Marshaler):
         self.output_item_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         io.varint32(self.input_item_id)
         io.varint32(self.reagent_item_id)
         io.varint32(self.output_item_id)
@@ -89,17 +79,7 @@ struct PotionRecipe(Marshaler):
         self.output_potion_metadata = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         io.varint32(self.input_potion_id)
         io.varint32(self.input_potion_metadata)
         io.varint32(self.reagent_item_id)
@@ -122,17 +102,7 @@ struct RecipeUnlockRequirement(Marshaler):
         self.ingredients = List[ItemDescriptorCount]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the requirement.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the requirement."""
         io.varint32(self.context)
         var present = self.context == RECIPE_UNLOCK_CONTEXT_NONE
         io.bool(present)
@@ -172,17 +142,7 @@ struct ShapelessRecipe(Marshaler):
         self.recipe_network_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         io.string(self.recipe_id)
         slice(io, self.input)
         slice(io, self.output)
@@ -243,18 +203,7 @@ struct ShapedRecipe(Marshaler):
         self.recipe_network_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the ingredient count is not `width * height`, or the input is
-            malformed.
-        """
+        """Reads or writes the recipe."""
         io.string(self.recipe_id)
         io.varint32(self.width)
         io.varint32(self.height)
@@ -292,17 +241,7 @@ struct MultiRecipe(Marshaler):
         self.recipe_network_id = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         uuid(io, self.uuid)
         io.varuint32(self.recipe_network_id)
 
@@ -336,17 +275,7 @@ struct SmithingTransformRecipe(Marshaler):
         self.block = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         io.string(self.recipe_id)
         item_descriptor_count(io, self.template)
         item_descriptor_count(io, self.base)
@@ -382,17 +311,7 @@ struct SmithingTrimRecipe(Marshaler):
         self.block = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the recipe.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the recipe."""
         io.string(self.recipe_id)
         item_descriptor_count(io, self.template)
         item_descriptor_count(io, self.base)

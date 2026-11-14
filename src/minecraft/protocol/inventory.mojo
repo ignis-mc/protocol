@@ -120,17 +120,7 @@ struct InventoryAction(Marshaler):
         self.new_item = ItemInstance()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the action.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the action."""
         io.varuint32(self.source_type)
         _optional_int8(io, self.window_id)
         _optional_varuint32(io, self.source_flags)
@@ -159,17 +149,7 @@ struct NormalTransactionData(InventoryTransactionDataKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes nothing: the data has no fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            Never; `Marshaler` requires the signature.
-        """
+        """Reads or writes nothing: the data has no fields."""
         pass
 
 
@@ -184,17 +164,7 @@ struct MismatchTransactionData(InventoryTransactionDataKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes nothing: the data has no fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            Never; `Marshaler` requires the signature.
-        """
+        """Reads or writes nothing: the data has no fields."""
         pass
 
 
@@ -258,17 +228,7 @@ struct UseItemTransactionData(InventoryTransactionDataKind):
         self.client_cooldown_state = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the transaction data fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the transaction data fields."""
         var action_type = Int32(self.action_type)
         io.varint32(action_type)
         self.action_type = UInt32(action_type)
@@ -320,17 +280,7 @@ struct UseItemOnEntityTransactionData(InventoryTransactionDataKind):
         self.clicked_position = Vec3()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the data."""
         actor_runtime_id(io, self.target_entity_runtime_id)
         io.varint32(self.action_type)
         io.varint32(self.hot_bar_slot)
@@ -365,17 +315,7 @@ struct ReleaseItemTransactionData(InventoryTransactionDataKind):
         self.hand = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the data."""
         io.varint32(self.action_type)
         io.varint32(self.hot_bar_slot)
         item_instance(io, self.held_item)
@@ -408,21 +348,11 @@ struct InventoryTransactionData(Marshaler):
 
     @implicit
     def __init__[T: InventoryTransactionDataKind](out self, var value: T):
-        """Wraps concrete data.
-
-        Parameters:
-            T: The data type.
-
-        Args:
-            value: The data.
-        """
+        """Wraps concrete data."""
         self.value = Self.Kinds(value^)
 
     def type_id(self) -> UInt32:
         """Gets the type ID of the held data (Go `lookupTransactionDataType`).
-
-        Returns:
-            One of the `INVENTORY_TRANSACTION_TYPE_*` constants.
         """
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[
@@ -434,14 +364,7 @@ struct InventoryTransactionData(Marshaler):
 
     @staticmethod
     def from_type(id: UInt32) -> Optional[InventoryTransactionData]:
-        """Creates empty data of a type (Go `lookupTransactionData`).
-
-        Args:
-            id: One of the `INVENTORY_TRANSACTION_TYPE_*` constants.
-
-        Returns:
-            The data, or `None` for an unknown type ID.
-        """
+        """Creates empty data of a type (Go `lookupTransactionData`)."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[
                 Self.Kinds.Ts[i], InventoryTransactionDataKind
@@ -451,17 +374,7 @@ struct InventoryTransactionData(Marshaler):
         return None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the held data.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the held data."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[
                 Self.Kinds.Ts[i], InventoryTransactionDataKind
@@ -480,16 +393,6 @@ def transaction_data_type[
 
     A reader replaces `x` with empty data of the decoded type, to be filled
     by `x.marshal` later.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the type ID is unknown or the input is malformed.
     """
     var id = x.type_id()
     io.varuint32(id)
@@ -507,16 +410,6 @@ def player_inventory_action[
 
     This is gophertunnel `IO.PlayerInventoryAction`, used by
     `PlayerAuthInput`.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the input is malformed or a value is invalid.
     """
     io.varint32(x.legacy_request_id)
     var present = x.legacy_set_item_slots is not None
@@ -547,27 +440,12 @@ struct LegacySetItemSlot(Marshaler):
         self.slots = List[UInt8]()
 
     def __init__(out self, container_id: UInt8, var slots: List[UInt8]):
-        """Creates a slot list.
-
-        Args:
-            container_id: The container ID.
-            slots: The changed slots.
-        """
+        """Creates a slot list."""
         self.container_id = container_id
         self.slots = slots^
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the slot list.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the slot list."""
         io.uint8(self.container_id)
         io.byte_slice(self.slots)
 

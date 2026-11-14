@@ -20,11 +20,7 @@ struct Bitset(Copyable, Defaultable, Equatable, Sized, Writable):
         self._words = List[UInt64]()
 
     def __init__(out self, size: Int):
-        """Creates a bit set of `size` bits, all unset (Go `NewBitset`).
-
-        Args:
-            size: The number of bits the set holds.
-        """
+        """Creates a bit set of `size` bits, all unset (Go `NewBitset`)."""
         self._size = size
         self._words = List[UInt64](length=(size + 63) // 64, fill=0)
 
@@ -33,69 +29,30 @@ struct Bitset(Copyable, Defaultable, Equatable, Sized, Writable):
             raise Error(t"bitset index {i} out of bounds (size {self._size})")
 
     def set(mut self, i: Int) raises:
-        """Sets bit `i`.
-
-        Args:
-            i: The bit index.
-
-        Raises:
-            If `i` is not below the size.
-        """
+        """Sets bit `i`."""
         self._check(i)
         self._words[i // 64] |= UInt64(1) << UInt64(i % 64)
 
     def unset(mut self, i: Int) raises:
-        """Clears bit `i`.
-
-        Args:
-            i: The bit index.
-
-        Raises:
-            If `i` is not below the size.
-        """
+        """Clears bit `i`."""
         self._check(i)
         self._words[i // 64] &= ~(UInt64(1) << UInt64(i % 64))
 
     def load(self, i: Int) raises -> Bool:
-        """Reports whether bit `i` is set.
-
-        Args:
-            i: The bit index.
-
-        Returns:
-            `True` if the bit is set.
-
-        Raises:
-            If `i` is not below the size.
-        """
+        """Reports whether bit `i` is set."""
         self._check(i)
         return (self._words[i // 64] >> UInt64(i % 64)) & 1 == 1
 
     def __len__(self) -> Int:
-        """Gets the size of the set (Go `Len`).
-
-        Returns:
-            The number of bits the set holds.
-        """
+        """Gets the size of the set (Go `Len`)."""
         return self._size
 
     def __eq__(self, other: Self) -> Bool:
-        """Compares size and bits.
-
-        Args:
-            other: The other set.
-
-        Returns:
-            `True` if both have the same size and bits.
-        """
+        """Compares size and bits."""
         return self._size == other._size and self._words == other._words
 
     def write_to(self, mut writer: Some[Writer]):
-        """Writes the set bits as `Bitset(size){i, j, ...}`.
-
-        Args:
-            writer: The destination.
-        """
+        """Writes the set bits as `Bitset(size){i, j, ...}`."""
         writer.write("Bitset(", self._size, "){")
         var first = True
         for i in range(self._size):
@@ -121,18 +78,6 @@ def bitset[I: IO](mut io: I, mut x: Bitset, size: Int) raises:
 
     This is gophertunnel `IO.Bitset`, including its reader's overflow rule:
     a byte may not reach past `size` counting its continuation bit.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The bit set; replaced by a set of `size` bits when reading.
-        size: The number of bits on the wire.
-
-    Raises:
-        If the set's size differs from `size` when writing, or the varint
-        overflows `size` bits or is truncated when reading.
     """
     if io.reads():
         x = Bitset(size)

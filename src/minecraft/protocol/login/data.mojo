@@ -73,17 +73,7 @@ struct IdentityData(Copyable, Defaultable):
     @staticmethod
     def decode(obj: Dict[String, String]) raises -> IdentityData:
         """Decodes the legacy chain's `extraData` object. The PlayFab fields
-        are `json:"-"` in Go and stay empty.
-
-        Args:
-            obj: The object's members.
-
-        Returns:
-            The identity.
-
-        Raises:
-            Error: If a member has the wrong type.
-        """
+        are `json:"-"` in Go and stay empty."""
         var out = IdentityData()
         out.xuid = opt_string(obj, "XUID")
         out.identity = opt_string(obj, "identity")
@@ -92,11 +82,7 @@ struct IdentityData(Copyable, Defaultable):
         return out^
 
     def validate(self) raises:
-        """Checks the identity like gophertunnel's `IdentityData.Validate`.
-
-        Raises:
-            Error: Naming the first invalid field.
-        """
+        """Checks the identity like gophertunnel's `IdentityData.Validate`."""
         if self.xuid.byte_length() != 0 and not _parse_int64(self.xuid):
             raise Error(
                 t"XUID must be parseable as an int64, but got {self.xuid}"
@@ -190,17 +176,7 @@ struct SkinAnimation(Copyable, Defaultable):
 
     @staticmethod
     def decode(raw: StringSpan) raises -> SkinAnimation:
-        """Decodes one animation object.
-
-        Args:
-            raw: Its JSON text.
-
-        Returns:
-            The animation.
-
-        Raises:
-            Error: If it is not an object or a member has the wrong type.
-        """
+        """Decodes one animation object."""
         var obj = decode_object(raw.as_bytes())
         var a = SkinAnimation()
         a.frames = opt_float(obj, "Frames")
@@ -212,11 +188,7 @@ struct SkinAnimation(Copyable, Defaultable):
         return a^
 
     def to_json(self) -> String:
-        """Encodes the animation in gophertunnel's field order.
-
-        Returns:
-            The JSON object text.
-        """
+        """Encodes the animation in gophertunnel's field order."""
         var o = String('{"Frames":')
         o += _go_float(self.frames)
         o += ","
@@ -252,17 +224,7 @@ struct PersonaPiece(Copyable, Defaultable):
 
     @staticmethod
     def decode(raw: StringSpan) raises -> PersonaPiece:
-        """Decodes one piece object.
-
-        Args:
-            raw: Its JSON text.
-
-        Returns:
-            The piece.
-
-        Raises:
-            Error: If it is not an object or a member has the wrong type.
-        """
+        """Decodes one piece object."""
         var obj = decode_object(raw.as_bytes())
         var p = PersonaPiece()
         p.default = opt_bool(obj, "IsDefault")
@@ -273,11 +235,7 @@ struct PersonaPiece(Copyable, Defaultable):
         return p^
 
     def to_json(self) -> String:
-        """Encodes the piece in gophertunnel's field order.
-
-        Returns:
-            The JSON object text.
-        """
+        """Encodes the piece in gophertunnel's field order."""
         var o = String("{")
         _field_bool(o, "IsDefault", self.default)
         _field(o, "PackId", self.pack_id)
@@ -307,17 +265,7 @@ struct PersonaPieceTintColour(Copyable, Defaultable):
     @staticmethod
     def decode(raw: StringSpan) raises -> PersonaPieceTintColour:
         """Decodes one tint object; like a Go `[4]string`, extra colours are
-        dropped and missing ones stay empty.
-
-        Args:
-            raw: Its JSON text.
-
-        Returns:
-            The tint.
-
-        Raises:
-            Error: If it is not an object or a member has the wrong type.
-        """
+        dropped and missing ones stay empty."""
         var obj = decode_object(raw.as_bytes())
         var t = PersonaPieceTintColour()
         if case .Some(colours) = lookup(obj, "Colors"):
@@ -329,11 +277,7 @@ struct PersonaPieceTintColour(Copyable, Defaultable):
         return t^
 
     def to_json(self) -> String:
-        """Encodes the tint in gophertunnel's field order.
-
-        Returns:
-            The JSON object text.
-        """
+        """Encodes the tint in gophertunnel's field order."""
         var o = String('{"Colors":[')
         for i in range(4):
             if i > 0:
@@ -513,11 +457,7 @@ struct ClientData(Copyable, Defaultable):
 
     def to_json(self) -> String:
         """Encodes the data as the JWT claims object, in gophertunnel's field
-        order and with its JSON names.
-
-        Returns:
-            The JSON object text.
-        """
+        order and with its JSON names."""
         var o = String('{"AnimatedImageData":[')
         for i in range(len(self.animated_image_data)):
             if i > 0:
@@ -603,18 +543,7 @@ struct ClientData(Copyable, Defaultable):
 
     @staticmethod
     def decode(payload: Span[UInt8, _]) raises -> ClientData:
-        """Decodes the client data claims as Go's `json.Unmarshal` would.
-
-        Args:
-            payload: The verified JWT payload.
-
-        Returns:
-            The client data.
-
-        Raises:
-            Error: If the payload is not a JSON object or a member has the
-                wrong type.
-        """
+        """Decodes the client data claims as Go's `json.Unmarshal` would."""
         var obj = decode_object(payload)
         var d = ClientData()
         if case .Some(raw) = lookup(obj, "AnimatedImageData"):
@@ -685,11 +614,7 @@ struct ClientData(Copyable, Defaultable):
         return d^
 
     def validate(self) raises:
-        """Checks the data like gophertunnel's `ClientData.Validate`.
-
-        Raises:
-            Error: Naming the first invalid field.
-        """
+        """Checks the data like gophertunnel's `ClientData.Validate`."""
         if self.device_os <= 0 or self.device_os > 15:
             raise Error(
                 t"DeviceOS must carry a value between 1 and 15, but got"

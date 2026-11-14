@@ -17,17 +17,7 @@ struct IntegerEntityProperty(Marshaler):
         self.value = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the property.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the property."""
         io.varuint32(self.index)
         io.varint32(self.value)
 
@@ -46,17 +36,7 @@ struct FloatEntityProperty(Marshaler):
         self.value = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the property.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the property."""
         io.varuint32(self.index)
         io.float32(self.value)
 
@@ -75,16 +55,6 @@ struct EntityProperties(Marshaler):
         self.float_properties = List[FloatEntityProperty]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes both property lists.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes both property lists."""
         slice(io, self.integer_properties)
         slice(io, self.float_properties)

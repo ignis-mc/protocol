@@ -12,17 +12,7 @@ comptime DEFAULT_LEEWAY = 60
 
 
 def numeric_date(raw: StringSpan) raises -> Int:
-    """Decodes a `NumericDate` (go-jose `NumericDate.UnmarshalJSON`).
-
-    Args:
-        raw: The raw JSON value.
-
-    Returns:
-        Unix seconds, truncated toward zero.
-
-    Raises:
-        Error: If the value is not a number.
-    """
+    """Decodes a `NumericDate` (go-jose `NumericDate.UnmarshalJSON`)."""
     try:
         return Int(float_value(raw))
     except:
@@ -30,17 +20,7 @@ def numeric_date(raw: StringSpan) raises -> Int:
 
 
 def audience(raw: StringSpan) raises -> List[String]:
-    """Decodes an audience: one string or an array of strings.
-
-    Args:
-        raw: The raw JSON value.
-
-    Returns:
-        The audience list.
-
-    Raises:
-        Error: If the value is neither.
-    """
+    """Decodes an audience: one string or an array of strings."""
     var s = raw.strip()
     if s.byte_length() > 0 and s.as_bytes()[0] == 0x22:
         return [string_value(s)]
@@ -80,17 +60,7 @@ struct Claims(Copyable, Defaultable, Movable):
 
     @staticmethod
     def decode(obj: Dict[String, String]) raises -> Claims:
-        """Decodes the registered claims of a claim set.
-
-        Args:
-            obj: The claim set's members.
-
-        Returns:
-            The claims.
-
-        Raises:
-            Error: If a claim has the wrong type.
-        """
+        """Decodes the registered claims of a claim set."""
         var c = Claims()
         c.issuer = opt_string(obj, "iss")
         c.subject = opt_string(obj, "sub")
@@ -122,12 +92,7 @@ struct Expected(Copyable, Movable):
     """The validation time, Unix seconds."""
 
     def __init__(out self, time: Int, issuer: String = String()):
-        """Creates expectations for a time and, optionally, an issuer.
-
-        Args:
-            time: The validation time, Unix seconds.
-            issuer: The required issuer, or empty.
-        """
+        """Creates expectations for a time and, optionally, an issuer."""
         self.issuer = issuer
         self.subject = String()
         self.id = String()
@@ -138,16 +103,7 @@ struct Expected(Copyable, Movable):
 def validate_with_leeway(
     claims: Claims, expected: Expected, leeway: Int
 ) raises:
-    """Checks claims against expectations (go-jose `ValidateWithLeeway`).
-
-    Args:
-        claims: The claims.
-        expected: The expectations.
-        leeway: Allowed clock skew in seconds for `nbf`, `exp` and `iat`.
-
-    Raises:
-        Error: On the first failed check, with go-jose's message.
-    """
+    """Checks claims against expectations (go-jose `ValidateWithLeeway`)."""
     if expected.issuer.byte_length() > 0 and expected.issuer != claims.issuer:
         raise Error(
             "go-jose/go-jose/jwt: validation failed, invalid issuer claim (iss)"
@@ -197,13 +153,5 @@ def validate_with_leeway(
 
 def validate(claims: Claims, expected: Expected) raises:
     """Checks claims with the default one-minute leeway (go-jose
-    `Claims.Validate`).
-
-    Args:
-        claims: The claims.
-        expected: The expectations.
-
-    Raises:
-        Error: On the first failed check.
-    """
+    `Claims.Validate`)."""
     validate_with_leeway(claims, expected, DEFAULT_LEEWAY)

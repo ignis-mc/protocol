@@ -33,28 +33,13 @@ struct Encoder(Copyable, Defaultable):
         self.compression_threshold = 0
 
     def enable_compression(mut self, algorithm: UInt16, threshold: Int):
-        """Starts prefixing batches with an algorithm byte.
-
-        Args:
-            algorithm: A `COMPRESSION_ALGORITHM_*` value.
-            threshold: The smallest batch body that gets compressed.
-        """
+        """Starts prefixing batches with an algorithm byte."""
         self.compression_enabled = True
         self.compression = algorithm
         self.compression_threshold = threshold
 
     def encode(self, packets: List[List[UInt8]]) raises -> List[UInt8]:
-        """Builds one batch from encoded packets (header plus payload each).
-
-        Args:
-            packets: The packets, in order.
-
-        Returns:
-            The batch, ready to send as one NetherNet message.
-
-        Raises:
-            Error: If compression fails.
-        """
+        """Builds one batch from encoded packets (header plus payload each)."""
         var body = List[UInt8]()
         for i in range(len(packets)):
             _put_varuint32(body, UInt32(len(packets[i])))

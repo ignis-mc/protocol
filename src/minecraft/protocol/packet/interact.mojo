@@ -34,17 +34,7 @@ struct Interact(Packet):
         self.position = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.uint8(self.action_type)
         actor_runtime_id(io, self.target_entity_runtime_id)
         optional_vec3(io, self.position)

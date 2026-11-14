@@ -17,16 +17,6 @@ struct CacheBlob(Marshaler):
         self.payload = List[UInt8]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the blob.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the blob."""
         io.uint64(self.hash)
         io.byte_slice(self.payload)

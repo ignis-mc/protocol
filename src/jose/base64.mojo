@@ -86,32 +86,10 @@ def _decode(text: StringSpan, url: Bool, padded: Bool) raises -> List[UInt8]:
 
 
 def std_decode(text: StringSpan) raises -> List[UInt8]:
-    """Decodes like Go's `base64.StdEncoding.DecodeString`.
-
-    Args:
-        text: Standard-alphabet base64 with `=` padding.
-
-    Returns:
-        The decoded bytes.
-
-    Raises:
-        Error: On an invalid character, missing or misplaced padding, or a
-            truncated final group.
-    """
+    """Decodes like Go's `base64.StdEncoding.DecodeString`."""
     return _decode(text, False, True)
 
 
 def raw_url_decode(text: StringSpan) raises -> List[UInt8]:
-    """Decodes like Go's `base64.RawURLEncoding.DecodeString`.
-
-    Args:
-        text: URL-alphabet base64 without padding.
-
-    Returns:
-        The decoded bytes.
-
-    Raises:
-        Error: On an invalid character (including `=`) or a truncated final
-            group.
-    """
+    """Decodes like Go's `base64.RawURLEncoding.DecodeString`."""
     return _decode(text, True, False)

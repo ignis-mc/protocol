@@ -36,22 +36,14 @@ comptime LOOPBACK = 0x7F000001
 
 
 def fresh_key() raises -> List[UInt8]:
-    """Returns a new P-384 private scalar.
-
-    Returns:
-        48 bytes.
-    """
+    """Returns a new P-384 private scalar."""
     return List[UInt8](
         Span(p384_private_key_from_bytes(Span(random_bytes(56))))
     )
 
 
 def test_config() -> ListenConfig:
-    """Returns a loopback listener config without authentication.
-
-    Returns:
-        The config: no auth, no pack pacing.
-    """
+    """Returns a loopback listener config without authentication."""
     var config = ListenConfig()
     config.authentication_disabled = True
     config.nethernet.conn.bind_ip = LOOPBACK
@@ -60,15 +52,7 @@ def test_config() -> ListenConfig:
 
 
 def offline_login(name: String, key: Span[UInt8, _]) raises -> Login:
-    """Builds an offline `Login` signed with `key`.
-
-    Args:
-        name: The display name.
-        key: The P-384 private scalar.
-
-    Returns:
-        The packet.
-    """
+    """Builds an offline `Login` signed with `key`."""
     var identity = IdentityData()
     identity.display_name = name
     identity.identity = "c0ffee00-0000-4000-8000-000000000001"
@@ -87,16 +71,7 @@ def offline_login(name: String, key: Span[UInt8, _]) raises -> Login:
 def dial_listener(
     mut listener: Listener[StaticKeySet], key: List[UInt8], anonymous: Bool
 ) raises -> NetherNetConn:
-    """Opens a NetherNet connection to the listener, polling it meanwhile.
-
-    Args:
-        listener: The listener.
-        key: The client's identity key.
-        anonymous: Whether to offer without an identity.
-
-    Returns:
-        The open connection.
-    """
+    """Opens a NetherNet connection to the listener, polling it meanwhile."""
     var signaling = EndpointClient(listener.addr())
     var dial = DialConfig()
     dial.conn.bind_ip = LOOPBACK
@@ -136,13 +111,7 @@ struct Harness(Movable):
         var verifier: Optional[IDTokenVerifier[StaticKeySet]] = None,
         anonymous: Bool = False,
     ) raises:
-        """Starts a listener and dials it.
-
-        Args:
-            config: The listener settings.
-            verifier: The token verifier, for authentication tests.
-            anonymous: Whether the client offers without an identity.
-        """
+        """Starts a listener and dials it."""
         var listener = config.listen_with_verifier("127.0.0.1:0", verifier^)
         var key = fresh_key()
         var transport = dial_listener(listener, key, anonymous)
@@ -166,11 +135,7 @@ struct Harness(Movable):
         self.inbox.clear()
 
     def pump(mut self, ms: Int) raises:
-        """Drives the listener, the client and accepted connections.
-
-        Args:
-            ms: How long to run.
-        """
+        """Drives the listener, the client and accepted connections."""
         var deadline = monotonic_ms() + ms
         while True:
             self.step()
@@ -204,14 +169,7 @@ struct Harness(Movable):
                 self.inbox.append(PacketData.parse(Span(raw)))
 
     def send[P: Packet](mut self, mut pk: P) raises:
-        """Sends one packet in its own batch.
-
-        Parameters:
-            P: The packet type.
-
-        Args:
-            pk: The packet.
-        """
+        """Sends one packet in its own batch."""
         var packets = List[List[UInt8]]()
         packets.append(encode_packet(pk))
         var batch = self.encoder.encode(packets)
@@ -219,14 +177,7 @@ struct Harness(Movable):
         self.transport.poll(monotonic_ms())
 
     def next(mut self, timeout_ms: Int = 5000) raises -> PacketData:
-        """Waits for the next packet from the server.
-
-        Args:
-            timeout_ms: The longest time to wait.
-
-        Returns:
-            The packet.
-        """
+        """Waits for the next packet from the server."""
         var deadline = monotonic_ms() + timeout_ms
         while len(self.inbox) == 0:
             if monotonic_ms() > deadline:
@@ -235,25 +186,14 @@ struct Harness(Movable):
         return self.inbox.pop(0)
 
     def expect[P: Packet](mut self) raises -> P:
-        """Waits for the next packet and decodes it as `P`.
-
-        Parameters:
-            P: The packet type expected.
-
-        Returns:
-            The packet.
-        """
+        """Waits for the next packet and decodes it as `P`."""
         var pk = self.next()
         if pk.id() != P.ID:
             raise Error(t"harness: expected packet {P.ID}, got {pk.id()}")
         return pk.decode[P](0, False)
 
     def network_settings(mut self) raises -> NetworkSettings:
-        """Requests network settings and turns compression on.
-
-        Returns:
-            The server's `NetworkSettings`.
-        """
+        """Requests network settings and turns compression on."""
         var rns = RequestNetworkSettings()
         rns.client_protocol = CURRENT_PROTOCOL
         self.send(rns)
@@ -266,10 +206,6 @@ struct Harness(Movable):
         return settings^
 
     def login(mut self, name: String) raises:
-        """Sends an offline `Login` signed with the dialing identity key.
-
-        Args:
-            name: The display name.
-        """
+        """Sends an offline `Login` signed with the dialing identity key."""
         var login = offline_login(name, Span(self.key))
         self.send(login)

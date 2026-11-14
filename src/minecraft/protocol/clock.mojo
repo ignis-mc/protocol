@@ -29,17 +29,7 @@ struct SyncWorldClockStateData(Marshaler):
         self.paused = False
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.varuint64(self.clock_id)
         io.varint32(self.time)
         io.bool(self.paused)
@@ -65,17 +55,7 @@ struct TimeMarkerData(Marshaler):
         self.period = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.varuint64(self.id)
         io.string(self.name)
         io.varint32(self.time)
@@ -105,17 +85,7 @@ struct WorldClockData(Marshaler):
         self.time_markers = List[TimeMarkerData]()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the value.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the value."""
         io.varuint64(self.id)
         io.string(self.name)
         io.varint32(self.time)

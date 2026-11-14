@@ -381,11 +381,7 @@ def test_rejects_unknown_encoding() raises:
 
 
 def _agree(data: List[UInt8], enc: Int) raises -> Bool:
-    """Runs nbt() and decode_from() on `data` and checks they agree.
-
-    Returns:
-        Whether both accepted the input.
-    """
+    """Runs nbt() and decode_from() on `data` and checks they agree."""
     var raw_ok = True
     var raw = NBT()
     var consumed = 0

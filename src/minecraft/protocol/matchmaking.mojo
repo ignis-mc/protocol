@@ -17,16 +17,6 @@ struct MatchmakingStateOptions(Marshaler):
         self.triggered_by_local_player = None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the options.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the options."""
         optional_string(io, self.triggering_player_name)
         optional_bool(io, self.triggered_by_local_player)

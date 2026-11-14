@@ -36,17 +36,7 @@ struct CreativeGroup(Marshaler):
         self.icon = ItemStack()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the group.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the group."""
         io.uint8(self.category)
         io.string(self.name)
         item(io, self.icon)
@@ -69,17 +59,7 @@ struct CreativeItem(Marshaler):
         self.group_index = 0
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the creative item.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the creative item."""
         io.varuint32(self.creative_item_network_id)
         item(io, self.item)
         io.varuint32(self.group_index)

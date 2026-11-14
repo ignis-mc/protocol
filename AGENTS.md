@@ -128,8 +128,10 @@ The goal is that a reader can put a Go file and its Mojo port side by side.
   abort on network input.
 - **Limits**: keep every Go length limit (`r.SliceLimit`, `MaxSliceLength`
   checks) via `io.slice_length(n, max)`; the reader enforces them.
-- Comments: keep Go's doc comments as docstrings, shortened. Every public
-  symbol needs one (`pixi run lint-docs`). Module docstrings name the Go file.
+- Docstrings are short: one line, taken from Go's doc comment and
+  shortened; more only when something is genuinely not obvious. Never write
+  `Args:`, `Returns:`, `Raises:` or `Parameters:` sections. Module
+  docstrings name the Go file.
 
 ## Architecture
 

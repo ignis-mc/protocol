@@ -41,18 +41,7 @@ from .tree import Tree
 
 
 def encode(tree: Tree, encoding: Int) raises -> List[UInt8]:
-    """Encodes a tree (gophertunnel `MarshalEncoding`).
-
-    Args:
-        tree: The value; an empty tree encodes as a single `TAG_End` byte.
-        encoding: One of the encoding constants.
-
-    Returns:
-        The encoded root tag.
-
-    Raises:
-        If a value exceeds a limit.
-    """
+    """Encodes a tree (gophertunnel `MarshalEncoding`)."""
     var out = List[UInt8]()
     encode_to(tree, encoding, out)
     return out^
@@ -60,14 +49,6 @@ def encode(tree: Tree, encoding: Int) raises -> List[UInt8]:
 
 def encode_to(tree: Tree, encoding: Int, mut out: List[UInt8]) raises:
     """Appends the encoding of a tree to `out` (gophertunnel `Encoder.Encode`).
-
-    Args:
-        tree: The value.
-        encoding: One of the encoding constants.
-        out: The destination; unchanged if encoding fails.
-
-    Raises:
-        If a value exceeds a limit.
     """
     check_encoding(encoding)
     var buf = List[UInt8]()
@@ -81,18 +62,7 @@ def encode_to(tree: Tree, encoding: Int, mut out: List[UInt8]) raises:
 
 
 def to_nbt(tree: Tree, encoding: Int) raises -> NBT:
-    """Encodes a tree into a raw `NBT` value for a packet field.
-
-    Args:
-        tree: The value.
-        encoding: The encoding the packet uses.
-
-    Returns:
-        The encoded value.
-
-    Raises:
-        If a value exceeds a limit.
-    """
+    """Encodes a tree into a raw `NBT` value for a packet field."""
     return NBT(encode(tree, encoding), encoding)
 
 

@@ -312,17 +312,7 @@ struct Disconnect(Packet):
         self.filtered_message = String()
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the packet's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the packet's fields."""
         io.varint32(self.reason)
         io.bool(self.hide_disconnection_screen)
         if not self.hide_disconnection_screen:

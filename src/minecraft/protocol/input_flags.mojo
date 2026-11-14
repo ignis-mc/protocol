@@ -24,9 +24,6 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
 
     def __init__(out self, size: Int):
         """Creates flags in the range [0, size), none set (Go `NewInputFlags`).
-
-        Args:
-            size: The number of flags.
         """
         self._set = True
         self._size = size
@@ -37,16 +34,6 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
         """Creates flags with the IDs given set (Go `NewInputFlagsFromIDs`).
 
         Duplicate IDs are ignored.
-
-        Args:
-            size: The number of flags.
-            ids: The IDs to set.
-
-        Returns:
-            The flags.
-
-        Raises:
-            If an ID is outside [0, size).
         """
         var flags = InputFlags(size)
         for id in ids:
@@ -58,25 +45,11 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
             raise Error(t"input flag {i} out of bounds (size {self._size})")
 
     def present(self) -> Bool:
-        """Reports whether the value holds flags at all.
-
-        Returns:
-            `False` for the zero value, which reports every flag unset.
-        """
+        """Reports whether the value holds flags at all."""
         return self._set
 
     def load(self, i: Int) raises -> Bool:
-        """Reports whether flag `i` is set.
-
-        Args:
-            i: The flag index.
-
-        Returns:
-            `True` if the flag is set; `False` for an absent value.
-
-        Raises:
-            If `i` is outside the range.
-        """
+        """Reports whether flag `i` is set."""
         if not self._set:
             return False
         self._check(i)
@@ -86,12 +59,6 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
         """Sets flag `i` and marks the value present.
 
         Setting a flag that is already set does nothing.
-
-        Args:
-            i: The flag index.
-
-        Raises:
-            If `i` is outside the range.
         """
         self._check(i)
         self._set = True
@@ -99,14 +66,7 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
             self._ids.append(Int32(i))
 
     def unset(mut self, i: Int) raises:
-        """Clears flag `i`; does nothing for an absent value.
-
-        Args:
-            i: The flag index.
-
-        Raises:
-            If `i` is outside the range.
-        """
+        """Clears flag `i`; does nothing for an absent value."""
         if not self._set:
             return
         self._check(i)
@@ -116,30 +76,15 @@ struct InputFlags(Copyable, Defaultable, Equatable, Sized):
                 return
 
     def ids(self) -> Span[Int32, origin_of(self._ids)]:
-        """Gets the set IDs in insertion (wire) order.
-
-        Returns:
-            A view of the IDs.
-        """
+        """Gets the set IDs in insertion (wire) order."""
         return Span(self._ids)
 
     def __len__(self) -> Int:
-        """Gets the number of flags the value can hold (Go `Len`).
-
-        Returns:
-            The size.
-        """
+        """Gets the number of flags the value can hold (Go `Len`)."""
         return self._size
 
     def __eq__(self, other: Self) -> Bool:
-        """Compares presence, size and IDs in order.
-
-        Args:
-            other: The other value.
-
-        Returns:
-            `True` if all three are equal.
-        """
+        """Compares presence, size and IDs in order."""
         return (
             self._set == other._set
             and self._size == other._size
@@ -152,18 +97,6 @@ def input_flag_list[I: IO](mut io: I, mut x: InputFlags, size: Int) raises:
 
     This is gophertunnel `InputFlagList`. The IDs must be unique and in
     range, on both the reading and the writing side.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The flags; replaced by a sized value when reading.
-        size: The number of flags.
-
-    Raises:
-        If there are more IDs than `size`, an ID is out of range or repeated,
-        or the input is malformed.
     """
     # The count is checked before reading, so a peer cannot claim far more
     # flags than can legally be sent.

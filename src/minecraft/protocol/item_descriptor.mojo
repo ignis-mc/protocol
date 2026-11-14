@@ -49,17 +49,7 @@ struct InvalidItemDescriptor(ItemDescriptorKind):
         pass
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes nothing: the descriptor has no fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            Never; `Marshaler` requires the signature.
-        """
+        """Reads or writes nothing: the descriptor has no fields."""
         pass
 
 
@@ -81,27 +71,12 @@ struct DefaultItemDescriptor(ItemDescriptorKind):
         self.metadata_value = 0
 
     def __init__(out self, var name: String, metadata_value: Int32):
-        """Creates a descriptor.
-
-        Args:
-            name: The item identifier.
-            metadata_value: The metadata value.
-        """
+        """Creates a descriptor."""
         self.name = name^
         self.metadata_value = metadata_value
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the descriptor.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the descriptor."""
         io.string(self.name)
         io.varint32(self.metadata_value)
 
@@ -124,27 +99,12 @@ struct MoLangItemDescriptor(ItemDescriptorKind):
         self.version = 0
 
     def __init__(out self, var expression: String, version: Int16):
-        """Creates a descriptor.
-
-        Args:
-            expression: The MoLang expression.
-            version: The MoLang version.
-        """
+        """Creates a descriptor."""
         self.expression = expression^
         self.version = version
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the descriptor.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the descriptor."""
         io.string(self.expression)
         io.int16(self.version)
 
@@ -164,25 +124,11 @@ struct ItemTagItemDescriptor(ItemDescriptorKind):
         self.tag = String()
 
     def __init__(out self, var tag: String):
-        """Creates a descriptor.
-
-        Args:
-            tag: The item tag.
-        """
+        """Creates a descriptor."""
         self.tag = tag^
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the descriptor.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the descriptor."""
         io.string(self.tag)
 
 
@@ -209,22 +155,11 @@ struct ItemDescriptor(Marshaler):
 
     @implicit
     def __init__[T: ItemDescriptorKind](out self, var value: T):
-        """Wraps a concrete descriptor.
-
-        Parameters:
-            T: The descriptor type.
-
-        Args:
-            value: The descriptor.
-        """
+        """Wraps a concrete descriptor."""
         self.value = Self.Kinds(value^)
 
     def type_id(self) -> UInt8:
-        """Gets the type ID of the held descriptor.
-
-        Returns:
-            One of the `ITEM_DESCRIPTOR_*` constants.
-        """
+        """Gets the type ID of the held descriptor."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], ItemDescriptorKind]
             if self.value.isa[T]():
@@ -232,11 +167,7 @@ struct ItemDescriptor(Marshaler):
         return ITEM_DESCRIPTOR_INVALID
 
     def type_name(self) -> String:
-        """Gets the name of the held descriptor in the default encoding.
-
-        Returns:
-            `empty`, `name`, `molang` or `item_tag`.
-        """
+        """Gets the name of the held descriptor in the default encoding."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], ItemDescriptorKind]
             if self.value.isa[T]():
@@ -246,12 +177,6 @@ struct ItemDescriptor(Marshaler):
     @staticmethod
     def from_type(id: UInt8) -> Optional[ItemDescriptor]:
         """Creates an empty descriptor of a type (Go `itemDescriptorFromType`).
-
-        Args:
-            id: One of the `ITEM_DESCRIPTOR_*` constants.
-
-        Returns:
-            The descriptor, or `None` for an unknown type ID.
         """
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], ItemDescriptorKind]
@@ -260,17 +185,7 @@ struct ItemDescriptor(Marshaler):
         return None
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the held descriptor's fields.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the held descriptor's fields."""
         comptime for i in range(len(Self.Kinds.Ts)):
             comptime T = downcast[Self.Kinds.Ts[i], ItemDescriptorKind]
             if self.value.isa[T]():
@@ -295,27 +210,12 @@ struct ItemDescriptorCount(Marshaler):
         self.count = 0
 
     def __init__(out self, var descriptor: ItemDescriptor, count: Int32):
-        """Creates a descriptor with a count.
-
-        Args:
-            descriptor: The descriptor.
-            count: The count.
-        """
+        """Creates a descriptor with a count."""
         self.descriptor = descriptor^
         self.count = count
 
     def marshal[I: IO](mut self, mut io: I) raises:
-        """Reads or writes the descriptor in the default encoding.
-
-        Parameters:
-            I: The reader or writer type.
-
-        Args:
-            io: The reader or writer.
-
-        Raises:
-            If the input is malformed or a value is invalid.
-        """
+        """Reads or writes the descriptor in the default encoding."""
         item_descriptor_count(io, self)
 
 
@@ -328,17 +228,6 @@ def item_descriptor_count[I: IO](mut io: I, mut x: ItemDescriptorCount) raises:
     are sent as the default variant followed by their name. The aux value
     after invalid and item tag descriptors is written as 32767 and ignored
     when reading.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the variant or descriptor name is unknown, or the input is
-        malformed.
     """
     var variant = UInt32(min(x.descriptor.type_id(), ITEM_DESCRIPTOR_DEFAULT))
     io.varuint32(variant)
@@ -380,16 +269,6 @@ def stack_request_item_descriptor_count[
 
     This is gophertunnel `StackRequestItemDescriptorCount`: a varuint32
     variant, the same ID as a byte, the descriptor and a `uint16` count.
-
-    Parameters:
-        I: The reader or writer type.
-
-    Args:
-        io: The reader or writer.
-        x: The value.
-
-    Raises:
-        If the descriptor type is unknown or the input is malformed.
     """
     var id = x.descriptor.type_id()
     var variant = UInt32(id)
